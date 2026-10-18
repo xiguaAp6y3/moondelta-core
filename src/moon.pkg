@@ -1,0 +1,6 @@
+import {
+  "xiguaAp6y3/moondelta-core/vendor/parquet",
+  "moonbitlang/core/json",
+  "moonbitlang/core/string",
+  "moonbitlang/x/fs",
+}
