@@ -1,0 +1,5 @@
+import {
+  "xiguaAp6y3/moondelta-core" @delta,
+}
+
+pkgtype(kind: "executable")
