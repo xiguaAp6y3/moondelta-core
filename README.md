@@ -7,6 +7,8 @@ MoonBit 原生的 **Delta Lake 表格式内核**：回放 `_delta_log` 事务日
 > 生态里已经有 Parquet 编解码、DataFrame、对 Parquet 跑 SQL 的查询引擎、Iceberg 只读——缺的是"带事务日志的表"这一层。本项目补这一层。
 >
 > 参赛申报书：[申报书.md](申报书.md) ｜ 第三方声明：[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
+>
+> 已发布：[mooncakes.io/docs/xiguaAp6y3/moondelta-core](https://mooncakes.io/docs/xiguaAp6y3/moondelta-core)（`moon add xiguaAp6y3/moondelta-core`）
 
 ## 状态
 
@@ -27,7 +29,10 @@ MVP（0.1.0）：
 要求：MoonBit 工具链（`moon` / `moonc`，建议 2026-10 之后的版本）。
 
 ```bash
-# 从源码构建
+# 从 mooncakes.io 安装（v0.1.0 已发布）
+moon add xiguaAp6y3/moondelta-core
+
+# 或从源码构建
 moon check --target native
 moon test --target native
 
