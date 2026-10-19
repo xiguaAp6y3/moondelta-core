@@ -18,9 +18,9 @@ MVP（0.1.0）：
 -  快照、版本历史、时间旅行（`snapshot_at`）
 -  扫描规划：分区等值过滤 + 文件级 min/max 统计剪枝
 -  读取：flat schema + UNCOMPRESSED/SNAPPY 的 Delta 数据文件
--  写入：`create_table` + `append_rows`（Int32/Int64/String/Binary，Required/Optional）
+-  写入：`create_table` + `append_rows`（Int32/Int64/String/Binary/Boolean/Double，Required/Optional）；分区列读取时按 `partitionValues` 补齐
 -  CLI：`inspect / history / scan / read / create / version`
--  10 个单元测试 + 真实 Delta 表 fixture（delta-rs、apache/parquet-testing）
+-  14 个单元测试（含分区读/过滤、统计剪枝边界、缺失数据文件、嵌套列拒绝等负向用例）+ 真实 Delta 表 fixture（delta-rs、apache/parquet-testing）
 
 已用真实数据验证：delta-rs `table_a`（13 个版本回放 → 120 个文件）、Databricks 写出的 COVID-19_NYT 表（157,865 行 6 列，snappy）。
 
@@ -95,7 +95,7 @@ let columns : Array[@delta.ReadColumn] = [
 | 压缩 | UNCOMPRESSED、SNAPPY | ZSTD、GZIP、BROTLI、LZ4 |
 | 逻辑类型 | string、int、long、float、double、boolean、date、timestamp(INT96) | decimal、uuid 等（会丢语义） |
 | 表 | 日志完整、可从头回放的本地表 | checkpoint-only / 日志被截断的表 |
-| 写入类型 | Int32 / Int64 / String / Binary（Required/Optional） | Boolean / Float / Double / Timestamp / Repeated |
+| 写入类型 | Int32 / Int64 / String / Binary / Boolean / Double（Required/Optional） | Float / Timestamp / Repeated |
 | 写入表 | 非分区表 | 分区表 append（MVP 明确拒绝） |
 | 存储 | 本地文件系统 | 对象存储（S3/R2）、删除向量、列映射 |
 
@@ -103,7 +103,7 @@ let columns : Array[@delta.ReadColumn] = [
 
 ## 依赖说明：vendored parquet
 
-`mizchi/parquet@0.2.2` 声明了 `mizchi/duckdb@0.6.4`，后者仍使用旧版 `moon.mod.json`，当前 MoonBit 工具链会拒绝解析。该依赖只被上游的 DuckDB 演示子包使用，因此本项目把 parquet 的 `src/` 以 Apache-2.0 许可证 **vendored 到 `src/vendor/parquet`**，删除了 `cmd/duckdb_e2e` 与 `playground_bridge` 两个子包，reader/writer 实现未改动。详见 `src/vendor/parquet/NOTICE.md`。
+`mizchi/parquet@0.2.2` 声明了 `mizchi/duckdb@0.6.4`，后者仍使用旧版 `moon.mod.json`，当前 MoonBit 工具链会拒绝解析。该依赖只被上游的 DuckDB 演示子包使用，因此本项目把 parquet 的 `src/` 以 Apache-2.0 许可证 **vendored 到 `src/vendor/parquet`**，删除了 `cmd/duckdb_e2e` 与 `playground_bridge` 两个子包；reader 未改动，writer 扩展了 BOOLEAN / DOUBLE 写入（见 NOTICE）。详见 `src/vendor/parquet/NOTICE.md`。
 
 ## Fixtures 与数据来源
 
@@ -115,11 +115,11 @@ let columns : Array[@delta.ReadColumn] = [
 
 ## 路线图
 
-- 写入扩展：Double / Boolean / Timestamp 列
-- 读取扩展：ZSTD/GZIP/BROTLI 解压、嵌套 schema、checkpoint parquet 解析
-- 对象存储（S3/R2）抽象
-- 与 Arrow IPC / DataFrame / moonice（Iceberg）的互操作示例
-- 增量扫描与变更数据（CDF）读取
+完整路线图见 [docs/ROADMAP.md](docs/ROADMAP.md)，近期重点：
+
+- 0.2：ZSTD/GZIP/BROTLI 解压、checkpoint parquet 解析（嵌套）、分区表 append
+- 0.3：对象存储（S3/R2）抽象、变更数据（CDF）读取、Float/Timestamp 写入
+- 1.0：流式读取与 row-group 级剪枝、Arrow IPC / DataFrame / moonice 互操作
 
 ## 开发
 
