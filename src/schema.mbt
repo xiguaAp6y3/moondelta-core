@@ -138,6 +138,8 @@ pub fn is_writable_type(ty : DeltaType) -> Bool {
     Int64Type => true
     StringType => true
     BinaryType => true
+    BooleanType => true
+    DoubleType => true
     _ => false
   }
 }

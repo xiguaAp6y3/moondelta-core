@@ -10,13 +10,16 @@
 package still ships the legacy `moon.mod.json` manifest, which the current MoonBit
 toolchain (`moonc >= 0.10.15`) rejects ("no longer supported"). The dependency is only
 used by the upstream `src/cmd/duckdb_e2e` and `src/playground_bridge` sub-packages, so
-this vendored copy drops those two sub-packages and all DuckDB-related code. Nothing in
-the parquet reader/writer implementation itself was modified.
+this vendored copy drops those two sub-packages and all DuckDB-related code. The reader
+implementation is unchanged; the writer was extended in this repository (see below).
 
 ## Modifications vs upstream
 
 1. Removed `src/cmd/duckdb_e2e` and `src/playground_bridge` (DuckDB interoperability demos).
-2. No changes to reader/writer/encoding/metadata code.
+2. Extended `writer.mbt` to support `BOOLEAN` and `DOUBLE` columns (plain encoding:
+   bit-packed booleans, IEEE-754 little-endian doubles). Upstream only wrote
+   `INT32` / `INT64` / `BYTE_ARRAY` columns. No reader, encoding or metadata changes
+   were needed for this extension.
 
 ## License compliance
 

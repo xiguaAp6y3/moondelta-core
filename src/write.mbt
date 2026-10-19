@@ -48,9 +48,11 @@ fn parquet_type_of(ty : DeltaType) -> @parquet.ColumnType raise DeltaError {
     Int64Type => @parquet.Int64
     StringType => @parquet.String
     BinaryType => @parquet.Binary
+    BooleanType => @parquet.Boolean
+    DoubleType => @parquet.Double
     _ =>
       raise DeltaError::Unsupported(
-        "writer only supports int/long/string/binary columns; got \{delta_type_name(ty)}",
+        "writer only supports int/long/string/binary/boolean/double columns; got \{delta_type_name(ty)}",
       )
   }
 }
@@ -62,10 +64,12 @@ fn parquet_value_of(cell : Cell) -> @parquet.Value raise DeltaError {
     CellI64(x) => @parquet.Int64(x)
     CellStr(x) => @parquet.String(x)
     CellBin(x) => @parquet.Binary(x)
+    CellBool(x) => @parquet.Boolean(x)
+    CellF64(x) => @parquet.Double(x)
     CellNull => @parquet.Null
     _ =>
       raise DeltaError::Unsupported(
-        "writer only supports int/long/string/binary values",
+        "writer only supports int/long/string/binary/boolean/double values",
       )
   }
 }

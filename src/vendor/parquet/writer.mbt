@@ -15,7 +15,7 @@ fn assert_flat_supported(file : ParquetFile) -> Unit raise ParquetError {
       unsupported("Repeated columns are not supported by the writer yet")
     }
     match column.column_type {
-      Int32 | Int64 | String | Binary => ()
+      Int32 | Int64 | String | Binary | Boolean | Double => ()
       _ => unsupported("This column type is not supported by the writer yet")
     }
   }
@@ -78,6 +78,8 @@ fn writer_type_code(column_type : ColumnType) -> Int32 raise ParquetError {
     Int64 => parquet_type_int64
     String => parquet_type_byte_array
     Binary => parquet_type_byte_array
+    Boolean => parquet_type_boolean
+    Double => parquet_type_double
     TimestampMicros => {
       unsupported(
         "TIMESTAMP_MICROS columns are not supported by the writer yet",
@@ -92,10 +94,40 @@ fn writer_type_code(column_type : ColumnType) -> Int32 raise ParquetError {
 }
 
 ///|
+/// BOOLEAN 的 PLAIN 编码：按 LSB-first 位打包，8 个值一个字节，末尾补零。
+fn encode_plain_booleans(values : Array[Value]) -> Bytes raise ParquetError {
+  let sink = ByteSink::new()
+  let mut current_byte = 0
+  let mut bit = 0
+  for value in values {
+    let one = match value {
+      Value::Boolean(b) => b
+      _ => raise ParquetError::Unsupported("Boolean column received non-boolean value")
+    }
+    if one {
+      current_byte = current_byte | (1 << bit)
+    }
+    bit += 1
+    if bit == 8 {
+      sink.push_byte(current_byte.to_byte())
+      current_byte = 0
+      bit = 0
+    }
+  }
+  if bit > 0 {
+    sink.push_byte(current_byte.to_byte())
+  }
+  sink.to_bytes()
+}
+
+///|
 fn encode_plain_non_null_values(
   values : Array[Value],
   column_type : ColumnType,
 ) -> Bytes raise ParquetError {
+  if column_type == Boolean {
+    return encode_plain_booleans(values)
+  }
   let sink = ByteSink::new()
   for value in values {
     match (column_type, value) {
@@ -110,6 +142,7 @@ fn encode_plain_non_null_values(
         sink.push_u32_le(v.length())
         sink.push_bytes(v[:])
       }
+      (Double, Value::Double(v)) => sink.push_i64_le(v.reinterpret_as_int64())
       (TimestampMicros, _) =>
         unsupported(
           "TIMESTAMP_MICROS columns are not supported by the writer yet",
@@ -118,8 +151,6 @@ fn encode_plain_non_null_values(
         unsupported("BOOLEAN columns are not supported by the writer yet")
       (Float, _) =>
         unsupported("FLOAT columns are not supported by the writer yet")
-      (Double, _) =>
-        unsupported("DOUBLE columns are not supported by the writer yet")
       (_, Null) => ()
       _ => unsupported("Column values do not match declared column type")
     }
