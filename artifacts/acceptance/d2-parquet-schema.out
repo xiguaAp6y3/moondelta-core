@@ -1,0 +1,4 @@
+engine-written engine-written\part-00000-38b46616-d4eb-4392-b3b4-649384aa3c5a-c000.snappy.parquet [('id', 'int64', False), ('name', 'string', True), ('active', 'bool', True)]
+engine-written engine-written\part-00000-7bebe2e8-16af-4e7d-a700-c6010ae0e018-c000.snappy.parquet [('id', 'int64', False), ('name', 'string', True), ('active', 'bool', True)]
+moondelta-written moondelta-written\part-0000-1750000000000-1.parquet [('id', 'int64', True), ('name', 'string', True), ('active', 'bool', True)]
+moondelta-written moondelta-written\part-0000-1750000001000-2.parquet [('id', 'int64', True), ('name', 'string', True), ('active', 'bool', True)]

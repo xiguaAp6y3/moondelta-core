@@ -1,0 +1,15 @@
+### 37-inspect-column-mapping
+$ delta.exe inspect artifacts/protocol-audit/fixtures/column-mapping
+[exit code: 0]
+--- stdout ---
+table            : artifacts/protocol-audit/fixtures/column-mapping
+current version  : 0  (log versions: 1)
+files            : 1  rows: 3  bytes: 524
+protocol         : reader=2 writer=5
+format           : parquet
+partition columns: (none)
+schema:
+  id: long
+--- stderr ---
+
+

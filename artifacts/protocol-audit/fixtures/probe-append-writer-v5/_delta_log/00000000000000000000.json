@@ -1,0 +1,2 @@
+{"protocol":{"minReaderVersion":1,"minWriterVersion":5,"writerFeatures":["appendOnly","invariants","changeDataFeed"]}}
+{"metaData":{"id":"probe-v5","format":{"provider":"parquet","options":{}},"schemaString":"{\"type\":\"struct\",\"fields\":[{\"name\":\"id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{}}]}","partitionColumns":[],"configuration":{}}}

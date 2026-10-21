@@ -1,0 +1,8 @@
+### 16-inspect-parquet-file-not-table
+$ delta.exe inspect fixtures/parquet/list_columns.parquet
+[exit code: 0]
+--- stdout ---
+error: not found: 'fixtures/parquet/list_columns.parquet' is not a Delta table (no _delta_log directory)
+--- stderr ---
+
+

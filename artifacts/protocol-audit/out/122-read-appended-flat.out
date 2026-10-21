@@ -1,0 +1,14 @@
+### 122-read-appended-flat
+$ delta.exe read artifacts/protocol-audit/fixtures/appended-flat
+[exit code: 0]
+--- stdout ---
+read 2 file(s), 5 row(s), version 2
+id (long) | name (string) | active (boolean)
+1 | alice | true
+2 | NULL | false
+3 | bob | NULL
+4 | carol | true
+5 | NULL | NULL
+--- stderr ---
+
+

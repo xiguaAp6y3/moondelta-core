@@ -1,0 +1,14 @@
+### 94-scan-partition-null-value
+$ delta.exe scan artifacts/protocol-audit/fixtures/partition-null-value --partition dt=null
+[exit code: 0]
+--- stdout ---
+table            : artifacts/protocol-audit/fixtures/partition-null-value (version 0)
+total files      : 1
+selected files   : 0
+skipped partition: 1
+skipped stats    : 0
+matched rows     : 0
+matched bytes    : 0
+--- stderr ---
+
+

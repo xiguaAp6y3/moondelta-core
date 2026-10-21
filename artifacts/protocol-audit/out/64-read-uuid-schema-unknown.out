@@ -1,0 +1,8 @@
+### 64-read-uuid-schema-unknown
+$ delta.exe read artifacts/protocol-audit/fixtures/uuid-schema-unknown
+[exit code: 0]
+--- stdout ---
+error: unsupported: unsupported delta type 'uuid' for column 'u'
+--- stderr ---
+
+

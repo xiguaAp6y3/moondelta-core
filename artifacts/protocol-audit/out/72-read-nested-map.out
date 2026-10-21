@@ -1,0 +1,8 @@
+### 72-read-nested-map
+$ delta.exe read artifacts/protocol-audit/fixtures/nested-map
+[exit code: 0]
+--- stdout ---
+error: unsupported: nested column 'attrs' (type=map) is not supported by the parquet reader; only flat schemas are readable
+--- stderr ---
+
+

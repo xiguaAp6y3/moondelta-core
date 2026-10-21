@@ -1,0 +1,27 @@
+[PASS] 申报书.md 代码围栏成对（0 个）
+[PASS] 申报书.md 无未闭合 ~~~ 围栏
+[PASS] 申报书.md 表格列数一致（0 个表格块） :: []
+[PASS] README.md 代码围栏成对（10 个）
+[PASS] README.md 无未闭合 ~~~ 围栏
+[PASS] README.md 表格列数一致（1 个表格块） :: []
+[PASS] docs/ROADMAP.md 代码围栏成对（0 个）
+[PASS] docs/ROADMAP.md 无未闭合 ~~~ 围栏
+[PASS] docs/ROADMAP.md 表格列数一致（2 个表格块） :: []
+[PASS] 申报书.md 相对链接全部存在（0 个链接） :: []
+[PASS] README.md 相对链接全部存在（9 个链接） :: []
+[PASS] docs/ROADMAP.md 相对链接全部存在（0 个链接） :: []
+[PASS] 申报书.md nested 门槛表述正确 :: - 格式与生态一致：读写 Delta protocol reader v1 / writer v2、version 0 起连续 JSON 日志、flat schema、UNCOMPRESSED/SNAPPY 压缩与本地文件系统范围内的目录；flat 表已完成与 delta-rs 1.6.6、DuckDB 1.5.6 的双向目录级对拍（D2：49 PASS / 0 FAIL / 2 项已记录差异，见
+[PASS] 申报书.md:19 明确“不构成 nested 互操作” :: - 格式与生态一致：读写 Delta protocol reader v1 / writer v2、version 0 起连续 JSON 日志、flat schema、UNCOMPRESSED/SNAPPY 压缩与本地文件系统范围内的目录；
+[PASS] README.md nested 门槛表述正确 :: -  14 个单元测试（含分区读/过滤、统计剪枝边界、缺失数据文件、嵌套列拒绝等负向用例；其中名为 checkpoint-only 的用例实际构造的是非 0 起点日志，真实 checkpoint-only / 删除向量 / reader≥2 拒绝无测试）+ 真实 Delta 表 fixture（delta-rs、apache/parquet-testing） 外部引擎互操作（D2）：已与 delt
+[PASS] README.md:28 明确“不构成 nested 互操作” :: 外部引擎互操作（D2）：已与 delta-rs 1.6.6、DuckDB 1.5.6 完成 flat 表双向对拍（49 PASS / 0 FAIL / 2 项已记录差异，见 [artifacts/interop-flat/README.md
+[PASS] docs/ROADMAP.md nested 门槛表述正确 :: | 负向边界：嵌套 schema、非 0 起点/缺版本日志、缺失文件、未知类型 | ✅ 行为：结构化错误；真实 checkpoint-only、删除向量、reader≥2 拒绝等测试缺口见 `artifacts/protocol-audit.md` §6 |    - 需要嵌套 schema（repeated group）解码；先做 checkpoint 的固定 shape      （add /
+[PASS] docs/ROADMAP.md:51 明确“不构成 nested 互操作” :: - 不做通用嵌套类型（struct/list/map）的完整读写（只做 checkpoint 所需的最小 shape；该中间实现不构成 nested schema 兼容，完整 nested 需满足 `docs/协议兼容性与互操作范围.md`
+[PASS] Spark/Databricks 明确标注未验证（README）
+[PASS] Spark/Databricks 明确标注未验证（申报书）
+[PASS] 申报书保留“moon package 通过”原文（未新增证据，见残留未验证项）
+[PASS] 申报书保留 GitHub Actions 声明（未新增证据，见残留未验证项）
+[PASS] 版本 0.1.0 vs 0.1.1 已说明（README）
+[PASS] 已发布 mooncakes 声明未被删除
+[PASS] 申报书.md 无无证据的互通/完整声明 :: []
+[PASS] README.md 无无证据的互通/完整声明 :: []
+[PASS] docs/ROADMAP.md 无无证据的互通/完整声明 :: []

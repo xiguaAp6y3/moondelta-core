@@ -1,0 +1,8 @@
+### 113-create-invalid-schema
+$ delta.exe create artifacts/protocol-audit/fixtures/cli-created-bad "{not a schema"
+[exit code: 0]
+--- stdout ---
+created Delta table at artifacts/protocol-audit/fixtures/cli-created-bad (version 0)
+--- stderr ---
+
+

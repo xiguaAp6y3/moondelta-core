@@ -1,0 +1,2 @@
+{"commitInfo":{"timestamp":0,"operation":"DELETE","operationParameters":{},"engineInfo":"protocol-audit-fixture"}}
+{"remove":{"path":"never-existed.parquet","deletionTimestamp":0,"dataChange":true}}

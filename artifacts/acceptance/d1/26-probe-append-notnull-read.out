@@ -1,0 +1,7 @@
+### delta read artifacts/protocol-audit/fixtures/probe-append-notnull
+EXIT=0
+read 1 file(s), 2 row(s), version 1
+id (long)
+1
+NULL
+

@@ -1,0 +1,4 @@
+### _build\native\debug\build\cmd\delta\delta.exe inspect artifacts/protocol-audit/fixtures/checkpoint-only
+EXIT=0
+error: not found: table 'artifacts/protocol-audit/fixtures/checkpoint-only' has no log entries
+

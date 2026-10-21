@@ -1,0 +1,14 @@
+### 48-history-dup-add-remove
+$ delta.exe history artifacts/protocol-audit/fixtures/dup-add-remove
+[exit code: 0]
+--- stdout ---
+version | timestamp     | operation
+--------+---------------+----------
+0 | 0 | CREATE TABLE
+1 | 0 | WRITE
+2 | 0 | DELETE
+3 | 0 | WRITE
+4 | 0 | DELETE
+--- stderr ---
+
+

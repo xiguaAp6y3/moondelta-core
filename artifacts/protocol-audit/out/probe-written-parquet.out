@@ -1,0 +1,21 @@
+### probe-written-parquet
+$ .tools\pyenv\Scripts\python.exe artifacts/protocol-audit/inspect_written.py artifacts/protocol-audit/fixtures/probe-*/*.parquet
+[exit code: 0]
+--- apache-arrow 读回 moondelta 写出的 parquet schema ---
+artifacts/protocol-audit/fixtures/probe-append-notnull\part-0000-1005-1.parquet
+  num_rows=2 num_columns=1
+  column id: physical/logical type=int64 nullable=True
+
+artifacts/protocol-audit/fixtures/probe-append-mismatch\part-0000-1000-1.parquet
+  num_rows=1 num_columns=2
+  column id: physical/logical type=string nullable=True
+  column name: physical/logical type=int64 nullable=True
+
+artifacts/protocol-audit/fixtures/probe-append-decimal\part-0000-1006-1.parquet
+  num_rows=1 num_columns=2
+  column id: physical/logical type=int64 nullable=True
+  column price: physical/logical type=int64 nullable=True
+
+artifacts/protocol-audit/fixtures/probe-append-writer-v5\part-0000-1007-1.parquet
+  num_rows=1 num_columns=1
+  column id: physical/logical type=int64 nullable=True

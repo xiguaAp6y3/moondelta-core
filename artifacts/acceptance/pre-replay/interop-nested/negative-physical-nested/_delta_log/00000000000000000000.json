@@ -1,0 +1,4 @@
+{"commitInfo":{"timestamp":0,"operation":"WRITE","operationParameters":{"mode":"Append"},"engineInfo":"handwritten-negative-fixture"}}
+{"protocol":{"minReaderVersion":1,"minWriterVersion":2}}
+{"metaData":{"id":"00000000-0000-0000-0000-000000000001","format":{"provider":"parquet","options":{}},"schemaString":"{\"type\":\"struct\",\"fields\":[{\"name\":\"int64_list\",\"type\":\"long\",\"nullable\":true,\"metadata\":{}},{\"name\":\"utf8_list\",\"type\":\"string\",\"nullable\":true,\"metadata\":{}}]}","partitionColumns":[],"configuration":{},"createdTime":0}}
+{"add":{"path":"data/list_columns.parquet","partitionValues":{},"size":2526,"modificationTime":0,"dataChange":true,"stats":"{\"numRecords\":3}"}}

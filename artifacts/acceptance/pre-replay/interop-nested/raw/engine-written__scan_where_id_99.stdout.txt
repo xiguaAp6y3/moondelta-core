@@ -1,0 +1,7 @@
+table            : artifacts/interop-nested/engine-written (version 0)
+total files      : 1
+selected files   : 0
+skipped partition: 0
+skipped stats    : 1
+matched rows     : 0
+matched bytes    : 0

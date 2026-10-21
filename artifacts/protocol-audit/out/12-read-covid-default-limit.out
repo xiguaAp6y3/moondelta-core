@@ -1,0 +1,19 @@
+### 12-read-covid-default-limit
+$ delta.exe read fixtures/delta/covid
+[exit code: 0]
+--- stdout ---
+read 1 file(s), 10 row(s), version 0
+date (string) | county (string) | state (string) | fips (int) | cases (int) | deaths (int)
+2020-01-21 | Snohomish | Washington | 53061 | 1 | 0
+2020-01-22 | Snohomish | Washington | 53061 | 1 | 0
+2020-01-23 | Snohomish | Washington | 53061 | 1 | 0
+2020-01-24 | Cook | Illinois | 17031 | 1 | 0
+2020-01-24 | Snohomish | Washington | 53061 | 1 | 0
+2020-01-25 | Orange | California | 6059 | 1 | 0
+2020-01-25 | Cook | Illinois | 17031 | 1 | 0
+2020-01-25 | Snohomish | Washington | 53061 | 1 | 0
+2020-01-26 | Maricopa | Arizona | 4013 | 1 | 0
+2020-01-26 | Los Angeles | California | 6037 | 1 | 0
+--- stderr ---
+
+

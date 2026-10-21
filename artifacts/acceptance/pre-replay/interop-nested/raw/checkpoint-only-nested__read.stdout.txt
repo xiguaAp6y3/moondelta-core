@@ -1,0 +1,1 @@
+error: not found: table 'artifacts/interop-nested/checkpoint-only-nested' has no log entries

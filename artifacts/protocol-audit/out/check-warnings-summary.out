@@ -1,0 +1,9 @@
+### check-final.out warning 来源统计
+$ check-final.out 中按 "╭─[ 路径 ]" 定位的 warning 统计
+项目 src（不含 src/vendor）: 39
+src/vendor/parquet: 4
+无文件定位（duplicate alias，src/cmd/delta/moon.pkg）: 1
+moon 汇总行: Finished. moon: ran 4 tasks, now up to date (43 warnings, 0 errors)
+
+用于核对 README/申报书“warning 全部来自 vendored parquet 上游代码”的声明；
+命令见 artifacts/protocol-audit/run_cli.ps1 之外的只读统计（本文件由审计时 Select-String 生成）。

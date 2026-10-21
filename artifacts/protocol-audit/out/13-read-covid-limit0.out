@@ -1,0 +1,9 @@
+### 13-read-covid-limit0
+$ delta.exe read fixtures/delta/covid --limit 0
+[exit code: 0]
+--- stdout ---
+read 0 file(s), 0 row(s), version 0
+date (string) | county (string) | state (string) | fips (int) | cases (int) | deaths (int)
+--- stderr ---
+
+

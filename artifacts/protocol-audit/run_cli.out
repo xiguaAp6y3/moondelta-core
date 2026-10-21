@@ -1,0 +1,226 @@
+[01-version] exit 0
+0
+[02-inspect-table-a] exit 0
+0
+[03-history-table-a] exit 0
+0
+[04-scan-table-a] exit 0
+0
+[05-scan-table-a-id-ge-60] exit 0
+0
+[06-scan-table-a-id-eq-7] exit 0
+0
+[07-scan-table-a-fake-partition] exit 0
+0
+[08-inspect-covid] exit 0
+0
+[09-history-covid] exit 0
+0
+[10-scan-covid] exit 0
+0
+[11-read-covid-limit5] exit 0
+0
+[12-read-covid-default-limit] exit 0
+0
+[13-read-covid-limit0] exit 0
+0
+[14-scan-covid-date-where] exit 0
+0
+[15-read-table-a-missing-data] exit 0
+0
+[16-inspect-parquet-file-not-table] exit 0
+0
+[17-inspect-nonexistent] exit 0
+0
+[18-unknown-subcommand] exit 0
+0
+[20-inspect-reader-v2] exit 0
+0
+[21-read-reader-v2] exit 0
+0
+[22-inspect-reader-v3-features] exit 0
+0
+[23-read-reader-v3-features] exit 0
+0
+[24-inspect-no-protocol] exit 0
+0
+[25-read-no-protocol] exit 0
+0
+[26-inspect-protocol-missing-reader] exit 0
+0
+[27-inspect-protocol-string-version] exit 0
+0
+[28-inspect-writer-v5] exit 0
+0
+[29-read-writer-v5] exit 0
+0
+[30-inspect-empty-log] exit 0
+0
+[31-read-empty-log] exit 0
+0
+[32-inspect-unknown-actions] exit 0
+0
+[33-history-unknown-actions] exit 0
+0
+[34-read-unknown-actions] exit 0
+0
+[35-inspect-deletion-vector] exit 0
+0
+[36-read-deletion-vector] exit 0
+0
+[37-inspect-column-mapping] exit 0
+0
+[38-read-column-mapping] exit 0
+0
+[39-inspect-cdf-enabled] exit 0
+0
+[40-inspect-log-gap] exit 0
+0
+[41-inspect-log-start-v1] exit 0
+0
+[42-inspect-nonstandard-name] exit 0
+0
+[43-inspect-malformed-json] exit 0
+0
+[44-inspect-add-missing-path] exit 0
+0
+[45-inspect-no-commitinfo] exit 0
+0
+[46-history-no-commitinfo] exit 0
+0
+[47-inspect-dup-add-remove] exit 0
+0
+[48-history-dup-add-remove] exit 0
+0
+[49-read-dup-add-remove] exit 0
+0
+[50-inspect-checkpoint-only] exit 0
+0
+[51-inspect-checkpoint-truncated] exit 0
+0
+[52-history-checkpoint-truncated] exit 0
+0
+[53-inspect-bad-last-checkpoint] exit 0
+0
+[60-inspect-decimal-schema] exit 0
+0
+[61-read-decimal-schema] exit 0
+0
+[62-read-decimal-missing-file] exit 0
+0
+[63-inspect-uuid-schema-unknown] exit 0
+0
+[64-read-uuid-schema-unknown] exit 0
+0
+[65-inspect-uuid-parquet-logical] exit 0
+0
+[66-read-uuid-parquet-logical] exit 0
+0
+[67-inspect-nested-struct] exit 0
+0
+[68-read-nested-struct] exit 0
+0
+[69-inspect-nested-list] exit 0
+0
+[70-read-nested-list] exit 0
+0
+[71-inspect-nested-map] exit 0
+0
+[72-read-nested-map] exit 0
+0
+[73-read-nested-missing-file] exit 0
+0
+[74-scan-nested-list] exit 0
+0
+[75-inspect-nested-parquet-lie] exit 0
+0
+[76-read-nested-parquet-lie] exit 0
+0
+[80-inspect-int96-timestamp] exit 0
+0
+[81-read-int96-timestamp] exit 0
+0
+[82-read-date-col] exit 0
+0
+[83-read-float-col] exit 0
+0
+[84-read-codec-zstd] exit 0
+0
+[84-read-codec-gzip] exit 0
+0
+[84-read-codec-brotli] exit 0
+0
+[84-read-codec-lz4] exit 0
+0
+[85-read-corrupt-parquet] exit 0
+0
+[86-read-missing-data-file] exit 0
+0
+[87-read-type-mismatch] exit 0
+0
+[88-read-missing-column] exit 0
+0
+[90-scan-partition-table-all] exit 0
+0
+[91-scan-partition-table-dt] exit 0
+0
+[92-read-partition-table] exit 0
+0
+[93-read-partition-null-value] exit 0
+0
+[94-scan-partition-null-value] exit 0
+0
+[95-scan-stats-string-where] exit 0
+0
+[96-scan-stats-bool-where] exit 0
+0
+[97-scan-stats-numeric-where] exit 0
+0
+[98-scan-min-max-eq-gt] exit 0
+0
+[99-scan-min-max-eq-ge] exit 0
+0
+[100-inspect-stats-object] exit 0
+0
+[101-scan-stats-object-where] exit 0
+0
+[102-read-stats-object] exit 0
+0
+[110-create-flat] exit 0
+0
+[111-inspect-created-empty] exit 0
+0
+[112-read-created-empty] exit 0
+0
+[113-create-invalid-schema] exit 0
+0
+[114-inspect-created-bad] exit 0
+0
+[115-create-nested-schema] exit 0
+0
+[116-inspect-created-nested] exit 0
+0
+[117-read-created-nested] exit 0
+0
+[118-create-partition-table] exit 0
+0
+[119-inspect-created-partition] exit 0
+0
+[120-moon-run-interop-writer] exit 0
+0
+[121-inspect-appended-flat] exit 0
+0
+[122-read-appended-flat] exit 0
+0
+[123-read-appended-flat-limit2] exit 0
+0
+[124-create-overwrite-existing] exit 0
+0
+[125-inspect-overwritten] exit 0
+0
+[126-read-overwritten] exit 0
+0
+[127-moon-run-read-covid-example] exit 0
+0
+
+done: 117 lines in commands.txt

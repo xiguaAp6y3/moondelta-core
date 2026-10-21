@@ -1,0 +1,305 @@
+Warning: Duplicate alias `delta` at "E:\Project\Moonbit Hackson\P1 RE\src\cmd\delta\moon.pkg". "test-import" will automatically add "import" and current package as dependency so you don't need to add it manually. If you're test-importing a dependency with the same default alias as your current package, considering give it a different alias than the current package. Violating import: `xiguaAp6y3/moondelta-core`
+Warning: [0071]
+    ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\examples\interop_flat_writer\main.mbt:11:14 ]
+    │
+ 11 │   let args = @env.args()
+    │              ────┬────  
+    │                  ╰────── Warning (core_package_not_imported): Package `env` from `moonbitlang/core/` is used without import. This is deprecated. Please add it to the imports in the moon.pkg file.
+────╯
+Warning: [0079]
+    ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\read.mbt:13:10 ]
+    │
+ 13 │ } derive(Debug)
+    │          ──┬──  
+    │            ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for Cell` are implicit promoted as regular method for `Cell`. This behavior is deprecated and will be removed in the future. Add a `pub extend Cell with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `Cell` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+    ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\read.mbt:20:10 ]
+    │
+ 20 │ } derive(Debug)
+    │          ──┬──  
+    │            ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for ReadColumn` are implicit promoted as regular method for `ReadColumn`. This behavior is deprecated and will be removed in the future. Add a `pub extend ReadColumn with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `ReadColumn` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+    ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\read.mbt:27:10 ]
+    │
+ 27 │ } derive(Debug)
+    │          ──┬──  
+    │            ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for ReadResult` are implicit promoted as regular method for `ReadResult`. This behavior is deprecated and will be removed in the future. Add a `pub extend ReadResult with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `ReadResult` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+   ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\scan.mbt:9:10 ]
+   │
+ 9 │ } derive(Eq, Debug)
+   │          ─┬  
+   │           ╰── Warning (implicit_impl_as_method): The methods not_equal, equal from `impl Eq for CompareOp` are implicit promoted as regular method for `CompareOp`. This behavior is deprecated and will be removed in the future. Add a `pub extend CompareOp with Eq::{not_equal, equal}` declaration or manually define regular methods for type `CompareOp` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+───╯
+Warning: [0079]
+   ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\scan.mbt:9:14 ]
+   │
+ 9 │ } derive(Eq, Debug)
+   │              ──┬──  
+   │                ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for CompareOp` are implicit promoted as regular method for `CompareOp`. This behavior is deprecated and will be removed in the future. Add a `pub extend CompareOp with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `CompareOp` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+───╯
+Warning: [0079]
+    ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\scan.mbt:16:10 ]
+    │
+ 16 │ } derive(Eq, Debug)
+    │          ─┬  
+    │           ╰── Warning (implicit_impl_as_method): The methods not_equal, equal from `impl Eq for ColumnPredicate` are implicit promoted as regular method for `ColumnPredicate`. This behavior is deprecated and will be removed in the future. Add a `pub extend ColumnPredicate with Eq::{not_equal, equal}` declaration or manually define regular methods for type `ColumnPredicate` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+    ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\scan.mbt:16:14 ]
+    │
+ 16 │ } derive(Eq, Debug)
+    │              ──┬──  
+    │                ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for ColumnPredicate` are implicit promoted as regular method for `ColumnPredicate`. This behavior is deprecated and will be removed in the future. Add a `pub extend ColumnPredicate with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `ColumnPredicate` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+    ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\scan.mbt:23:10 ]
+    │
+ 23 │ } derive(Eq, Debug)
+    │          ─┬  
+    │           ╰── Warning (implicit_impl_as_method): The methods not_equal, equal from `impl Eq for ScanFilter` are implicit promoted as regular method for `ScanFilter`. This behavior is deprecated and will be removed in the future. Add a `pub extend ScanFilter with Eq::{not_equal, equal}` declaration or manually define regular methods for type `ScanFilter` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+    ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\scan.mbt:23:14 ]
+    │
+ 23 │ } derive(Eq, Debug)
+    │              ──┬──  
+    │                ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for ScanFilter` are implicit promoted as regular method for `ScanFilter`. This behavior is deprecated and will be removed in the future. Add a `pub extend ScanFilter with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `ScanFilter` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+    ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\scan.mbt:33:10 ]
+    │
+ 33 │ } derive(Eq, Debug)
+    │          ─┬  
+    │           ╰── Warning (implicit_impl_as_method): The methods not_equal, equal from `impl Eq for ScanReport` are implicit promoted as regular method for `ScanReport`. This behavior is deprecated and will be removed in the future. Add a `pub extend ScanReport with Eq::{not_equal, equal}` declaration or manually define regular methods for type `ScanReport` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+    ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\scan.mbt:33:14 ]
+    │
+ 33 │ } derive(Eq, Debug)
+    │              ──┬──  
+    │                ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for ScanReport` are implicit promoted as regular method for `ScanReport`. This behavior is deprecated and will be removed in the future. Add a `pub extend ScanReport with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `ScanReport` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+    ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\types.mbt:20:10 ]
+    │
+ 20 │ } derive(Eq, Debug)
+    │          ─┬  
+    │           ╰── Warning (implicit_impl_as_method): The methods not_equal, equal from `impl Eq for DeltaType` are implicit promoted as regular method for `DeltaType`. This behavior is deprecated and will be removed in the future. Add a `pub extend DeltaType with Eq::{not_equal, equal}` declaration or manually define regular methods for type `DeltaType` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+    ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\types.mbt:20:14 ]
+    │
+ 20 │ } derive(Eq, Debug)
+    │              ──┬──  
+    │                ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for DeltaType` are implicit promoted as regular method for `DeltaType`. This behavior is deprecated and will be removed in the future. Add a `pub extend DeltaType with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `DeltaType` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+    ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\types.mbt:27:10 ]
+    │
+ 27 │ } derive(Eq, Debug)
+    │          ─┬  
+    │           ╰── Warning (implicit_impl_as_method): The methods not_equal, equal from `impl Eq for DeltaField` are implicit promoted as regular method for `DeltaField`. This behavior is deprecated and will be removed in the future. Add a `pub extend DeltaField with Eq::{not_equal, equal}` declaration or manually define regular methods for type `DeltaField` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+    ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\types.mbt:27:14 ]
+    │
+ 27 │ } derive(Eq, Debug)
+    │              ──┬──  
+    │                ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for DeltaField` are implicit promoted as regular method for `DeltaField`. This behavior is deprecated and will be removed in the future. Add a `pub extend DeltaField with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `DeltaField` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+    ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\types.mbt:33:10 ]
+    │
+ 33 │ } derive(Eq, Debug)
+    │          ─┬  
+    │           ╰── Warning (implicit_impl_as_method): The methods not_equal, equal from `impl Eq for DeltaSchema` are implicit promoted as regular method for `DeltaSchema`. This behavior is deprecated and will be removed in the future. Add a `pub extend DeltaSchema with Eq::{not_equal, equal}` declaration or manually define regular methods for type `DeltaSchema` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+    ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\types.mbt:33:14 ]
+    │
+ 33 │ } derive(Eq, Debug)
+    │              ──┬──  
+    │                ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for DeltaSchema` are implicit promoted as regular method for `DeltaSchema`. This behavior is deprecated and will be removed in the future. Add a `pub extend DeltaSchema with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `DeltaSchema` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+    ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\types.mbt:39:10 ]
+    │
+ 39 │ } derive(Eq, Debug)
+    │          ─┬  
+    │           ╰── Warning (implicit_impl_as_method): The methods not_equal, equal from `impl Eq for Protocol` are implicit promoted as regular method for `Protocol`. This behavior is deprecated and will be removed in the future. Add a `pub extend Protocol with Eq::{not_equal, equal}` declaration or manually define regular methods for type `Protocol` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+    ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\types.mbt:39:14 ]
+    │
+ 39 │ } derive(Eq, Debug)
+    │              ──┬──  
+    │                ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for Protocol` are implicit promoted as regular method for `Protocol`. This behavior is deprecated and will be removed in the future. Add a `pub extend Protocol with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `Protocol` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+    ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\types.mbt:49:10 ]
+    │
+ 49 │ } derive(Eq, Debug)
+    │          ─┬  
+    │           ╰── Warning (implicit_impl_as_method): The methods not_equal, equal from `impl Eq for TableInfo` are implicit promoted as regular method for `TableInfo`. This behavior is deprecated and will be removed in the future. Add a `pub extend TableInfo with Eq::{not_equal, equal}` declaration or manually define regular methods for type `TableInfo` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+    ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\types.mbt:49:14 ]
+    │
+ 49 │ } derive(Eq, Debug)
+    │              ──┬──  
+    │                ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for TableInfo` are implicit promoted as regular method for `TableInfo`. This behavior is deprecated and will be removed in the future. Add a `pub extend TableInfo with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `TableInfo` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+    ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\types.mbt:59:10 ]
+    │
+ 59 │ } derive(Eq, Debug)
+    │          ─┬  
+    │           ╰── Warning (implicit_impl_as_method): The methods not_equal, equal from `impl Eq for AddFile` are implicit promoted as regular method for `AddFile`. This behavior is deprecated and will be removed in the future. Add a `pub extend AddFile with Eq::{not_equal, equal}` declaration or manually define regular methods for type `AddFile` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+    ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\types.mbt:59:14 ]
+    │
+ 59 │ } derive(Eq, Debug)
+    │              ──┬──  
+    │                ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for AddFile` are implicit promoted as regular method for `AddFile`. This behavior is deprecated and will be removed in the future. Add a `pub extend AddFile with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `AddFile` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+    ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\types.mbt:66:10 ]
+    │
+ 66 │ } derive(Eq, Debug)
+    │          ─┬  
+    │           ╰── Warning (implicit_impl_as_method): The methods not_equal, equal from `impl Eq for RemoveFile` are implicit promoted as regular method for `RemoveFile`. This behavior is deprecated and will be removed in the future. Add a `pub extend RemoveFile with Eq::{not_equal, equal}` declaration or manually define regular methods for type `RemoveFile` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+    ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\types.mbt:66:14 ]
+    │
+ 66 │ } derive(Eq, Debug)
+    │              ──┬──  
+    │                ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for RemoveFile` are implicit promoted as regular method for `RemoveFile`. This behavior is deprecated and will be removed in the future. Add a `pub extend RemoveFile with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `RemoveFile` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+    ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\types.mbt:74:10 ]
+    │
+ 74 │ } derive(Eq, Debug)
+    │          ─┬  
+    │           ╰── Warning (implicit_impl_as_method): The methods not_equal, equal from `impl Eq for CommitInfo` are implicit promoted as regular method for `CommitInfo`. This behavior is deprecated and will be removed in the future. Add a `pub extend CommitInfo with Eq::{not_equal, equal}` declaration or manually define regular methods for type `CommitInfo` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+    ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\types.mbt:74:14 ]
+    │
+ 74 │ } derive(Eq, Debug)
+    │              ──┬──  
+    │                ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for CommitInfo` are implicit promoted as regular method for `CommitInfo`. This behavior is deprecated and will be removed in the future. Add a `pub extend CommitInfo with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `CommitInfo` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+    ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\types.mbt:84:10 ]
+    │
+ 84 │ } derive(Eq, Debug)
+    │          ─┬  
+    │           ╰── Warning (implicit_impl_as_method): The methods not_equal, equal from `impl Eq for Action` are implicit promoted as regular method for `Action`. This behavior is deprecated and will be removed in the future. Add a `pub extend Action with Eq::{not_equal, equal}` declaration or manually define regular methods for type `Action` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+    ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\types.mbt:84:14 ]
+    │
+ 84 │ } derive(Eq, Debug)
+    │              ──┬──  
+    │                ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for Action` are implicit promoted as regular method for `Action`. This behavior is deprecated and will be removed in the future. Add a `pub extend Action with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `Action` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+    ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\types.mbt:94:10 ]
+    │
+ 94 │ } derive(Eq, Debug)
+    │          ─┬  
+    │           ╰── Warning (implicit_impl_as_method): The methods not_equal, equal from `impl Eq for Snapshot` are implicit promoted as regular method for `Snapshot`. This behavior is deprecated and will be removed in the future. Add a `pub extend Snapshot with Eq::{not_equal, equal}` declaration or manually define regular methods for type `Snapshot` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+    ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\types.mbt:94:14 ]
+    │
+ 94 │ } derive(Eq, Debug)
+    │              ──┬──  
+    │                ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for Snapshot` are implicit promoted as regular method for `Snapshot`. This behavior is deprecated and will be removed in the future. Add a `pub extend Snapshot with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `Snapshot` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+     ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\types.mbt:101:10 ]
+     │
+ 101 │ } derive(Eq, Debug)
+     │          ─┬  
+     │           ╰── Warning (implicit_impl_as_method): The methods not_equal, equal from `impl Eq for HistoryEntry` are implicit promoted as regular method for `HistoryEntry`. This behavior is deprecated and will be removed in the future. Add a `pub extend HistoryEntry with Eq::{not_equal, equal}` declaration or manually define regular methods for type `HistoryEntry` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+─────╯
+Warning: [0079]
+     ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\types.mbt:101:14 ]
+     │
+ 101 │ } derive(Eq, Debug)
+     │              ──┬──  
+     │                ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for HistoryEntry` are implicit promoted as regular method for `HistoryEntry`. This behavior is deprecated and will be removed in the future. Add a `pub extend HistoryEntry with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `HistoryEntry` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+─────╯
+Warning: [0079]
+     ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\types.mbt:108:10 ]
+     │
+ 108 │ } derive(Eq, Debug)
+     │          ─┬  
+     │           ╰── Warning (implicit_impl_as_method): The methods not_equal, equal from `impl Eq for CheckpointInfo` are implicit promoted as regular method for `CheckpointInfo`. This behavior is deprecated and will be removed in the future. Add a `pub extend CheckpointInfo with Eq::{not_equal, equal}` declaration or manually define regular methods for type `CheckpointInfo` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+─────╯
+Warning: [0079]
+     ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\types.mbt:108:14 ]
+     │
+ 108 │ } derive(Eq, Debug)
+     │              ──┬──  
+     │                ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for CheckpointInfo` are implicit promoted as regular method for `CheckpointInfo`. This behavior is deprecated and will be removed in the future. Add a `pub extend CheckpointInfo with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `CheckpointInfo` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+─────╯
+Warning: [0079]
+     ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\types.mbt:134:10 ]
+     │
+ 134 │ } derive(Eq, Debug)
+     │          ─┬  
+     │           ╰── Warning (implicit_impl_as_method): The methods not_equal, equal from `impl Eq for DeltaError` are implicit promoted as regular method for `DeltaError`. This behavior is deprecated and will be removed in the future. Add a `pub extend DeltaError with Eq::{not_equal, equal}` declaration or manually define regular methods for type `DeltaError` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+─────╯
+Warning: [0079]
+     ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\types.mbt:134:14 ]
+     │
+ 134 │ } derive(Eq, Debug)
+     │              ──┬──  
+     │                ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for DeltaError` are implicit promoted as regular method for `DeltaError`. This behavior is deprecated and will be removed in the future. Add a `pub extend DeltaError with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `DeltaError` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+─────╯
+Warning: [0079]
+     ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\types.mbt:147:1 ]
+     │
+ 147 │ pub impl Show for DeltaError with fn output(self, logger) {
+     │ ──────────────┬─────────────  
+     │               ╰─────────────── Warning (implicit_impl_as_method): The methods to_string, output from `impl Show for DeltaError` are implicit promoted as regular method for `DeltaError`. This behavior is deprecated and will be removed in the future. Add a `pub extend DeltaError with Show::{to_string, output}` declaration or manually define regular methods for type `DeltaError` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+─────╯
+Warning: [0001]
+     ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\vendor\parquet\encodings.mbt:576:4 ]
+     │
+ 576 │ fn decode_delta_binary_packed(
+     │    ─────────────┬────────────  
+     │                 ╰────────────── Warning (unused_value): Unused function 'decode_delta_binary_packed'
+─────╯
+Warning: [0029]
+   ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\vendor\parquet\moon.pkg:2:3 ]
+   │
+ 2 │   "moonbitlang/core/bench",
+   │   ────────────┬───────────  
+   │               ╰───────────── Warning (unused_package): Unused package 'moonbitlang/core/bench'
+───╯
+Warning: [0001]
+     ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\vendor\parquet\reader.mbt:345:4 ]
+     │
+ 345 │ fn decode_levels_v1(
+     │    ────────┬───────  
+     │            ╰───────── Warning (unused_value): Unused function 'decode_levels_v1'
+─────╯
+Warning: [0001]
+      ╭─[ E:\Project\Moonbit Hackson\P1 RE\src\vendor\parquet\reader.mbt:3646:4 ]
+      │
+ 3646 │ fn build_rows(
+      │    ─────┬────  
+      │         ╰────── Warning (unused_value): Unused function 'build_rows'
+──────╯
+Finished. moon: ran 4 tasks, now up to date (43 warnings, 0 errors)
+
+[EXIT 0]

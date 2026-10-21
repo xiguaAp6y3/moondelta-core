@@ -1,0 +1,10 @@
+[probe-library] exit 0
+[probe-written-parquet] exit 0
+[appended-flat-parquet] exit 0
+[probe-cli-writer-v5] exit 0
+[probe-cli-append-mismatch] exit 0
+[probe-cli-name-mismatch] exit 0
+[probe-cli-notnull] exit 0
+[probe-cli-decimal] exit 0
+[probe-cli-invalid-schema] exit 0
+done

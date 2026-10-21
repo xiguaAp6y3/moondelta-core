@@ -1,0 +1,4 @@
+### _build\native\debug\build\cmd\delta\delta.exe inspect artifacts/protocol-audit/fixtures/nonstandard-log-name
+EXIT=0
+error: not found: log version 0 is missing (checkpoint-only or truncated table?)
+

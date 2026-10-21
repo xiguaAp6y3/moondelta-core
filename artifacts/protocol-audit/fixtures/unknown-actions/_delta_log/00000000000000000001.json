@@ -1,0 +1,5 @@
+{"commitInfo":{"timestamp":0,"operation":"UNKNOWN","operationParameters":{},"engineInfo":"protocol-audit-fixture"}}
+{"cdc":{"path":"cdc-0001.parquet","partitionValues":{},"size":100,"dataChange":false}}
+{"txn":{"appId":"audit-app","version":1,"lastUpdated":0}}
+{"domainMetadata":{"domain":"auditDomain","configuration":"{}","removed":false}}
+{"sidecar":{"path":"_delta_log/_sidecars/00000000000000000001.parquet","sizeInBytes":10,"modificationTime":0}}

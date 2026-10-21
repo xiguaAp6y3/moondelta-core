@@ -1,0 +1,4 @@
+### _build\native\debug\build\cmd\delta\delta.exe read artifacts/protocol-audit/fixtures/missing-data-file
+EXIT=0
+error: io error: No such file or directory
+

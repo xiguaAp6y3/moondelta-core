@@ -1,0 +1,156 @@
+# D1 协议审计 CLI 命令清单
+# 生成时间: 2026-10-20T20:19:54.8251853+08:00
+# CLI: E:\Project\Moonbit Hackson\P1 RE\_build\native\debug\build\cmd\delta\delta.exe
+# 每条命令的原始输出见 out/<case>.out；退出码记录在 case 头部的 [exit code: N]
+
+01-version : delta.exe version  => exit 0
+02-inspect-table-a : delta.exe inspect fixtures/delta/table_a  => exit 0
+03-history-table-a : delta.exe history fixtures/delta/table_a  => exit 0
+04-scan-table-a : delta.exe scan fixtures/delta/table_a  => exit 0
+05-scan-table-a-id-ge-60 : delta.exe scan fixtures/delta/table_a --where id>=60  => exit 0
+06-scan-table-a-id-eq-7 : delta.exe scan fixtures/delta/table_a --where id=7  => exit 0
+07-scan-table-a-fake-partition : delta.exe scan fixtures/delta/table_a --partition id=7  => exit 0
+08-inspect-covid : delta.exe inspect fixtures/delta/covid  => exit 0
+09-history-covid : delta.exe history fixtures/delta/covid  => exit 0
+10-scan-covid : delta.exe scan fixtures/delta/covid  => exit 0
+11-read-covid-limit5 : delta.exe read fixtures/delta/covid --limit 5  => exit 0
+12-read-covid-default-limit : delta.exe read fixtures/delta/covid  => exit 0
+13-read-covid-limit0 : delta.exe read fixtures/delta/covid --limit 0  => exit 0
+14-scan-covid-date-where : delta.exe scan fixtures/delta/covid --where date>=2020-05-01  => exit 0
+15-read-table-a-missing-data : delta.exe read fixtures/delta/table_a --limit 1  => exit 0
+16-inspect-parquet-file-not-table : delta.exe inspect fixtures/parquet/list_columns.parquet  => exit 0
+17-inspect-nonexistent : delta.exe inspect artifacts/protocol-audit/fixtures/does-not-exist  => exit 0
+18-unknown-subcommand : delta.exe frobnicate  => exit 0
+20-inspect-reader-v2 : delta.exe inspect artifacts/protocol-audit/fixtures/protocol-reader-v2  => exit 0
+21-read-reader-v2 : delta.exe read artifacts/protocol-audit/fixtures/protocol-reader-v2  => exit 0
+22-inspect-reader-v3-features : delta.exe inspect artifacts/protocol-audit/fixtures/protocol-reader-v3-features  => exit 0
+23-read-reader-v3-features : delta.exe read artifacts/protocol-audit/fixtures/protocol-reader-v3-features  => exit 0
+24-inspect-no-protocol : delta.exe inspect artifacts/protocol-audit/fixtures/no-protocol  => exit 0
+25-read-no-protocol : delta.exe read artifacts/protocol-audit/fixtures/no-protocol  => exit 0
+26-inspect-protocol-missing-reader : delta.exe inspect artifacts/protocol-audit/fixtures/protocol-missing-reader  => exit 0
+27-inspect-protocol-string-version : delta.exe inspect artifacts/protocol-audit/fixtures/protocol-string-version  => exit 0
+28-inspect-writer-v5 : delta.exe inspect artifacts/protocol-audit/fixtures/writer-v5-features  => exit 0
+29-read-writer-v5 : delta.exe read artifacts/protocol-audit/fixtures/writer-v5-features  => exit 0
+30-inspect-empty-log : delta.exe inspect artifacts/protocol-audit/fixtures/empty-log  => exit 0
+31-read-empty-log : delta.exe read artifacts/protocol-audit/fixtures/empty-log  => exit 0
+32-inspect-unknown-actions : delta.exe inspect artifacts/protocol-audit/fixtures/unknown-actions  => exit 0
+33-history-unknown-actions : delta.exe history artifacts/protocol-audit/fixtures/unknown-actions  => exit 0
+34-read-unknown-actions : delta.exe read artifacts/protocol-audit/fixtures/unknown-actions  => exit 0
+35-inspect-deletion-vector : delta.exe inspect artifacts/protocol-audit/fixtures/deletion-vector-add  => exit 0
+36-read-deletion-vector : delta.exe read artifacts/protocol-audit/fixtures/deletion-vector-add  => exit 0
+37-inspect-column-mapping : delta.exe inspect artifacts/protocol-audit/fixtures/column-mapping  => exit 0
+38-read-column-mapping : delta.exe read artifacts/protocol-audit/fixtures/column-mapping  => exit 0
+39-inspect-cdf-enabled : delta.exe inspect artifacts/protocol-audit/fixtures/cdf-enabled  => exit 0
+40-inspect-log-gap : delta.exe inspect artifacts/protocol-audit/fixtures/log-gap  => exit 0
+41-inspect-log-start-v1 : delta.exe inspect artifacts/protocol-audit/fixtures/log-start-v1  => exit 0
+42-inspect-nonstandard-name : delta.exe inspect artifacts/protocol-audit/fixtures/nonstandard-log-name  => exit 0
+43-inspect-malformed-json : delta.exe inspect artifacts/protocol-audit/fixtures/malformed-json  => exit 0
+44-inspect-add-missing-path : delta.exe inspect artifacts/protocol-audit/fixtures/add-missing-path  => exit 0
+45-inspect-no-commitinfo : delta.exe inspect artifacts/protocol-audit/fixtures/no-commitinfo  => exit 0
+46-history-no-commitinfo : delta.exe history artifacts/protocol-audit/fixtures/no-commitinfo  => exit 0
+47-inspect-dup-add-remove : delta.exe inspect artifacts/protocol-audit/fixtures/dup-add-remove  => exit 0
+48-history-dup-add-remove : delta.exe history artifacts/protocol-audit/fixtures/dup-add-remove  => exit 0
+49-read-dup-add-remove : delta.exe read artifacts/protocol-audit/fixtures/dup-add-remove  => exit 0
+50-inspect-checkpoint-only : delta.exe inspect artifacts/protocol-audit/fixtures/checkpoint-only  => exit 0
+51-inspect-checkpoint-truncated : delta.exe inspect artifacts/protocol-audit/fixtures/checkpoint-truncated  => exit 0
+52-history-checkpoint-truncated : delta.exe history artifacts/protocol-audit/fixtures/checkpoint-truncated  => exit 0
+53-inspect-bad-last-checkpoint : delta.exe inspect artifacts/protocol-audit/fixtures/bad-last-checkpoint  => exit 0
+60-inspect-decimal-schema : delta.exe inspect artifacts/protocol-audit/fixtures/decimal-schema  => exit 0
+61-read-decimal-schema : delta.exe read artifacts/protocol-audit/fixtures/decimal-schema  => exit 0
+62-read-decimal-missing-file : delta.exe read artifacts/protocol-audit/fixtures/decimal-missing-file  => exit 0
+63-inspect-uuid-schema-unknown : delta.exe inspect artifacts/protocol-audit/fixtures/uuid-schema-unknown  => exit 0
+64-read-uuid-schema-unknown : delta.exe read artifacts/protocol-audit/fixtures/uuid-schema-unknown  => exit 0
+65-inspect-uuid-parquet-logical : delta.exe inspect artifacts/protocol-audit/fixtures/uuid-parquet-logical  => exit 0
+66-read-uuid-parquet-logical : delta.exe read artifacts/protocol-audit/fixtures/uuid-parquet-logical  => exit 0
+67-inspect-nested-struct : delta.exe inspect artifacts/protocol-audit/fixtures/nested-struct  => exit 0
+68-read-nested-struct : delta.exe read artifacts/protocol-audit/fixtures/nested-struct  => exit 0
+69-inspect-nested-list : delta.exe inspect artifacts/protocol-audit/fixtures/nested-list  => exit 0
+70-read-nested-list : delta.exe read artifacts/protocol-audit/fixtures/nested-list  => exit 0
+71-inspect-nested-map : delta.exe inspect artifacts/protocol-audit/fixtures/nested-map  => exit 0
+72-read-nested-map : delta.exe read artifacts/protocol-audit/fixtures/nested-map  => exit 0
+73-read-nested-missing-file : delta.exe read artifacts/protocol-audit/fixtures/nested-missing-file  => exit 0
+74-scan-nested-list : delta.exe scan artifacts/protocol-audit/fixtures/nested-list  => exit 0
+75-inspect-nested-parquet-lie : delta.exe inspect artifacts/protocol-audit/fixtures/nested-parquet-lie  => exit 0
+76-read-nested-parquet-lie : delta.exe read artifacts/protocol-audit/fixtures/nested-parquet-lie  => exit 0
+80-inspect-int96-timestamp : delta.exe inspect artifacts/protocol-audit/fixtures/int96-timestamp  => exit 0
+81-read-int96-timestamp : delta.exe read artifacts/protocol-audit/fixtures/int96-timestamp  => exit 0
+82-read-date-col : delta.exe read artifacts/protocol-audit/fixtures/date-col  => exit 0
+83-read-float-col : delta.exe read artifacts/protocol-audit/fixtures/float-col  => exit 0
+84-read-codec-zstd : delta.exe read artifacts/protocol-audit/fixtures/codec-zstd  => exit 0
+84-read-codec-gzip : delta.exe read artifacts/protocol-audit/fixtures/codec-gzip  => exit 0
+84-read-codec-brotli : delta.exe read artifacts/protocol-audit/fixtures/codec-brotli  => exit 0
+84-read-codec-lz4 : delta.exe read artifacts/protocol-audit/fixtures/codec-lz4  => exit 0
+85-read-corrupt-parquet : delta.exe read artifacts/protocol-audit/fixtures/corrupt-parquet  => exit 0
+86-read-missing-data-file : delta.exe read artifacts/protocol-audit/fixtures/missing-data-file  => exit 0
+87-read-type-mismatch : delta.exe read artifacts/protocol-audit/fixtures/type-mismatch  => exit 0
+88-read-missing-column : delta.exe read artifacts/protocol-audit/fixtures/missing-column  => exit 0
+90-scan-partition-table-all : delta.exe scan artifacts/protocol-audit/fixtures/partition-table  => exit 0
+91-scan-partition-table-dt : delta.exe scan artifacts/protocol-audit/fixtures/partition-table --partition dt=2026-01-01  => exit 0
+92-read-partition-table : delta.exe read artifacts/protocol-audit/fixtures/partition-table  => exit 0
+93-read-partition-null-value : delta.exe read artifacts/protocol-audit/fixtures/partition-null-value  => exit 0
+94-scan-partition-null-value : delta.exe scan artifacts/protocol-audit/fixtures/partition-null-value --partition dt=null  => exit 0
+95-scan-stats-string-where : delta.exe scan artifacts/protocol-audit/fixtures/stats-string-bool --where name>=b  => exit 0
+96-scan-stats-bool-where : delta.exe scan artifacts/protocol-audit/fixtures/stats-string-bool --where ok>=1  => exit 0
+97-scan-stats-numeric-where : delta.exe scan artifacts/protocol-audit/fixtures/stats-string-bool --where id>=10  => exit 0
+98-scan-min-max-eq-gt : delta.exe scan artifacts/protocol-audit/fixtures/stats-min-max-eq --where id>5  => exit 0
+99-scan-min-max-eq-ge : delta.exe scan artifacts/protocol-audit/fixtures/stats-min-max-eq --where id>=5  => exit 0
+100-inspect-stats-object : delta.exe inspect artifacts/protocol-audit/fixtures/stats-object  => exit 0
+101-scan-stats-object-where : delta.exe scan artifacts/protocol-audit/fixtures/stats-object --where id>=100  => exit 0
+102-read-stats-object : delta.exe read artifacts/protocol-audit/fixtures/stats-object  => exit 0
+110-create-flat : delta.exe create artifacts/protocol-audit/fixtures/cli-created "{\"type\":\"struct\",\"fields\":[{\"name\":\"id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{}},{\"name\":\"name\",\"type\":\"string\",\"nullable\":true,\"metadata\":{}}]}"  => exit 0
+111-inspect-created-empty : delta.exe inspect artifacts/protocol-audit/fixtures/cli-created  => exit 0
+112-read-created-empty : delta.exe read artifacts/protocol-audit/fixtures/cli-created  => exit 0
+113-create-invalid-schema : delta.exe create artifacts/protocol-audit/fixtures/cli-created-bad "{not a schema"  => exit 0
+114-inspect-created-bad : delta.exe inspect artifacts/protocol-audit/fixtures/cli-created-bad  => exit 0
+115-create-nested-schema : delta.exe create artifacts/protocol-audit/fixtures/cli-nested "{\"type\":\"struct\",\"fields\":[{\"name\":\"id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{}},{\"name\":\"tags\",\"type\":{\"type\":\"array\",\"elementType\":\"string\",\"containsNull\":true},\"nullable\":true,\"metadata\":{}}]}"  => exit 0
+116-inspect-created-nested : delta.exe inspect artifacts/protocol-audit/fixtures/cli-nested  => exit 0
+117-read-created-nested : delta.exe read artifacts/protocol-audit/fixtures/cli-nested  => exit 0
+118-create-partition-table : delta.exe create artifacts/protocol-audit/fixtures/cli-partition "{\"type\":\"struct\",\"fields\":[{\"name\":\"id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{}},{\"name\":\"name\",\"type\":\"string\",\"nullable\":true,\"metadata\":{}}]}" --partition dt  => exit 0
+119-inspect-created-partition : delta.exe inspect artifacts/protocol-audit/fixtures/cli-partition  => exit 0
+120-moon-run-interop-writer : moon run --target native src/examples/interop_flat_writer -- artifacts/protocol-audit/fixtures/appended-flat => exit 0
+121-inspect-appended-flat : delta.exe inspect artifacts/protocol-audit/fixtures/appended-flat  => exit 0
+122-read-appended-flat : delta.exe read artifacts/protocol-audit/fixtures/appended-flat  => exit 0
+123-read-appended-flat-limit2 : delta.exe read artifacts/protocol-audit/fixtures/appended-flat --limit 2  => exit 0
+124-create-overwrite-existing : delta.exe create artifacts/protocol-audit/fixtures/cli-overwrite "{\"type\":\"struct\",\"fields\":[{\"name\":\"id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{}}]}"  => exit 0
+125-inspect-overwritten : delta.exe inspect artifacts/protocol-audit/fixtures/cli-overwrite  => exit 0
+126-read-overwritten : delta.exe read artifacts/protocol-audit/fixtures/cli-overwrite  => exit 0
+127-moon-run-read-covid-example : moon run --target native src/examples/read_covid => exit 0
+
+# ---- 库级探针（隔离模块副本 artifacts/protocol-audit/probe-module）----
+probe-library : moon run --target native src/probe (cwd=probe-module) => exit 1
+probe-written-parquet : pyarrow read_schema of probe-*/*.parquet => exit 0
+appended-flat-parquet : pyarrow read_schema of appended-flat/*.parquet => exit 0
+probe-cli-writer-v5 : delta.exe inspect artifacts/protocol-audit/fixtures/probe-append-writer-v5 => exit 0
+probe-cli-append-mismatch : delta.exe read artifacts/protocol-audit/fixtures/probe-append-mismatch => exit 0
+probe-cli-name-mismatch : delta.exe read artifacts/protocol-audit/fixtures/probe-append-name-mismatch => exit 0
+probe-cli-notnull : delta.exe read artifacts/protocol-audit/fixtures/probe-append-notnull => exit 0
+probe-cli-decimal : delta.exe read artifacts/protocol-audit/fixtures/probe-append-decimal => exit 0
+probe-cli-invalid-schema : delta.exe inspect artifacts/protocol-audit/fixtures/probe-created-invalid => exit 0
+
+# ---- 库级探针（隔离模块副本 artifacts/protocol-audit/probe-module）----
+probe-library : moon run --target native src/probe (cwd=probe-module) => exit 0
+probe-written-parquet : pyarrow read_schema of probe-*/*.parquet => exit 0
+appended-flat-parquet : pyarrow read_schema of appended-flat/*.parquet => exit 0
+probe-cli-writer-v5 : delta.exe inspect artifacts/protocol-audit/fixtures/probe-append-writer-v5 => exit 0
+probe-cli-append-mismatch : delta.exe read artifacts/protocol-audit/fixtures/probe-append-mismatch => exit 0
+probe-cli-name-mismatch : delta.exe read artifacts/protocol-audit/fixtures/probe-append-name-mismatch => exit 0
+probe-cli-notnull : delta.exe read artifacts/protocol-audit/fixtures/probe-append-notnull => exit 0
+probe-cli-decimal : delta.exe read artifacts/protocol-audit/fixtures/probe-append-decimal => exit 0
+probe-cli-invalid-schema : delta.exe inspect artifacts/protocol-audit/fixtures/probe-created-invalid => exit 0
+
+code-evidence : Select-String of src/*.mbt for protocol/feature/error sites => exit 0
+
+check-warnings-summary : Select-String warning locations in check-final.out => 39 project src / 4 vendor / 1 unlocated
+
+# ---- 工具链 / fixture 生成 / 复核命令（输出文件见同目录）----
+moon check --target native => check.out / check-final.out（0 errors, 43 warnings, exit 0）
+moon test --target native => test.out / test-final.out（Total tests: 14, passed: 14, failed: 0, exit 0）
+moon build --target native src/cmd/delta => build-cli.out（重建预编译 CLI，exit 0）
+.tools\pyenv\Scripts\python.exe artifacts\protocol-audit\gen_fixtures.py => gen_fixtures.out（47 个 fixture 表，exit 0）
+pwsh -File artifacts\protocol-audit\run_cli.ps1 => run_cli.out + commands.txt + out/01..127（exit 0）
+pwsh -File artifacts\protocol-audit\run_probe.ps1 => run_probe.out + out/probe-*（exit 0）
+.tools\pyenv\Scripts\python.exe -c 'pq.ParquetFile(covid).metadata' => 157,865 rows / 6 cols（复核申报书第 47 行）
+git status --short => ' M .gitignore'、'?? artifacts/'、'?? docs/协议兼容性与互操作范围.md'、'?? src/examples/interop_flat_writer/'（审计未改 tracked 文件）
+delta.exe inspect artifacts/interop-flat/probe/protocol-reader2 => 交叉复核 D2 reader=2 表被接受（见 artifacts/interop-flat/raw/）
+
+# 说明：out/ 中 121 份带退出码的输出全部 exit 0（含全部 error 场景）；CLI 错误退出码问题见报告 §3.7 E4 / §4.4

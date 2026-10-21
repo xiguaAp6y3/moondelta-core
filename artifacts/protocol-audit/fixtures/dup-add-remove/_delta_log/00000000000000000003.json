@@ -1,0 +1,2 @@
+{"commitInfo":{"timestamp":0,"operation":"WRITE","operationParameters":{},"engineInfo":"protocol-audit-fixture"}}
+{"add":{"path":"dup.parquet","partitionValues":{},"size":500,"modificationTime":222,"dataChange":true,"stats":"{\"numRecords\":3}"}}

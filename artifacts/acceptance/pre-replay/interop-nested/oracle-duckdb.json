@@ -1,0 +1,1267 @@
+{
+  "secondary_oracle": "DuckDB delta_scan",
+  "engine_version": "1.5.6",
+  "delta_extension": {
+    "load_ok": true,
+    "install_needed": false,
+    "extension_version": "6059958",
+    "error": null
+  },
+  "note": "delta_scan 读取结果；若 status != ok，不得把 read_parquet 兜底当作 Delta 级读取。",
+  "tables": {
+    "engine-written": {
+      "engine": "DuckDB",
+      "engine_version": "1.5.6",
+      "delta_extension": {
+        "load_ok": true,
+        "install_needed": false,
+        "extension_version": "6059958",
+        "error": null
+      },
+      "table": "artifacts/interop-nested/engine-written",
+      "delta_level": true,
+      "status": "ok",
+      "error": null,
+      "fallback_note": null,
+      "schema_tree": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "id",
+            "nullable": true,
+            "type": {
+              "kind": "primitive",
+              "arrow_type": "int64"
+            }
+          },
+          {
+            "name": "profile",
+            "nullable": true,
+            "type": {
+              "kind": "struct",
+              "fields": [
+                {
+                  "name": "name",
+                  "nullable": true,
+                  "type": {
+                    "kind": "primitive",
+                    "arrow_type": "string"
+                  }
+                },
+                {
+                  "name": "age",
+                  "nullable": true,
+                  "type": {
+                    "kind": "primitive",
+                    "arrow_type": "int32"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "tags",
+            "nullable": true,
+            "type": {
+              "kind": "list",
+              "element_nullable": true,
+              "element": {
+                "kind": "primitive",
+                "arrow_type": "string"
+              }
+            }
+          },
+          {
+            "name": "attrs",
+            "nullable": true,
+            "type": {
+              "kind": "map",
+              "key": {
+                "kind": "primitive",
+                "arrow_type": "string"
+              },
+              "value": {
+                "kind": "primitive",
+                "arrow_type": "string"
+              },
+              "value_nullable": true,
+              "keys_sorted": false
+            }
+          }
+        ]
+      },
+      "row_count": 5,
+      "rows": [
+        {
+          "id": {
+            "kind": "int64",
+            "value": 1
+          },
+          "profile": {
+            "kind": "struct",
+            "fields": {
+              "name": {
+                "kind": "string",
+                "value": "alice"
+              },
+              "age": {
+                "kind": "int32",
+                "value": 30
+              }
+            }
+          },
+          "tags": {
+            "kind": "list",
+            "items": [
+              {
+                "kind": "string",
+                "value": "red"
+              },
+              {
+                "kind": "string",
+                "value": "green"
+              }
+            ]
+          },
+          "attrs": {
+            "kind": "map",
+            "entries": [
+              [
+                {
+                  "kind": "string",
+                  "value": "k1"
+                },
+                {
+                  "kind": "string",
+                  "value": "v1"
+                }
+              ],
+              [
+                {
+                  "kind": "string",
+                  "value": "k2"
+                },
+                {
+                  "kind": "string",
+                  "value": "v2"
+                }
+              ]
+            ]
+          }
+        },
+        {
+          "id": {
+            "kind": "int64",
+            "value": 2
+          },
+          "profile": {
+            "kind": "null"
+          },
+          "tags": {
+            "kind": "list",
+            "items": []
+          },
+          "attrs": {
+            "kind": "map",
+            "entries": []
+          }
+        },
+        {
+          "id": {
+            "kind": "int64",
+            "value": 3
+          },
+          "profile": {
+            "kind": "struct",
+            "fields": {
+              "name": {
+                "kind": "null"
+              },
+              "age": {
+                "kind": "null"
+              }
+            }
+          },
+          "tags": {
+            "kind": "null"
+          },
+          "attrs": {
+            "kind": "map",
+            "entries": [
+              [
+                {
+                  "kind": "string",
+                  "value": "k"
+                },
+                {
+                  "kind": "string",
+                  "value": "v"
+                }
+              ]
+            ]
+          }
+        },
+        {
+          "id": {
+            "kind": "int64",
+            "value": 4
+          },
+          "profile": {
+            "kind": "struct",
+            "fields": {
+              "name": {
+                "kind": "string",
+                "value": "bob"
+              },
+              "age": {
+                "kind": "null"
+              }
+            }
+          },
+          "tags": {
+            "kind": "list",
+            "items": [
+              {
+                "kind": "string",
+                "value": "blue"
+              },
+              {
+                "kind": "null"
+              }
+            ]
+          },
+          "attrs": {
+            "kind": "map",
+            "entries": []
+          }
+        },
+        {
+          "id": {
+            "kind": "int64",
+            "value": 5
+          },
+          "profile": {
+            "kind": "struct",
+            "fields": {
+              "name": {
+                "kind": "null"
+              },
+              "age": {
+                "kind": "int32",
+                "value": 42
+              }
+            }
+          },
+          "tags": {
+            "kind": "list",
+            "items": []
+          },
+          "attrs": {
+            "kind": "null"
+          }
+        }
+      ],
+      "rows_display": [
+        {
+          "id": "1",
+          "profile": "{name: alice, age: 30}",
+          "tags": "[red, green]",
+          "attrs": "{k1: v1, k2: v2}"
+        },
+        {
+          "id": "2",
+          "profile": "NULL",
+          "tags": "[]",
+          "attrs": "{}"
+        },
+        {
+          "id": "3",
+          "profile": "{name: NULL, age: NULL}",
+          "tags": "NULL",
+          "attrs": "{k: v}"
+        },
+        {
+          "id": "4",
+          "profile": "{name: bob, age: NULL}",
+          "tags": "[blue, NULL]",
+          "attrs": "{}"
+        },
+        {
+          "id": "5",
+          "profile": "{name: NULL, age: 42}",
+          "tags": "[]",
+          "attrs": "NULL"
+        }
+      ]
+    },
+    "kind-struct-only": {
+      "engine": "DuckDB",
+      "engine_version": "1.5.6",
+      "delta_extension": {
+        "load_ok": true,
+        "install_needed": false,
+        "extension_version": "6059958",
+        "error": null
+      },
+      "table": "artifacts/interop-nested/kind-struct-only",
+      "delta_level": true,
+      "status": "ok",
+      "error": null,
+      "fallback_note": null,
+      "schema_tree": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "id",
+            "nullable": true,
+            "type": {
+              "kind": "primitive",
+              "arrow_type": "int64"
+            }
+          },
+          {
+            "name": "profile",
+            "nullable": true,
+            "type": {
+              "kind": "struct",
+              "fields": [
+                {
+                  "name": "name",
+                  "nullable": true,
+                  "type": {
+                    "kind": "primitive",
+                    "arrow_type": "string"
+                  }
+                },
+                {
+                  "name": "age",
+                  "nullable": true,
+                  "type": {
+                    "kind": "primitive",
+                    "arrow_type": "int32"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "row_count": 4,
+      "rows": [
+        {
+          "id": {
+            "kind": "int64",
+            "value": 1
+          },
+          "profile": {
+            "kind": "struct",
+            "fields": {
+              "name": {
+                "kind": "string",
+                "value": "alice"
+              },
+              "age": {
+                "kind": "int32",
+                "value": 30
+              }
+            }
+          }
+        },
+        {
+          "id": {
+            "kind": "int64",
+            "value": 2
+          },
+          "profile": {
+            "kind": "null"
+          }
+        },
+        {
+          "id": {
+            "kind": "int64",
+            "value": 3
+          },
+          "profile": {
+            "kind": "struct",
+            "fields": {
+              "name": {
+                "kind": "null"
+              },
+              "age": {
+                "kind": "null"
+              }
+            }
+          }
+        },
+        {
+          "id": {
+            "kind": "int64",
+            "value": 4
+          },
+          "profile": {
+            "kind": "struct",
+            "fields": {
+              "name": {
+                "kind": "string",
+                "value": "carol"
+              },
+              "age": {
+                "kind": "null"
+              }
+            }
+          }
+        }
+      ],
+      "rows_display": [
+        {
+          "id": "1",
+          "profile": "{name: alice, age: 30}"
+        },
+        {
+          "id": "2",
+          "profile": "NULL"
+        },
+        {
+          "id": "3",
+          "profile": "{name: NULL, age: NULL}"
+        },
+        {
+          "id": "4",
+          "profile": "{name: carol, age: NULL}"
+        }
+      ]
+    },
+    "kind-array-only": {
+      "engine": "DuckDB",
+      "engine_version": "1.5.6",
+      "delta_extension": {
+        "load_ok": true,
+        "install_needed": false,
+        "extension_version": "6059958",
+        "error": null
+      },
+      "table": "artifacts/interop-nested/kind-array-only",
+      "delta_level": true,
+      "status": "ok",
+      "error": null,
+      "fallback_note": null,
+      "schema_tree": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "id",
+            "nullable": true,
+            "type": {
+              "kind": "primitive",
+              "arrow_type": "int64"
+            }
+          },
+          {
+            "name": "tags",
+            "nullable": true,
+            "type": {
+              "kind": "list",
+              "element_nullable": true,
+              "element": {
+                "kind": "primitive",
+                "arrow_type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "row_count": 4,
+      "rows": [
+        {
+          "id": {
+            "kind": "int64",
+            "value": 1
+          },
+          "tags": {
+            "kind": "list",
+            "items": [
+              {
+                "kind": "string",
+                "value": "a"
+              },
+              {
+                "kind": "string",
+                "value": "b"
+              }
+            ]
+          }
+        },
+        {
+          "id": {
+            "kind": "int64",
+            "value": 2
+          },
+          "tags": {
+            "kind": "list",
+            "items": []
+          }
+        },
+        {
+          "id": {
+            "kind": "int64",
+            "value": 3
+          },
+          "tags": {
+            "kind": "null"
+          }
+        },
+        {
+          "id": {
+            "kind": "int64",
+            "value": 4
+          },
+          "tags": {
+            "kind": "list",
+            "items": [
+              {
+                "kind": "string",
+                "value": "c"
+              },
+              {
+                "kind": "null"
+              }
+            ]
+          }
+        }
+      ],
+      "rows_display": [
+        {
+          "id": "1",
+          "tags": "[a, b]"
+        },
+        {
+          "id": "2",
+          "tags": "[]"
+        },
+        {
+          "id": "3",
+          "tags": "NULL"
+        },
+        {
+          "id": "4",
+          "tags": "[c, NULL]"
+        }
+      ]
+    },
+    "kind-map-only": {
+      "engine": "DuckDB",
+      "engine_version": "1.5.6",
+      "delta_extension": {
+        "load_ok": true,
+        "install_needed": false,
+        "extension_version": "6059958",
+        "error": null
+      },
+      "table": "artifacts/interop-nested/kind-map-only",
+      "delta_level": true,
+      "status": "ok",
+      "error": null,
+      "fallback_note": null,
+      "schema_tree": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "id",
+            "nullable": true,
+            "type": {
+              "kind": "primitive",
+              "arrow_type": "int64"
+            }
+          },
+          {
+            "name": "attrs",
+            "nullable": true,
+            "type": {
+              "kind": "map",
+              "key": {
+                "kind": "primitive",
+                "arrow_type": "string"
+              },
+              "value": {
+                "kind": "primitive",
+                "arrow_type": "string"
+              },
+              "value_nullable": true,
+              "keys_sorted": false
+            }
+          }
+        ]
+      },
+      "row_count": 4,
+      "rows": [
+        {
+          "id": {
+            "kind": "int64",
+            "value": 1
+          },
+          "attrs": {
+            "kind": "map",
+            "entries": [
+              [
+                {
+                  "kind": "string",
+                  "value": "k1"
+                },
+                {
+                  "kind": "string",
+                  "value": "v1"
+                }
+              ]
+            ]
+          }
+        },
+        {
+          "id": {
+            "kind": "int64",
+            "value": 2
+          },
+          "attrs": {
+            "kind": "map",
+            "entries": []
+          }
+        },
+        {
+          "id": {
+            "kind": "int64",
+            "value": 3
+          },
+          "attrs": {
+            "kind": "null"
+          }
+        },
+        {
+          "id": {
+            "kind": "int64",
+            "value": 4
+          },
+          "attrs": {
+            "kind": "map",
+            "entries": [
+              [
+                {
+                  "kind": "string",
+                  "value": "k2"
+                },
+                {
+                  "kind": "null"
+                }
+              ]
+            ]
+          }
+        }
+      ],
+      "rows_display": [
+        {
+          "id": "1",
+          "attrs": "{k1: v1}"
+        },
+        {
+          "id": "2",
+          "attrs": "{}"
+        },
+        {
+          "id": "3",
+          "attrs": "NULL"
+        },
+        {
+          "id": "4",
+          "attrs": "{k2: NULL}"
+        }
+      ]
+    },
+    "checkpoint-nested": {
+      "engine": "DuckDB",
+      "engine_version": "1.5.6",
+      "delta_extension": {
+        "load_ok": true,
+        "install_needed": false,
+        "extension_version": "6059958",
+        "error": null
+      },
+      "table": "artifacts/interop-nested/checkpoint-nested",
+      "delta_level": true,
+      "status": "ok",
+      "error": null,
+      "fallback_note": null,
+      "schema_tree": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "id",
+            "nullable": true,
+            "type": {
+              "kind": "primitive",
+              "arrow_type": "int64"
+            }
+          },
+          {
+            "name": "profile",
+            "nullable": true,
+            "type": {
+              "kind": "struct",
+              "fields": [
+                {
+                  "name": "name",
+                  "nullable": true,
+                  "type": {
+                    "kind": "primitive",
+                    "arrow_type": "string"
+                  }
+                },
+                {
+                  "name": "age",
+                  "nullable": true,
+                  "type": {
+                    "kind": "primitive",
+                    "arrow_type": "int32"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "tags",
+            "nullable": true,
+            "type": {
+              "kind": "list",
+              "element_nullable": true,
+              "element": {
+                "kind": "primitive",
+                "arrow_type": "string"
+              }
+            }
+          },
+          {
+            "name": "attrs",
+            "nullable": true,
+            "type": {
+              "kind": "map",
+              "key": {
+                "kind": "primitive",
+                "arrow_type": "string"
+              },
+              "value": {
+                "kind": "primitive",
+                "arrow_type": "string"
+              },
+              "value_nullable": true,
+              "keys_sorted": false
+            }
+          }
+        ]
+      },
+      "row_count": 5,
+      "rows": [
+        {
+          "id": {
+            "kind": "int64",
+            "value": 1
+          },
+          "profile": {
+            "kind": "struct",
+            "fields": {
+              "name": {
+                "kind": "string",
+                "value": "alice"
+              },
+              "age": {
+                "kind": "int32",
+                "value": 30
+              }
+            }
+          },
+          "tags": {
+            "kind": "list",
+            "items": [
+              {
+                "kind": "string",
+                "value": "red"
+              },
+              {
+                "kind": "string",
+                "value": "green"
+              }
+            ]
+          },
+          "attrs": {
+            "kind": "map",
+            "entries": [
+              [
+                {
+                  "kind": "string",
+                  "value": "k1"
+                },
+                {
+                  "kind": "string",
+                  "value": "v1"
+                }
+              ],
+              [
+                {
+                  "kind": "string",
+                  "value": "k2"
+                },
+                {
+                  "kind": "string",
+                  "value": "v2"
+                }
+              ]
+            ]
+          }
+        },
+        {
+          "id": {
+            "kind": "int64",
+            "value": 2
+          },
+          "profile": {
+            "kind": "null"
+          },
+          "tags": {
+            "kind": "list",
+            "items": []
+          },
+          "attrs": {
+            "kind": "map",
+            "entries": []
+          }
+        },
+        {
+          "id": {
+            "kind": "int64",
+            "value": 3
+          },
+          "profile": {
+            "kind": "struct",
+            "fields": {
+              "name": {
+                "kind": "null"
+              },
+              "age": {
+                "kind": "null"
+              }
+            }
+          },
+          "tags": {
+            "kind": "null"
+          },
+          "attrs": {
+            "kind": "map",
+            "entries": [
+              [
+                {
+                  "kind": "string",
+                  "value": "k"
+                },
+                {
+                  "kind": "string",
+                  "value": "v"
+                }
+              ]
+            ]
+          }
+        },
+        {
+          "id": {
+            "kind": "int64",
+            "value": 4
+          },
+          "profile": {
+            "kind": "struct",
+            "fields": {
+              "name": {
+                "kind": "string",
+                "value": "bob"
+              },
+              "age": {
+                "kind": "null"
+              }
+            }
+          },
+          "tags": {
+            "kind": "list",
+            "items": [
+              {
+                "kind": "string",
+                "value": "blue"
+              },
+              {
+                "kind": "null"
+              }
+            ]
+          },
+          "attrs": {
+            "kind": "map",
+            "entries": []
+          }
+        },
+        {
+          "id": {
+            "kind": "int64",
+            "value": 5
+          },
+          "profile": {
+            "kind": "struct",
+            "fields": {
+              "name": {
+                "kind": "null"
+              },
+              "age": {
+                "kind": "int32",
+                "value": 42
+              }
+            }
+          },
+          "tags": {
+            "kind": "list",
+            "items": []
+          },
+          "attrs": {
+            "kind": "null"
+          }
+        }
+      ],
+      "rows_display": [
+        {
+          "id": "1",
+          "profile": "{name: alice, age: 30}",
+          "tags": "[red, green]",
+          "attrs": "{k1: v1, k2: v2}"
+        },
+        {
+          "id": "2",
+          "profile": "NULL",
+          "tags": "[]",
+          "attrs": "{}"
+        },
+        {
+          "id": "3",
+          "profile": "{name: NULL, age: NULL}",
+          "tags": "NULL",
+          "attrs": "{k: v}"
+        },
+        {
+          "id": "4",
+          "profile": "{name: bob, age: NULL}",
+          "tags": "[blue, NULL]",
+          "attrs": "{}"
+        },
+        {
+          "id": "5",
+          "profile": "{name: NULL, age: 42}",
+          "tags": "[]",
+          "attrs": "NULL"
+        }
+      ]
+    },
+    "checkpoint-only-nested": {
+      "engine": "DuckDB",
+      "engine_version": "1.5.6",
+      "delta_extension": {
+        "load_ok": true,
+        "install_needed": false,
+        "extension_version": "6059958",
+        "error": null
+      },
+      "table": "artifacts/interop-nested/checkpoint-only-nested",
+      "delta_level": true,
+      "status": "ok",
+      "error": null,
+      "fallback_note": null,
+      "schema_tree": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "id",
+            "nullable": true,
+            "type": {
+              "kind": "primitive",
+              "arrow_type": "int64"
+            }
+          },
+          {
+            "name": "profile",
+            "nullable": true,
+            "type": {
+              "kind": "struct",
+              "fields": [
+                {
+                  "name": "name",
+                  "nullable": true,
+                  "type": {
+                    "kind": "primitive",
+                    "arrow_type": "string"
+                  }
+                },
+                {
+                  "name": "age",
+                  "nullable": true,
+                  "type": {
+                    "kind": "primitive",
+                    "arrow_type": "int32"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "tags",
+            "nullable": true,
+            "type": {
+              "kind": "list",
+              "element_nullable": true,
+              "element": {
+                "kind": "primitive",
+                "arrow_type": "string"
+              }
+            }
+          },
+          {
+            "name": "attrs",
+            "nullable": true,
+            "type": {
+              "kind": "map",
+              "key": {
+                "kind": "primitive",
+                "arrow_type": "string"
+              },
+              "value": {
+                "kind": "primitive",
+                "arrow_type": "string"
+              },
+              "value_nullable": true,
+              "keys_sorted": false
+            }
+          }
+        ]
+      },
+      "row_count": 5,
+      "rows": [
+        {
+          "id": {
+            "kind": "int64",
+            "value": 1
+          },
+          "profile": {
+            "kind": "struct",
+            "fields": {
+              "name": {
+                "kind": "string",
+                "value": "alice"
+              },
+              "age": {
+                "kind": "int32",
+                "value": 30
+              }
+            }
+          },
+          "tags": {
+            "kind": "list",
+            "items": [
+              {
+                "kind": "string",
+                "value": "red"
+              },
+              {
+                "kind": "string",
+                "value": "green"
+              }
+            ]
+          },
+          "attrs": {
+            "kind": "map",
+            "entries": [
+              [
+                {
+                  "kind": "string",
+                  "value": "k1"
+                },
+                {
+                  "kind": "string",
+                  "value": "v1"
+                }
+              ],
+              [
+                {
+                  "kind": "string",
+                  "value": "k2"
+                },
+                {
+                  "kind": "string",
+                  "value": "v2"
+                }
+              ]
+            ]
+          }
+        },
+        {
+          "id": {
+            "kind": "int64",
+            "value": 2
+          },
+          "profile": {
+            "kind": "null"
+          },
+          "tags": {
+            "kind": "list",
+            "items": []
+          },
+          "attrs": {
+            "kind": "map",
+            "entries": []
+          }
+        },
+        {
+          "id": {
+            "kind": "int64",
+            "value": 3
+          },
+          "profile": {
+            "kind": "struct",
+            "fields": {
+              "name": {
+                "kind": "null"
+              },
+              "age": {
+                "kind": "null"
+              }
+            }
+          },
+          "tags": {
+            "kind": "null"
+          },
+          "attrs": {
+            "kind": "map",
+            "entries": [
+              [
+                {
+                  "kind": "string",
+                  "value": "k"
+                },
+                {
+                  "kind": "string",
+                  "value": "v"
+                }
+              ]
+            ]
+          }
+        },
+        {
+          "id": {
+            "kind": "int64",
+            "value": 4
+          },
+          "profile": {
+            "kind": "struct",
+            "fields": {
+              "name": {
+                "kind": "string",
+                "value": "bob"
+              },
+              "age": {
+                "kind": "null"
+              }
+            }
+          },
+          "tags": {
+            "kind": "list",
+            "items": [
+              {
+                "kind": "string",
+                "value": "blue"
+              },
+              {
+                "kind": "null"
+              }
+            ]
+          },
+          "attrs": {
+            "kind": "map",
+            "entries": []
+          }
+        },
+        {
+          "id": {
+            "kind": "int64",
+            "value": 5
+          },
+          "profile": {
+            "kind": "struct",
+            "fields": {
+              "name": {
+                "kind": "null"
+              },
+              "age": {
+                "kind": "int32",
+                "value": 42
+              }
+            }
+          },
+          "tags": {
+            "kind": "list",
+            "items": []
+          },
+          "attrs": {
+            "kind": "null"
+          }
+        }
+      ],
+      "rows_display": [
+        {
+          "id": "1",
+          "profile": "{name: alice, age: 30}",
+          "tags": "[red, green]",
+          "attrs": "{k1: v1, k2: v2}"
+        },
+        {
+          "id": "2",
+          "profile": "NULL",
+          "tags": "[]",
+          "attrs": "{}"
+        },
+        {
+          "id": "3",
+          "profile": "{name: NULL, age: NULL}",
+          "tags": "NULL",
+          "attrs": "{k: v}"
+        },
+        {
+          "id": "4",
+          "profile": "{name: bob, age: NULL}",
+          "tags": "[blue, NULL]",
+          "attrs": "{}"
+        },
+        {
+          "id": "5",
+          "profile": "{name: NULL, age: 42}",
+          "tags": "[]",
+          "attrs": "NULL"
+        }
+      ]
+    }
+  },
+  "negative_physical_nested_attempt": {
+    "engine": "DuckDB",
+    "engine_version": "1.5.6",
+    "delta_extension": {
+      "load_ok": true,
+      "install_needed": false,
+      "extension_version": "6059958",
+      "error": null
+    },
+    "table": "artifacts/interop-nested/negative-physical-nested",
+    "delta_level": true,
+    "status": "failed",
+    "error": "ConversionException: Conversion Error: Error while reading file \"E:/Project/Moonbit Hackson/P1 RE/artifacts/interop-nested/negative-physical-nested/data/list_columns.parquet\": failed to cast column \"int64_list\" from type BIGINT[] to BIGINT: : Unimplemented type for cast (BIGINT[] -> BIGINT)\n\nIn file \"E:/Project/Moonbit Hackson/P1 RE/artifacts/interop-nested/negative-physical-nested/data/list_columns.parquet\" the column \"int64_list\" has type BIGINT[], but we are trying to read it as type BIGINT.\nThis can happen when reading multiple Parquet files. The schema information is taken from the first Parquet file by default. Possible solutions:\n* Enable the union_by_name=True option to combine the schema of all Parquet files (https://duckdb.org/docs/stable/data/multiple_files/combining_schemas)\n* Use a COPY statement to automatically derive types from an existing table.",
+    "fallback_note": "BinderException: Binder Error: No function matches the given name and argument types 'read_parquet(INTEGER[])'. You might need to add explicit type casts.\n\tCandidate functions:\n\tread_parquet(VARCHAR, filename : ANY, hive_partitioning : BOOLEAN, union_by_name : BOOLEAN, file_row_number : BOOLEAN, hive_types : ANY, binary_as_string : BOOLEAN, hive_types_autocast : BOOLEAN, debug_use_openssl : BOOLEAN, compression : VARCHAR, explicit_cardinality : UBIGINT, can_have_nan : BOOLEAN, schema : ANY, encryption_config : ANY, parquet_version : VARCHAR)\n\tread_parquet(VARCHAR[], filename : ANY, hive_partitioning : BOOLEAN, union_by_name : BOOLEAN, hive_types : ANY, file_row_number : BOOLEAN, hive_types_autocast : BOOLEAN, binary_as_string : BOOLEAN, debug_use_openssl : BOOLEAN, compression : VARCHAR, can_have_nan : BOOLEAN, explicit_cardinality : UBIGINT, schema : ANY, encryption_config : ANY, parquet_version : VARCHAR)\n\n\nLINE 1: SELECT * FROM read_parquet([])\n                      ^",
+    "schema_tree": null,
+    "row_count": null,
+    "rows": null,
+    "rows_display": null
+  }
+}

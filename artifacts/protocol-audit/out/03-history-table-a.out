@@ -1,0 +1,22 @@
+### 03-history-table-a
+$ delta.exe history fixtures/delta/table_a
+[exit code: 0]
+--- stdout ---
+version | timestamp     | operation
+--------+---------------+----------
+0 | 1742317262289 | CREATE TABLE
+1 | 1742317316973 | WRITE
+2 | 1742317326453 | WRITE
+3 | 1742317330682 | WRITE
+4 | 1742317333588 | WRITE
+5 | 1742317336099 | WRITE
+6 | 1742317338700 | WRITE
+7 | 1742317339658 | WRITE
+8 | 1742317340794 | WRITE
+9 | 1742317341714 | WRITE
+10 | 1742317342605 | WRITE
+11 | 1742317349152 | WRITE
+12 | 1742317349950 | WRITE
+--- stderr ---
+
+

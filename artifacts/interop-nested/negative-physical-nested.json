@@ -1,0 +1,43 @@
+{
+  "fixture": {
+    "name": "negative-physical-nested",
+    "path": "artifacts/interop-nested/negative-physical-nested",
+    "purpose": "Delta schema 声明为 flat（int64_list long / utf8_list string），但 add.path 指向的 Parquet 物理层是 standard 3-level LIST（repeated group）。用于验证“schema 是 flat 但 Parquet 物理嵌套”的路径必须结构化拒绝。",
+    "source_parquet": "fixtures/parquet/list_columns.parquet",
+    "source_parquet_sha256": "5988ab91b6cb7efa7bf6a77f789b40929212280519be6c9daad56e01d5ceb218",
+    "source_parquet_bytes": 2526,
+    "copied_parquet": "artifacts/interop-nested/negative-physical-nested/data/list_columns.parquet",
+    "schemaString": "{\"type\":\"struct\",\"fields\":[{\"name\":\"int64_list\",\"type\":\"long\",\"nullable\":true,\"metadata\":{}},{\"name\":\"utf8_list\",\"type\":\"string\",\"nullable\":true,\"metadata\":{}}]}",
+    "protocol": {
+      "minReaderVersion": 1,
+      "minWriterVersion": 2
+    },
+    "log_files": [
+      "00000000000000000000.json"
+    ]
+  },
+  "delta_rs_attempt": {
+    "ok": false,
+    "error": "ArrowNotImplementedError: Unsupported cast from list<item: int64> to int64 using function cast_int64"
+  },
+  "duckdb_attempt": {
+    "engine": "DuckDB",
+    "engine_version": "1.5.6",
+    "delta_extension": {
+      "load_ok": true,
+      "install_needed": false,
+      "extension_version": "6059958",
+      "error": null
+    },
+    "table": "artifacts/interop-nested/negative-physical-nested",
+    "delta_level": true,
+    "status": "failed",
+    "error": "ConversionException: Conversion Error: Error while reading file \"E:/Project/Moonbit Hackson/P1 RE/artifacts/interop-nested/negative-physical-nested/data/list_columns.parquet\": failed to cast column \"int64_list\" from type BIGINT[] to BIGINT: : Unimplemented type for cast (BIGINT[] -> BIGINT)\n\nIn file \"E:/Project/Moonbit Hackson/P1 RE/artifacts/interop-nested/negative-physical-nested/data/list_columns.parquet\" the column \"int64_list\" has type BIGINT[], but we are trying to read it as type BIGINT.\nThis can happen when reading multiple Parquet files. The schema information is taken from the first Parquet file by default. Possible solutions:\n* Enable the union_by_name=True option to combine the schema of all Parquet files (https://duckdb.org/docs/stable/data/multiple_files/combining_schemas)\n* Use a COPY statement to automatically derive types from an existing table.",
+    "fallback_note": "BinderException: Binder Error: No function matches the given name and argument types 'read_parquet(INTEGER[])'. You might need to add explicit type casts.\n\tCandidate functions:\n\tread_parquet(VARCHAR, filename : ANY, hive_partitioning : BOOLEAN, union_by_name : BOOLEAN, file_row_number : BOOLEAN, hive_types : ANY, binary_as_string : BOOLEAN, hive_types_autocast : BOOLEAN, debug_use_openssl : BOOLEAN, compression : VARCHAR, explicit_cardinality : UBIGINT, can_have_nan : BOOLEAN, schema : ANY, encryption_config : ANY, parquet_version : VARCHAR)\n\tread_parquet(VARCHAR[], filename : ANY, hive_partitioning : BOOLEAN, union_by_name : BOOLEAN, hive_types : ANY, file_row_number : BOOLEAN, hive_types_autocast : BOOLEAN, binary_as_string : BOOLEAN, debug_use_openssl : BOOLEAN, compression : VARCHAR, can_have_nan : BOOLEAN, explicit_cardinality : UBIGINT, schema : ANY, encryption_config : ANY, parquet_version : VARCHAR)\n\n\nLINE 1: SELECT * FROM read_parquet([])\n                      ^",
+    "schema_tree": null,
+    "row_count": null,
+    "rows": null,
+    "rows_display": null
+  },
+  "caution": "该表的日志 schema 与 Parquet 物理 schema 不一致，属于人为构造的负向表；外部引擎行为不作为互操作基线，只用于验证本项目的错误路径。"
+}

@@ -1,0 +1,8 @@
+### 88-read-missing-column
+$ delta.exe read artifacts/protocol-audit/fixtures/missing-column
+[exit code: 0]
+--- stdout ---
+error: unsupported: column 'name' is missing from parquet file 'data.parquet'
+--- stderr ---
+
+

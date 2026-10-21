@@ -1,0 +1,8 @@
+### 41-inspect-log-start-v1
+$ delta.exe inspect artifacts/protocol-audit/fixtures/log-start-v1
+[exit code: 0]
+--- stdout ---
+error: unsupported: log starts at version 1; checkpoint-only or truncated tables are not supported (replay requires the initial log entries)
+--- stderr ---
+
+

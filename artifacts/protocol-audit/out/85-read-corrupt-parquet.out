@@ -1,0 +1,8 @@
+### 85-read-corrupt-parquet
+$ delta.exe read artifacts/protocol-audit/fixtures/corrupt-parquet
+[exit code: 0]
+--- stdout ---
+error: parse error: corrupt parquet 'data.parquet': Missing parquet footer magic
+--- stderr ---
+
+

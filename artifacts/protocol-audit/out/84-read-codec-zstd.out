@@ -1,0 +1,8 @@
+### 84-read-codec-zstd
+$ delta.exe read artifacts/protocol-audit/fixtures/codec-zstd
+[exit code: 0]
+--- stdout ---
+error: unsupported: cannot read 'data.parquet': Unsupported parquet codec: 6
+--- stderr ---
+
+

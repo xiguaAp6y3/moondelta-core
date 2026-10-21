@@ -1,0 +1,8 @@
+### 15-read-table-a-missing-data
+$ delta.exe read fixtures/delta/table_a --limit 1
+[exit code: 0]
+--- stdout ---
+error: io error: No such file or directory
+--- stderr ---
+
+

@@ -1,0 +1,194 @@
+{
+  "table": "artifacts/interop-flat/engine-written",
+  "engine": "delta-rs (python deltalake)",
+  "protocol": {
+    "min_reader_version": 1,
+    "min_writer_version": 2,
+    "writer_features": null,
+    "reader_features": null
+  },
+  "version": 1,
+  "log_versions": 2,
+  "files": [
+    "part-00000-7bebe2e8-16af-4e7d-a700-c6010ae0e018-c000.snappy.parquet",
+    "part-00000-38b46616-d4eb-4392-b3b4-649384aa3c5a-c000.snappy.parquet"
+  ],
+  "schema_fields": [
+    {
+      "name": "id",
+      "type": "long",
+      "nullable": false,
+      "metadata": {}
+    },
+    {
+      "name": "name",
+      "type": "string",
+      "nullable": true,
+      "metadata": {}
+    },
+    {
+      "name": "active",
+      "type": "boolean",
+      "nullable": true,
+      "metadata": {}
+    }
+  ],
+  "delta_arrow_schema": [
+    {
+      "name": "id",
+      "type": "int64",
+      "nullable": false
+    },
+    {
+      "name": "name",
+      "type": "string",
+      "nullable": true
+    },
+    {
+      "name": "active",
+      "type": "bool",
+      "nullable": true
+    }
+  ],
+  "oracle_rows": [
+    [
+      4,
+      "carol",
+      true
+    ],
+    [
+      5,
+      null,
+      null
+    ],
+    [
+      1,
+      "alice",
+      true
+    ],
+    [
+      2,
+      null,
+      false
+    ],
+    [
+      3,
+      "bob",
+      null
+    ]
+  ],
+  "adds": [
+    {
+      "version": 0,
+      "path": "part-00000-38b46616-d4eb-4392-b3b4-649384aa3c5a-c000.snappy.parquet",
+      "size": 980,
+      "modificationTime": 1792499319838,
+      "partitionValues": {},
+      "stats_raw": "{\"numRecords\":3,\"minValues\":{\"name\":\"alice\",\"id\":1,\"active\":false},\"maxValues\":{\"id\":3,\"name\":\"bob\",\"active\":true},\"nullCount\":{\"name\":1,\"active\":1,\"id\":0}}",
+      "stats": {
+        "numRecords": 3,
+        "minValues": {
+          "name": "alice",
+          "id": 1,
+          "active": false
+        },
+        "maxValues": {
+          "id": 3,
+          "name": "bob",
+          "active": true
+        },
+        "nullCount": {
+          "name": 1,
+          "active": 1,
+          "id": 0
+        }
+      }
+    },
+    {
+      "version": 1,
+      "path": "part-00000-7bebe2e8-16af-4e7d-a700-c6010ae0e018-c000.snappy.parquet",
+      "size": 969,
+      "modificationTime": 1792499319856,
+      "partitionValues": {},
+      "stats_raw": "{\"numRecords\":2,\"minValues\":{\"name\":\"carol\",\"active\":true,\"id\":4},\"maxValues\":{\"name\":\"carol\",\"active\":true,\"id\":5},\"nullCount\":{\"active\":1,\"id\":0,\"name\":1}}",
+      "stats": {
+        "numRecords": 2,
+        "minValues": {
+          "name": "carol",
+          "active": true,
+          "id": 4
+        },
+        "maxValues": {
+          "name": "carol",
+          "active": true,
+          "id": 5
+        },
+        "nullCount": {
+          "active": 1,
+          "id": 0,
+          "name": 1
+        }
+      }
+    }
+  ],
+  "parquet_physical": [
+    {
+      "path": "part-00000-38b46616-d4eb-4392-b3b4-649384aa3c5a-c000.snappy.parquet",
+      "num_rows": 3,
+      "compression": [
+        "SNAPPY",
+        "SNAPPY",
+        "SNAPPY"
+      ],
+      "created_by": "delta-rs version py-1.6.6",
+      "arrow_fields": [
+        {
+          "name": "id",
+          "nullable": false,
+          "type": "int64"
+        },
+        {
+          "name": "name",
+          "nullable": true,
+          "type": "string"
+        },
+        {
+          "name": "active",
+          "nullable": true,
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "path": "part-00000-7bebe2e8-16af-4e7d-a700-c6010ae0e018-c000.snappy.parquet",
+      "num_rows": 2,
+      "compression": [
+        "SNAPPY",
+        "SNAPPY",
+        "SNAPPY"
+      ],
+      "created_by": "delta-rs version py-1.6.6",
+      "arrow_fields": [
+        {
+          "name": "id",
+          "nullable": false,
+          "type": "int64"
+        },
+        {
+          "name": "name",
+          "nullable": true,
+          "type": "string"
+        },
+        {
+          "name": "active",
+          "nullable": true,
+          "type": "bool"
+        }
+      ]
+    }
+  ],
+  "write_configuration": {
+    "delta.minReaderVersion": "1",
+    "delta.minWriterVersion": "2"
+  }
+}

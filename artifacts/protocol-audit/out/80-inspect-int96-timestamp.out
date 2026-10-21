@@ -1,0 +1,15 @@
+### 80-inspect-int96-timestamp
+$ delta.exe inspect artifacts/protocol-audit/fixtures/int96-timestamp
+[exit code: 0]
+--- stdout ---
+table            : artifacts/protocol-audit/fixtures/int96-timestamp
+current version  : 0  (log versions: 1)
+files            : 1  rows: 2  bytes: 408
+protocol         : reader=1 writer=1
+format           : parquet
+partition columns: (none)
+schema:
+  ts: timestamp
+--- stderr ---
+
+

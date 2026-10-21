@@ -1,0 +1,36 @@
+### D4 v3 增量复核原始输出（2026-10-20T20:43:16.3556168+08:00）
+
+## 1) 文件状态 / SHA-256（磁盘终版）
+claim-alignment.patch | 22063 B | 2026-10-20 20:38:22
+claim-alignment.md | 43161 B | 2026-10-20 20:41:02
+DBDE5AB7E0578C43828ACD5C601A29EB360A20795DB0C9101F14AE108FDEA3EA  artifacts\claim-alignment.patch
+0B4BB22025156F9CE3CCB52376055EEE2385D1E05DF3C3F505D142FE988291A7  artifacts\claim-alignment.md
+
+## 2) git apply --check（仓库根）
+exit=0
+
+## 3) git apply --stat
+ "\347\224\263\346\212\245\344\271\246.md" |   28 +++++++++++---------
+ README.md                                 |   40 +++++++++++++++++------------
+ docs/ROADMAP.md                           |    6 ++--
+ 3 files changed, 42 insertions(+), 32 deletions(-)
+
+## 4) 临时副本真实 apply：E:\Project\Moonbit Hackson\P1 RE\artifacts\acceptance\d4-v3-apply-check
+check_exit=0
+apply_exit=0 (stderr/stdout: )
+
+## 5) apply 后行数（预期 申报书52 / README144 / ROADMAP68）
+申报书.md : 52 行, BOM=35,32,233
+README.md : 144 行, BOM=35,32,109
+docs/ROADMAP.md : 68 行, BOM=35,32,109
+
+## 6) D1–D3 交付物自 D5 首轮以来未变化
+3C5D515A8ED0463AA997A66D12E003D33B46A9D2B7E83C35B77D02C796F4F811  artifacts\protocol-audit.md
+9B6F99DC3DC09C1FA1850F1620E48DB4EBE5DAC19C1836E3BA65BD4C6FECB0BB  artifacts\interop-flat\README.md
+71870EF1934ADCDACE28277017FDE450F4283FCAF55A0171174184BA73C7ED5F  artifacts\interop-nested\README.md
+
+## 7) 工作区
+ M .gitignore
+?? artifacts/
+?? "docs/\345\215\217\350\256\256\345\205\274\345\256\271\346\200\247\344\270\216\344\272\222\346\223\215\344\275\234\350\214\203\345\233\264.md"
+?? src/examples/interop_flat_writer/

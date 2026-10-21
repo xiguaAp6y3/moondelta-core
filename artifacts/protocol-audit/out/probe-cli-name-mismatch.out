@@ -1,0 +1,8 @@
+### probe-cli-name-mismatch
+$ delta.exe read artifacts/protocol-audit/fixtures/probe-append-name-mismatch
+[exit code: 0]
+--- stdout ---
+error: unsupported: column 'name' is missing from parquet file 'part-0000-1001-1.parquet'
+--- stderr ---
+
+

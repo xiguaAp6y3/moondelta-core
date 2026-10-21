@@ -1,0 +1,15 @@
+### 27-inspect-protocol-string-version
+$ delta.exe inspect artifacts/protocol-audit/fixtures/protocol-string-version
+[exit code: 0]
+--- stdout ---
+table            : artifacts/protocol-audit/fixtures/protocol-string-version
+current version  : 0  (log versions: 1)
+files            : 1  rows: 3  bytes: 500
+protocol         : reader=1 writer=1
+format           : parquet
+partition columns: (none)
+schema:
+  id: long
+--- stderr ---
+
+

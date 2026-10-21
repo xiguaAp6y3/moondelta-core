@@ -1,0 +1,5 @@
+{"commitInfo":{"timestamp":0,"operation":"CREATE TABLE","operationParameters":{},"engineInfo":"protocol-audit-fixture"}}
+{"protocol":{"minReaderVersion":1,"minWriterVersion":2}}
+{"metaData":{"id":"fixture","format":{"provider":"parquet","options":{}},"schemaString":"{\"type\":\"struct\",\"fields\":[{\"name\":\"id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{}},{\"name\":\"dt\",\"type\":\"string\",\"nullable\":true,\"metadata\":{}}]}","partitionColumns":["dt"],"configuration":{},"createdTime":0}}
+{"add":{"path":"dt=2026-01-01/part-1.parquet","partitionValues":{"dt":"2026-01-01"},"size":494,"modificationTime":0,"dataChange":true,"stats":"{\"numRecords\":2,\"minValues\":{\"id\":1},\"maxValues\":{\"id\":2}}"}}
+{"add":{"path":"dt=2026-01-02/part-1.parquet","partitionValues":{"dt":"2026-01-02"},"size":486,"modificationTime":0,"dataChange":true,"stats":"{\"numRecords\":1,\"minValues\":{\"id\":3},\"maxValues\":{\"id\":3}}"}}

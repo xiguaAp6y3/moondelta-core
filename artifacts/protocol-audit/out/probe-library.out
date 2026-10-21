@@ -1,0 +1,40 @@
+### probe-library
+$ cd artifacts/protocol-audit/probe-module && moon run --target native src/probe
+[exit code: 0]
+--- stdout ---
+[reader-v3-library] accepted reader=3 writer=7
+  read rows=3（readerFeatures 未校验）
+[unknown-action-api] returned UnknownAction(unrecognized action)，replay 时被忽略
+[snapshot-at] at 5 => version=5 files=50
+[snapshot-at] at 99 => error: not found: requested version 99 is out of range (latest = 12)
+[snapshot-at] at -1 => error: not found: requested version -1 is out of range (latest = 12)
+[nonstandard-log-name] discovered versions from '0.json' = 1
+[nonstandard-log-name] snapshot => error: not found: log version 0 is missing (checkpoint-only or truncated table?)
+[read-limit] limit=0 => files_read=0 rows=0
+[read-limit] limit=100 => files_read=1 rows=3
+[create-invalid-schema] create_table accepted invalid schema JSON (version 0 written)
+  later snapshot => error: parse error: invalid schema JSON
+[append-type-mismatch] append accepted despite type swap => version 1
+  column=id declared=long read=not-a-long
+  column=name declared=string read=42
+[append-name-mismatch] append accepted with wrong column names => version 1
+  read: unsupported: column 'name' is missing from parquet file 'part-0000-1001-1.parquet'
+[append-column-count] rejected: parse error: append: expected 2 columns, got 1
+[append-row-lengths] rejected: parse error: append: column lengths differ
+[append-partitioned] rejected: unsupported: append to partitioned tables is not supported yet (MVP writes only unpartitioned tables)
+[append-not-null] append accepted NULL into NOT NULL column => version 1
+  read id cells: 1,NULL
+[append-decimal] append into decimal-schema table accepted => version 1
+  read: unsupported: decimal(10,2) column 'price' is not supported (logical type is lost by the reader)
+[append-writer-v5] append into minWriterVersion=5 table accepted => version 1
+  snapshot version=1 reader=1 writer=5
+--- stderr ---
+Warning: Duplicate alias `delta` at "E:\Project\Moonbit Hackson\P1 RE\artifacts\protocol-audit\probe-module\src\cmd\delta\moon.pkg". "test-import" will automatically add "import" and current package as dependency so you don't need to add it manually. If you're test-importing a dependency with the same default alias as your current package, considering give it a different alias than the current package. Violating import: `xiguaAp6y3/moondelta-core`
+Warning: [0029]
+   ╭─[ E:\Project\Moonbit Hackson\P1 RE\artifacts\protocol-audit\probe-module\src\probe\moon.pkg:3:3 ]
+   │
+ 3 │   "moonbitlang/x/fs",
+   │   ─────────┬────────  
+   │            ╰────────── Warning (unused_package): Unused package 'moonbitlang/x/fs'
+───╯
+

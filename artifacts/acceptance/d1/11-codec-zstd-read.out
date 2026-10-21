@@ -1,0 +1,4 @@
+### _build\native\debug\build\cmd\delta\delta.exe read artifacts/protocol-audit/fixtures/codec-zstd
+EXIT=0
+error: unsupported: cannot read 'data.parquet': Unsupported parquet codec: 6
+

@@ -1,0 +1,8 @@
+### 68-read-nested-struct
+$ delta.exe read artifacts/protocol-audit/fixtures/nested-struct
+[exit code: 0]
+--- stdout ---
+error: unsupported: nested column 'profile' (type=struct) is not supported by the parquet reader; only flat schemas are readable
+--- stderr ---
+
+

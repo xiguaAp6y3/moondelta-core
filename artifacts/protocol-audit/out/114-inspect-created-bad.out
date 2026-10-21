@@ -1,0 +1,8 @@
+### 114-inspect-created-bad
+$ delta.exe inspect artifacts/protocol-audit/fixtures/cli-created-bad
+[exit code: 0]
+--- stdout ---
+error: parse error: invalid schema JSON
+--- stderr ---
+
+

@@ -1,0 +1,13 @@
+### 120-moon-run-interop-writer
+$ moon run --target native src/examples/interop_flat_writer -- artifacts/protocol-audit/fixtures/appended-flat
+[exit code: 0]
+--- stdout ---
+created version 0 at artifacts/protocol-audit/fixtures/appended-flat
+appended batch1 => version 1
+appended batch2 => version 2
+self-check: version=2 files=2 rows=5
+  file: part-0000-1750000000000-1.parquet size=297 stats={"numRecords":3,"minValues":{"id":1},"maxValues":{"id":3}}
+  file: part-0000-1750000001000-2.parquet size=280 stats={"numRecords":2,"minValues":{"id":4},"maxValues":{"id":5}}
+--- stderr ---
+Warning: Duplicate alias `delta` at "E:\Project\Moonbit Hackson\P1 RE\src\cmd\delta\moon.pkg". "test-import" will automatically add "import" and current package as dependency so you don't need to add it manually. If you're test-importing a dependency with the same default alias as your current package, considering give it a different alias than the current package. Violating import: `xiguaAp6y3/moondelta-core`
+

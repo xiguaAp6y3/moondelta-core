@@ -1,0 +1,4 @@
+### _build\native\debug\build\cmd\delta\delta.exe read artifacts/protocol-audit/fixtures/nested-map
+EXIT=0
+error: unsupported: nested column 'attrs' (type=map) is not supported by the parquet reader; only flat schemas are readable
+

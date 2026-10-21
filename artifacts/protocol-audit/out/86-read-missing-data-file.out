@@ -1,0 +1,8 @@
+### 86-read-missing-data-file
+$ delta.exe read artifacts/protocol-audit/fixtures/missing-data-file
+[exit code: 0]
+--- stdout ---
+error: io error: No such file or directory
+--- stderr ---
+
+

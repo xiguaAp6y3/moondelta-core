@@ -1,0 +1,3 @@
+version | timestamp     | operation
+--------+---------------+----------
+0 | 1792499081180 | WRITE

@@ -1,0 +1,1 @@
+E:\Project\Moonbit Hackson\P1 RE\_build\native\debug\build\cmd\delta\delta.exe read artifacts/interop-flat/probe/protocol-reader2

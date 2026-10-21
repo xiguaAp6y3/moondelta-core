@@ -1,0 +1,585 @@
+{
+  "generated_at": "2026-10-20T20:24:42+08:00",
+  "fixture_source": "本项目用 delta-rs 现场写出（除 negative-physical-nested 复制自 fixtures/parquet/list_columns.parquet）",
+  "environment": {
+    "os": "Windows-11-10.0.28000-SP0",
+    "python": "3.12.14",
+    "deltalake": "1.6.6",
+    "pyarrow": "26.0.0",
+    "duckdb": "1.5.6",
+    "pandas": "3.0.6",
+    "moondelta_cli": "_build/native/debug/build/cmd/delta/delta.exe",
+    "moondelta_version": "moondelta-core 0.1.0",
+    "duckdb_delta_extension": {
+      "load_ok": true,
+      "install_needed": false,
+      "extension_version": "6059958",
+      "error": null
+    }
+  },
+  "fixtures": {
+    "engine-written": {
+      "name": "engine-written",
+      "path": "artifacts/interop-nested/engine-written",
+      "writer": "delta-rs (Python deltalake.write_deltalake)",
+      "version": 0,
+      "log_files": [
+        "00000000000000000000.json"
+      ],
+      "protocol": {
+        "minReaderVersion": 1,
+        "minWriterVersion": 2
+      },
+      "schemaString": "{\"type\":\"struct\",\"fields\":[{\"name\":\"id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{}},{\"name\":\"profile\",\"type\":{\"type\":\"struct\",\"fields\":[{\"name\":\"name\",\"type\":\"string\",\"nullable\":true,\"metadata\":{}},{\"name\":\"age\",\"type\":\"integer\",\"nullable\":true,\"metadata\":{}}]},\"nullable\":true,\"metadata\":{}},{\"name\":\"tags\",\"type\":{\"type\":\"array\",\"elementType\":\"string\",\"containsNull\":true},\"nullable\":true,\"metadata\":{}},{\"name\":\"attrs\",\"type\":{\"type\":\"map\",\"keyType\":\"string\",\"valueType\":\"string\",\"valueContainsNull\":true},\"nullable\":true,\"metadata\":{}}]}",
+      "partitionColumns": [],
+      "format": {
+        "provider": "parquet",
+        "options": {}
+      },
+      "adds": [
+        {
+          "path": "part-00000-b9863671-bdd7-45b5-83b1-ebe4eba783dc-c000.snappy.parquet",
+          "size": 2279,
+          "modificationTime": 1792499081132,
+          "stats_raw": "{\"numRecords\":5,\"minValues\":{\"profile\":{\"age\":30,\"name\":\"alice\"},\"id\":1},\"maxValues\":{\"id\":5,\"profile\":{\"name\":\"bob\",\"age\":42}},\"nullCount\":{\"profile\":{\"name\":3,\"age\":3},\"id\":0}}",
+          "stats_json": {
+            "numRecords": 5,
+            "minValues": {
+              "profile": {
+                "age": 30,
+                "name": "alice"
+              },
+              "id": 1
+            },
+            "maxValues": {
+              "id": 5,
+              "profile": {
+                "name": "bob",
+                "age": 42
+              }
+            },
+            "nullCount": {
+              "profile": {
+                "name": 3,
+                "age": 3
+              },
+              "id": 0
+            }
+          }
+        }
+      ],
+      "data_files": [
+        "part-00000-b9863671-bdd7-45b5-83b1-ebe4eba783dc-c000.snappy.parquet"
+      ],
+      "commit_info": {
+        "timestamp": 1792499081132,
+        "operation": "WRITE",
+        "operationParameters": {
+          "mode": "Overwrite"
+        },
+        "engineInfo": "delta-rs:py-1.6.6",
+        "clientVersion": "delta-rs.py-1.6.6",
+        "operationMetrics": {
+          "num_added_files": 1,
+          "num_removed_files": 0,
+          "num_partitions": 0,
+          "num_added_rows": 5,
+          "execution_time_ms": 9,
+          "num_retries": 0
+        }
+      }
+    },
+    "kind-struct-only": {
+      "name": "kind-struct-only",
+      "path": "artifacts/interop-nested/kind-struct-only",
+      "writer": "delta-rs (Python deltalake.write_deltalake)",
+      "version": 0,
+      "log_files": [
+        "00000000000000000000.json"
+      ],
+      "protocol": {
+        "minReaderVersion": 1,
+        "minWriterVersion": 2
+      },
+      "schemaString": "{\"type\":\"struct\",\"fields\":[{\"name\":\"id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{}},{\"name\":\"profile\",\"type\":{\"type\":\"struct\",\"fields\":[{\"name\":\"name\",\"type\":\"string\",\"nullable\":true,\"metadata\":{}},{\"name\":\"age\",\"type\":\"integer\",\"nullable\":true,\"metadata\":{}}]},\"nullable\":true,\"metadata\":{}}]}",
+      "partitionColumns": [],
+      "format": {
+        "provider": "parquet",
+        "options": {}
+      },
+      "adds": [
+        {
+          "path": "part-00000-c84eeadc-6a6c-4dbb-8600-70a2a2f409cb-c000.snappy.parquet",
+          "size": 1139,
+          "modificationTime": 1792499081161,
+          "stats_raw": "{\"numRecords\":4,\"minValues\":{\"profile\":{\"name\":\"alice\",\"age\":30},\"id\":1},\"maxValues\":{\"id\":4,\"profile\":{\"age\":30,\"name\":\"carol\"}},\"nullCount\":{\"id\":0,\"profile\":{\"name\":2,\"age\":3}}}",
+          "stats_json": {
+            "numRecords": 4,
+            "minValues": {
+              "profile": {
+                "name": "alice",
+                "age": 30
+              },
+              "id": 1
+            },
+            "maxValues": {
+              "id": 4,
+              "profile": {
+                "age": 30,
+                "name": "carol"
+              }
+            },
+            "nullCount": {
+              "id": 0,
+              "profile": {
+                "name": 2,
+                "age": 3
+              }
+            }
+          }
+        }
+      ],
+      "data_files": [
+        "part-00000-c84eeadc-6a6c-4dbb-8600-70a2a2f409cb-c000.snappy.parquet"
+      ],
+      "commit_info": {
+        "timestamp": 1792499081161,
+        "operation": "WRITE",
+        "operationParameters": {
+          "mode": "Overwrite"
+        },
+        "engineInfo": "delta-rs:py-1.6.6",
+        "clientVersion": "delta-rs.py-1.6.6",
+        "operationMetrics": {
+          "num_added_files": 1,
+          "num_removed_files": 0,
+          "num_partitions": 0,
+          "num_added_rows": 4,
+          "execution_time_ms": 3,
+          "num_retries": 0
+        }
+      }
+    },
+    "kind-array-only": {
+      "name": "kind-array-only",
+      "path": "artifacts/interop-nested/kind-array-only",
+      "writer": "delta-rs (Python deltalake.write_deltalake)",
+      "version": 0,
+      "log_files": [
+        "00000000000000000000.json"
+      ],
+      "protocol": {
+        "minReaderVersion": 1,
+        "minWriterVersion": 2
+      },
+      "schemaString": "{\"type\":\"struct\",\"fields\":[{\"name\":\"id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{}},{\"name\":\"tags\",\"type\":{\"type\":\"array\",\"elementType\":\"string\",\"containsNull\":true},\"nullable\":true,\"metadata\":{}}]}",
+      "partitionColumns": [],
+      "format": {
+        "provider": "parquet",
+        "options": {}
+      },
+      "adds": [
+        {
+          "path": "part-00000-25e1b114-9d7d-452e-b9cf-fd6797f9e5d4-c000.snappy.parquet",
+          "size": 887,
+          "modificationTime": 1792499081171,
+          "stats_raw": "{\"numRecords\":4,\"minValues\":{\"id\":1},\"maxValues\":{\"id\":4},\"nullCount\":{\"id\":0}}",
+          "stats_json": {
+            "numRecords": 4,
+            "minValues": {
+              "id": 1
+            },
+            "maxValues": {
+              "id": 4
+            },
+            "nullCount": {
+              "id": 0
+            }
+          }
+        }
+      ],
+      "data_files": [
+        "part-00000-25e1b114-9d7d-452e-b9cf-fd6797f9e5d4-c000.snappy.parquet"
+      ],
+      "commit_info": {
+        "timestamp": 1792499081171,
+        "operation": "WRITE",
+        "operationParameters": {
+          "mode": "Overwrite"
+        },
+        "engineInfo": "delta-rs:py-1.6.6",
+        "operationMetrics": {
+          "num_added_files": 1,
+          "num_removed_files": 0,
+          "num_partitions": 0,
+          "num_added_rows": 4,
+          "execution_time_ms": 3,
+          "num_retries": 0
+        },
+        "clientVersion": "delta-rs.py-1.6.6"
+      }
+    },
+    "kind-map-only": {
+      "name": "kind-map-only",
+      "path": "artifacts/interop-nested/kind-map-only",
+      "writer": "delta-rs (Python deltalake.write_deltalake)",
+      "version": 0,
+      "log_files": [
+        "00000000000000000000.json"
+      ],
+      "protocol": {
+        "minReaderVersion": 1,
+        "minWriterVersion": 2
+      },
+      "schemaString": "{\"type\":\"struct\",\"fields\":[{\"name\":\"id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{}},{\"name\":\"attrs\",\"type\":{\"type\":\"map\",\"keyType\":\"string\",\"valueType\":\"string\",\"valueContainsNull\":true},\"nullable\":true,\"metadata\":{}}]}",
+      "partitionColumns": [],
+      "format": {
+        "provider": "parquet",
+        "options": {}
+      },
+      "adds": [
+        {
+          "path": "part-00000-85a8feb6-1b52-4a8e-aa5c-0b2cd50acef9-c000.snappy.parquet",
+          "size": 1244,
+          "modificationTime": 1792499081180,
+          "stats_raw": "{\"numRecords\":4,\"minValues\":{\"id\":1},\"maxValues\":{\"id\":4},\"nullCount\":{\"id\":0}}",
+          "stats_json": {
+            "numRecords": 4,
+            "minValues": {
+              "id": 1
+            },
+            "maxValues": {
+              "id": 4
+            },
+            "nullCount": {
+              "id": 0
+            }
+          }
+        }
+      ],
+      "data_files": [
+        "part-00000-85a8feb6-1b52-4a8e-aa5c-0b2cd50acef9-c000.snappy.parquet"
+      ],
+      "commit_info": {
+        "timestamp": 1792499081180,
+        "operation": "WRITE",
+        "operationParameters": {
+          "mode": "Overwrite"
+        },
+        "engineInfo": "delta-rs:py-1.6.6",
+        "operationMetrics": {
+          "num_added_files": 1,
+          "num_removed_files": 0,
+          "num_partitions": 0,
+          "num_added_rows": 4,
+          "execution_time_ms": 3,
+          "num_retries": 0
+        },
+        "clientVersion": "delta-rs.py-1.6.6"
+      }
+    },
+    "checkpoint-nested": {
+      "name": "checkpoint-nested",
+      "path": "artifacts/interop-nested/checkpoint-nested",
+      "writer": "delta-rs write_deltalake + delta-rs create_checkpoint()",
+      "version": 0,
+      "log_files": [
+        "00000000000000000000.json"
+      ],
+      "protocol": {
+        "minReaderVersion": 1,
+        "minWriterVersion": 2
+      },
+      "schemaString": "{\"type\":\"struct\",\"fields\":[{\"name\":\"id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{}},{\"name\":\"profile\",\"type\":{\"type\":\"struct\",\"fields\":[{\"name\":\"name\",\"type\":\"string\",\"nullable\":true,\"metadata\":{}},{\"name\":\"age\",\"type\":\"integer\",\"nullable\":true,\"metadata\":{}}]},\"nullable\":true,\"metadata\":{}},{\"name\":\"tags\",\"type\":{\"type\":\"array\",\"elementType\":\"string\",\"containsNull\":true},\"nullable\":true,\"metadata\":{}},{\"name\":\"attrs\",\"type\":{\"type\":\"map\",\"keyType\":\"string\",\"valueType\":\"string\",\"valueContainsNull\":true},\"nullable\":true,\"metadata\":{}}]}",
+      "partitionColumns": [],
+      "format": {
+        "provider": "parquet",
+        "options": {}
+      },
+      "adds": [
+        {
+          "path": "part-00000-b9863671-bdd7-45b5-83b1-ebe4eba783dc-c000.snappy.parquet",
+          "size": 2279,
+          "modificationTime": 1792499081132,
+          "stats_raw": "{\"numRecords\":5,\"minValues\":{\"profile\":{\"age\":30,\"name\":\"alice\"},\"id\":1},\"maxValues\":{\"id\":5,\"profile\":{\"name\":\"bob\",\"age\":42}},\"nullCount\":{\"profile\":{\"name\":3,\"age\":3},\"id\":0}}",
+          "stats_json": {
+            "numRecords": 5,
+            "minValues": {
+              "profile": {
+                "age": 30,
+                "name": "alice"
+              },
+              "id": 1
+            },
+            "maxValues": {
+              "id": 5,
+              "profile": {
+                "name": "bob",
+                "age": 42
+              }
+            },
+            "nullCount": {
+              "profile": {
+                "name": 3,
+                "age": 3
+              },
+              "id": 0
+            }
+          }
+        }
+      ],
+      "data_files": [
+        "part-00000-b9863671-bdd7-45b5-83b1-ebe4eba783dc-c000.snappy.parquet"
+      ],
+      "commit_info": {
+        "timestamp": 1792499081132,
+        "operation": "WRITE",
+        "operationParameters": {
+          "mode": "Overwrite"
+        },
+        "engineInfo": "delta-rs:py-1.6.6",
+        "clientVersion": "delta-rs.py-1.6.6",
+        "operationMetrics": {
+          "num_added_files": 1,
+          "num_removed_files": 0,
+          "num_partitions": 0,
+          "num_added_rows": 5,
+          "execution_time_ms": 9,
+          "num_retries": 0
+        }
+      }
+    },
+    "checkpoint-only-nested": {
+      "name": "checkpoint-only-nested",
+      "path": "artifacts/interop-nested/checkpoint-only-nested",
+      "writer": "checkpoint-nested 的副本，删除了全部 JSON 日志（checkpoint-only 变体）",
+      "version": null,
+      "log_files": [],
+      "protocol": null,
+      "schemaString": null,
+      "partitionColumns": null,
+      "format": null,
+      "adds": [],
+      "data_files": [
+        "part-00000-b9863671-bdd7-45b5-83b1-ebe4eba783dc-c000.snappy.parquet"
+      ],
+      "commit_info": null
+    },
+    "negative-physical-nested": {
+      "name": "negative-physical-nested",
+      "path": "artifacts/interop-nested/negative-physical-nested",
+      "writer": "手写 JSON 日志 + 复制 fixtures/parquet/list_columns.parquet",
+      "version": 0,
+      "log_files": [
+        "00000000000000000000.json"
+      ],
+      "protocol": {
+        "minReaderVersion": 1,
+        "minWriterVersion": 2
+      },
+      "schemaString": "{\"type\":\"struct\",\"fields\":[{\"name\":\"int64_list\",\"type\":\"long\",\"nullable\":true,\"metadata\":{}},{\"name\":\"utf8_list\",\"type\":\"string\",\"nullable\":true,\"metadata\":{}}]}",
+      "partitionColumns": [],
+      "format": {
+        "provider": "parquet",
+        "options": {}
+      },
+      "adds": [
+        {
+          "path": "data/list_columns.parquet",
+          "size": 2526,
+          "modificationTime": 0,
+          "stats_raw": "{\"numRecords\":3}",
+          "stats_json": {
+            "numRecords": 3
+          }
+        }
+      ],
+      "data_files": [],
+      "commit_info": {
+        "timestamp": 0,
+        "operation": "WRITE",
+        "operationParameters": {
+          "mode": "Append"
+        },
+        "engineInfo": "handwritten-negative-fixture"
+      },
+      "purpose": "Delta schema 声明为 flat（int64_list long / utf8_list string），但 add.path 指向的 Parquet 物理层是 standard 3-level LIST（repeated group）。用于验证“schema 是 flat 但 Parquet 物理嵌套”的路径必须结构化拒绝。",
+      "source_parquet": "fixtures/parquet/list_columns.parquet",
+      "source_parquet_sha256": "5988ab91b6cb7efa7bf6a77f789b40929212280519be6c9daad56e01d5ceb218"
+    },
+    "write-attempt-nested": {
+      "name": "write-attempt-nested",
+      "path": "artifacts/interop-nested/write-attempt-nested",
+      "writer": "moondelta-core `delta create`（nested schemaString，无数据）",
+      "version": 0,
+      "log_files": [
+        "00000000000000000000.json"
+      ],
+      "protocol": {
+        "minReaderVersion": 1,
+        "minWriterVersion": 2
+      },
+      "schemaString": "{\"type\":\"struct\",\"fields\":[{\"name\":\"id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{}},{\"name\":\"profile\",\"type\":{\"type\":\"struct\",\"fields\":[{\"name\":\"name\",\"type\":\"string\",\"nullable\":true,\"metadata\":{}},{\"name\":\"age\",\"type\":\"integer\",\"nullable\":true,\"metadata\":{}}]},\"nullable\":true,\"metadata\":{}}]}",
+      "partitionColumns": [],
+      "format": {
+        "provider": "parquet",
+        "options": {}
+      },
+      "adds": [],
+      "data_files": [],
+      "commit_info": {
+        "timestamp": 0,
+        "operation": "CREATE TABLE",
+        "operationParameters": {},
+        "isolationLevel": "Serializable",
+        "isBlindAppend": true,
+        "engineInfo": "moondelta-core"
+      },
+      "purpose": "补充观察：本项目 `delta create` 对 nested schemaString 不做可写性校验，会生成一张 metadata 声称 nested、但写入路径实际无法 append 的空表；该表自身也无法被本项目的 read 读取。这不属于互操作通过。"
+    }
+  },
+  "boundary_coverage": {
+    "profile_null": [
+      2
+    ],
+    "profile_all_children_null": [
+      3
+    ],
+    "profile_name_set_age_null": [
+      4
+    ],
+    "tags_empty_list": [
+      2,
+      5
+    ],
+    "tags_null": [
+      3
+    ],
+    "tags_null_element": [
+      4
+    ],
+    "attrs_empty_map": [
+      2,
+      4
+    ],
+    "attrs_null": [
+      5
+    ]
+  },
+  "hashes": [
+    {
+      "fixture": "engine-written",
+      "file": "artifacts/interop-nested/engine-written/_delta_log/00000000000000000000.json",
+      "bytes": 1718,
+      "sha256": "92cd385fab287a9b4e2f89a5e8dbbcac62db8ff2e30a1bb41db81d4475e74b3c"
+    },
+    {
+      "fixture": "engine-written",
+      "file": "artifacts/interop-nested/engine-written/part-00000-b9863671-bdd7-45b5-83b1-ebe4eba783dc-c000.snappy.parquet",
+      "bytes": 2279,
+      "sha256": "fc13bcbeaeda2a0c15916fe932f4769954e96719a487e35252f9bcfda43471eb"
+    },
+    {
+      "fixture": "kind-struct-only",
+      "file": "artifacts/interop-nested/kind-struct-only/_delta_log/00000000000000000000.json",
+      "bytes": 1429,
+      "sha256": "7da6aff497854ed1490e824f9d0ecd578d0ab2873760136d9d2feeba89ec22e5"
+    },
+    {
+      "fixture": "kind-struct-only",
+      "file": "artifacts/interop-nested/kind-struct-only/part-00000-c84eeadc-6a6c-4dbb-8600-70a2a2f409cb-c000.snappy.parquet",
+      "bytes": 1139,
+      "sha256": "07c5199eeda7d54ce1fba341794eb50629ec5d7d470a28dcc01ac700ffd959ab"
+    },
+    {
+      "fixture": "kind-array-only",
+      "file": "artifacts/interop-nested/kind-array-only/_delta_log/00000000000000000000.json",
+      "bytes": 1189,
+      "sha256": "e129190bdbd3b2156f418f5fda84771226999f147a3e3e5b91244c9c06da09e4"
+    },
+    {
+      "fixture": "kind-array-only",
+      "file": "artifacts/interop-nested/kind-array-only/part-00000-25e1b114-9d7d-452e-b9cf-fd6797f9e5d4-c000.snappy.parquet",
+      "bytes": 887,
+      "sha256": "e2973d53112024d8ff5ccc0069d3c7e3e05776f45e897272220ee990b8c9cfae"
+    },
+    {
+      "fixture": "kind-map-only",
+      "file": "artifacts/interop-nested/kind-map-only/_delta_log/00000000000000000000.json",
+      "bytes": 1215,
+      "sha256": "212943c5279bf63f1e1950c619c067406f13b4f20819dd5cd6f352521aa41a12"
+    },
+    {
+      "fixture": "kind-map-only",
+      "file": "artifacts/interop-nested/kind-map-only/part-00000-85a8feb6-1b52-4a8e-aa5c-0b2cd50acef9-c000.snappy.parquet",
+      "bytes": 1244,
+      "sha256": "6037683051b88d0da55b32f95a1a766357b2bf21898fd46fbe3dc208981779e2"
+    },
+    {
+      "fixture": "checkpoint-nested",
+      "file": "artifacts/interop-nested/checkpoint-nested/_delta_log/00000000000000000000.checkpoint.parquet",
+      "bytes": 14072,
+      "sha256": "0afc46760af210f48a4b37a332846161df6f417d5e756ecd3664b311aa6f1100"
+    },
+    {
+      "fixture": "checkpoint-nested",
+      "file": "artifacts/interop-nested/checkpoint-nested/_delta_log/00000000000000000000.json",
+      "bytes": 1718,
+      "sha256": "92cd385fab287a9b4e2f89a5e8dbbcac62db8ff2e30a1bb41db81d4475e74b3c"
+    },
+    {
+      "fixture": "checkpoint-nested",
+      "file": "artifacts/interop-nested/checkpoint-nested/_delta_log/_last_checkpoint",
+      "bytes": 61,
+      "sha256": "49e8d8cc29507cc9c178ea9e898e4b3338922eb5cd7ff0cec2dd3998756dd8c4"
+    },
+    {
+      "fixture": "checkpoint-nested",
+      "file": "artifacts/interop-nested/checkpoint-nested/part-00000-b9863671-bdd7-45b5-83b1-ebe4eba783dc-c000.snappy.parquet",
+      "bytes": 2279,
+      "sha256": "fc13bcbeaeda2a0c15916fe932f4769954e96719a487e35252f9bcfda43471eb"
+    },
+    {
+      "fixture": "checkpoint-only-nested",
+      "file": "artifacts/interop-nested/checkpoint-only-nested/_delta_log/00000000000000000000.checkpoint.parquet",
+      "bytes": 14072,
+      "sha256": "0afc46760af210f48a4b37a332846161df6f417d5e756ecd3664b311aa6f1100"
+    },
+    {
+      "fixture": "checkpoint-only-nested",
+      "file": "artifacts/interop-nested/checkpoint-only-nested/_delta_log/_last_checkpoint",
+      "bytes": 61,
+      "sha256": "49e8d8cc29507cc9c178ea9e898e4b3338922eb5cd7ff0cec2dd3998756dd8c4"
+    },
+    {
+      "fixture": "checkpoint-only-nested",
+      "file": "artifacts/interop-nested/checkpoint-only-nested/part-00000-b9863671-bdd7-45b5-83b1-ebe4eba783dc-c000.snappy.parquet",
+      "bytes": 2279,
+      "sha256": "fc13bcbeaeda2a0c15916fe932f4769954e96719a487e35252f9bcfda43471eb"
+    },
+    {
+      "fixture": "negative-physical-nested",
+      "file": "artifacts/interop-nested/negative-physical-nested/_delta_log/00000000000000000000.json",
+      "bytes": 708,
+      "sha256": "c88247ce400eec7ded2a46c1f6e38d7b9ec259c2af2a6372bec117685687e88e"
+    },
+    {
+      "fixture": "negative-physical-nested",
+      "file": "artifacts/interop-nested/negative-physical-nested/data/list_columns.parquet",
+      "bytes": 2526,
+      "sha256": "5988ab91b6cb7efa7bf6a77f789b40929212280519be6c9daad56e01d5ceb218"
+    },
+    {
+      "fixture": "write-attempt-nested",
+      "file": "artifacts/interop-nested/write-attempt-nested/_delta_log/00000000000000000000.json",
+      "bytes": 774,
+      "sha256": "1298c7bbf0e31ba6d2aba860fb461928a5d08859b47ad39f9a3b21860625f559"
+    },
+    {
+      "fixture": "(source) fixtures/parquet/list_columns.parquet",
+      "file": "fixtures/parquet/list_columns.parquet",
+      "bytes": 2526,
+      "sha256": "5988ab91b6cb7efa7bf6a77f789b40929212280519be6c9daad56e01d5ceb218"
+    }
+  ]
+}

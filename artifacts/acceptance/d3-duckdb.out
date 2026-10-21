@@ -1,0 +1,8 @@
+row_count= 5
+(1, {'name': 'alice', 'age': 30}, ['red', 'green'], {'k1': 'v1', 'k2': 'v2'})
+(2, None, [], {})
+(3, {'name': None, 'age': None}, None, {'k': 'v'})
+(4, {'name': 'bob', 'age': None}, ['blue', None], {})
+(5, {'name': None, 'age': 42}, [], None)
+schema= [('id', 'BIGINT', 'YES', None, None, None), ('profile', 'STRUCT("name" VARCHAR, age INTEGER)', 'YES', None, None, None), ('tags', 'VARCHAR[]', 'YES', None, None, None), ('attrs', 'MAP(VARCHAR, VARCHAR)', 'YES', None, None, None)]
+delta_extension= [('6059958',)]

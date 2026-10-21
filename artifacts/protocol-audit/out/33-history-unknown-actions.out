@@ -1,0 +1,11 @@
+### 33-history-unknown-actions
+$ delta.exe history artifacts/protocol-audit/fixtures/unknown-actions
+[exit code: 0]
+--- stdout ---
+version | timestamp     | operation
+--------+---------------+----------
+0 | 0 | CREATE TABLE
+1 | 0 | UNKNOWN
+--- stderr ---
+
+

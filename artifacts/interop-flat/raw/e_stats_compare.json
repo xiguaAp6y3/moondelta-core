@@ -1,0 +1,122 @@
+{
+  "engine-written": {
+    "files": [
+      {
+        "path": "part-00000-38b46616-d4eb-4392-b3b4-649384aa3c5a-c000.snappy.parquet",
+        "version": 0,
+        "numRecords": 3,
+        "minValues_keys": [
+          "active",
+          "id",
+          "name"
+        ],
+        "maxValues_keys": [
+          "active",
+          "id",
+          "name"
+        ],
+        "nullCount_keys": [
+          "active",
+          "id",
+          "name"
+        ],
+        "minValues": {
+          "name": "alice",
+          "id": 1,
+          "active": false
+        },
+        "maxValues": {
+          "id": 3,
+          "name": "bob",
+          "active": true
+        },
+        "nullCount": {
+          "name": 1,
+          "active": 1,
+          "id": 0
+        },
+        "stats_raw": "{\"numRecords\":3,\"minValues\":{\"name\":\"alice\",\"id\":1,\"active\":false},\"maxValues\":{\"id\":3,\"name\":\"bob\",\"active\":true},\"nullCount\":{\"name\":1,\"active\":1,\"id\":0}}"
+      },
+      {
+        "path": "part-00000-7bebe2e8-16af-4e7d-a700-c6010ae0e018-c000.snappy.parquet",
+        "version": 1,
+        "numRecords": 2,
+        "minValues_keys": [
+          "active",
+          "id",
+          "name"
+        ],
+        "maxValues_keys": [
+          "active",
+          "id",
+          "name"
+        ],
+        "nullCount_keys": [
+          "active",
+          "id",
+          "name"
+        ],
+        "minValues": {
+          "name": "carol",
+          "active": true,
+          "id": 4
+        },
+        "maxValues": {
+          "name": "carol",
+          "active": true,
+          "id": 5
+        },
+        "nullCount": {
+          "active": 1,
+          "id": 0,
+          "name": 1
+        },
+        "stats_raw": "{\"numRecords\":2,\"minValues\":{\"name\":\"carol\",\"active\":true,\"id\":4},\"maxValues\":{\"name\":\"carol\",\"active\":true,\"id\":5},\"nullCount\":{\"active\":1,\"id\":0,\"name\":1}}"
+      }
+    ]
+  },
+  "moondelta-written": {
+    "files": [
+      {
+        "path": "part-0000-1750000000000-1.parquet",
+        "version": 1,
+        "numRecords": 3,
+        "minValues_keys": [
+          "id"
+        ],
+        "maxValues_keys": [
+          "id"
+        ],
+        "nullCount_keys": [],
+        "minValues": {
+          "id": 1
+        },
+        "maxValues": {
+          "id": 3
+        },
+        "nullCount": null,
+        "stats_raw": "{\"numRecords\":3,\"minValues\":{\"id\":1},\"maxValues\":{\"id\":3}}"
+      },
+      {
+        "path": "part-0000-1750000001000-2.parquet",
+        "version": 2,
+        "numRecords": 2,
+        "minValues_keys": [
+          "id"
+        ],
+        "maxValues_keys": [
+          "id"
+        ],
+        "nullCount_keys": [],
+        "minValues": {
+          "id": 4
+        },
+        "maxValues": {
+          "id": 5
+        },
+        "nullCount": null,
+        "stats_raw": "{\"numRecords\":2,\"minValues\":{\"id\":4},\"maxValues\":{\"id\":5}}"
+      }
+    ]
+  }
+}

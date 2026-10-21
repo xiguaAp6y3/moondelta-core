@@ -1,0 +1,8 @@
+### 44-inspect-add-missing-path
+$ delta.exe inspect artifacts/protocol-audit/fixtures/add-missing-path
+[exit code: 0]
+--- stdout ---
+error: parse error: add: missing string field 'path'
+--- stderr ---
+
+

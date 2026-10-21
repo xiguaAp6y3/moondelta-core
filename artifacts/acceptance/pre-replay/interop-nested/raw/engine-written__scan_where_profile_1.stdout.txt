@@ -1,0 +1,8 @@
+table            : artifacts/interop-nested/engine-written (version 0)
+total files      : 1
+selected files   : 1
+skipped partition: 0
+skipped stats    : 0
+matched rows     : 5
+matched bytes    : 2279
+  - part-00000-b9863671-bdd7-45b5-83b1-ebe4eba783dc-c000.snappy.parquet

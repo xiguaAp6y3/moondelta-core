@@ -1,0 +1,15 @@
+### 91-scan-partition-table-dt
+$ delta.exe scan artifacts/protocol-audit/fixtures/partition-table --partition dt=2026-01-01
+[exit code: 0]
+--- stdout ---
+table            : artifacts/protocol-audit/fixtures/partition-table (version 0)
+total files      : 2
+selected files   : 1
+skipped partition: 1
+skipped stats    : 0
+matched rows     : 2
+matched bytes    : 494
+  - dt=2026-01-01/part-1.parquet
+--- stderr ---
+
+

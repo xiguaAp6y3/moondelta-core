@@ -1,0 +1,4 @@
+Warning: Duplicate alias `delta` at "E:\Project\Moonbit Hackson\P1 RE\src\cmd\delta\moon.pkg". "test-import" will automatically add "import" and current package as dependency so you don't need to add it manually. If you're test-importing a dependency with the same default alias as your current package, considering give it a different alias than the current package. Violating import: `xiguaAp6y3/moondelta-core`
+Total tests: 14, passed: 14, failed: 0.
+
+[EXIT 0]

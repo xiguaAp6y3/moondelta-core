@@ -1,0 +1,15 @@
+### 75-inspect-nested-parquet-lie
+$ delta.exe inspect artifacts/protocol-audit/fixtures/nested-parquet-lie
+[exit code: 0]
+--- stdout ---
+table            : artifacts/protocol-audit/fixtures/nested-parquet-lie
+current version  : 0  (log versions: 1)
+files            : 1  rows: 3  bytes: 2526
+protocol         : reader=1 writer=1
+format           : parquet
+partition columns: (none)
+schema:
+  int64_list: long
+--- stderr ---
+
+

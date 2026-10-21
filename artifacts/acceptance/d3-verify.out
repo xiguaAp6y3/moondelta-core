@@ -1,0 +1,38 @@
+[PASS] fixture 存在: engine-written
+[PASS] fixture 存在: kind-struct-only
+[PASS] fixture 存在: kind-array-only
+[PASS] fixture 存在: kind-map-only
+[PASS] fixture 存在: checkpoint-nested
+[PASS] fixture 存在: checkpoint-only-nested
+[PASS] fixture 存在: negative-physical-nested
+[PASS] fixture 存在: write-attempt-nested
+[PASS] fixture 数量 = 8
+[PASS] engine-written schema 含 struct 字段 profile
+[PASS] engine-written schema 含 array 字段 tags（containsNull）
+[PASS] engine-written schema 含 map 字段 attrs（valueContainsNull）
+[PASS] engine-written protocol = reader 1 / writer 2 :: {'minReaderVersion': 1, 'minWriterVersion': 2}
+[PASS] 物理 Parquet 为 3-level LIST（tags -> list -> item） :: ['id', 'profile.name', 'profile.age', 'tags.list.item', 'attrs.entries.key', 'attrs.entries.value']
+[PASS] 物理 Parquet 为 MAP（attrs -> entries -> key/value） :: ['id', 'profile.name', 'profile.age', 'tags.list.item', 'attrs.entries.key', 'attrs.entries.value']
+[PASS] 物理 Parquet 为 struct（profile.name/age） :: ['id', 'profile.name', 'profile.age', 'tags.list.item', 'attrs.entries.key', 'attrs.entries.value']
+[PASS] 独立重读行数 = 5（oracle row_count=5） :: len=5 oracle=5
+[PASS] 独立重读逐行逐字段 = oracle（按 id 排序）
+[PASS] oracle 自述 schema 与日志 schemaString 等价
+[PASS] delta-rs schema 与日志 schemaString 等价（独立重算）
+[PASS] 边界覆盖：profile=NULL(2) / tags=[](2,5) / tags=NULL(3) / tags 含 null(4) / attrs={}(2,4) / attrs=NULL(5) :: {1: {'id': 1, 'profile': {'name': 'alice', 'age': 30}, 'tags': ['red', 'green'], 'attrs': {'k1': 'v1', 'k2': 'v2'}}, 2: {'id': 2, 'profile': None, 'tags': [], 'attrs': {}}, 3: {'id': 3, 'profile': {'name': None, 'age': None}, 'tags': None, 'attrs': {'k': 'v'}}, 4: {'id': 4, 'profile': {'name': 'bob', 'age': None}, 'tags': ['blue', None], 'attrs': {}}, 5: {'id': 5, 'profile': {'name': None, 'age': 42}, 'tags': [], 'attrs': None}}
+[PASS] 边界覆盖与 README 表格一致
+[PASS] 重建 CLI 的 read 错误文本 = README 引用 = raw 原文 :: error: unsupported: nested column 'profile' (type=struct) is not supported by the parquet reader; only flat schemas are readable
+[PASS] 重建 CLI read 退出码 = 0（与 raw 记录一致，README 已记录该缺陷） :: rc=0 raw_exit=0
+[PASS] 错误写 stdout、stderr 为空（README 已记录）
+[PASS] 单 kind fixture struct 被结构化拒绝（含字段名+kind） :: error: unsupported: nested column 'profile' (type=struct) is not supported by the parquet reader; only flat schemas are readable
+[PASS] 单 kind fixture array 被结构化拒绝（含字段名+kind） :: error: unsupported: nested column 'tags' (type=array) is not supported by the parquet reader; only flat schemas are readable
+[PASS] 单 kind fixture map 被结构化拒绝（含字段名+kind） :: error: unsupported: nested column 'attrs' (type=map) is not supported by the parquet reader; only flat schemas are readable
+[PASS] delta-rs 从 checkpoint-only-nested 读回 5 行（证明 checkpoint 完整） :: rows=5
+[PASS] 重建 CLI inspect 对 checkpoint-only 报 not found（= raw/README） :: error: not found: table 'artifacts/interop-nested/checkpoint-only-nested' has no log entries
+[PASS] negative-physical-nested 报 Repeated columns are not supported yet :: error: unsupported: cannot read 'data/list_columns.parquet': Repeated columns are not supported yet
+[PASS] negative fixture 记录外部引擎同样失败（不作为互操作基线）
+[PASS] comparison.json gate_counts = {done:1,partial:0,missing:6} :: {'done': 1, 'partial': 0, 'missing': 6}
+[PASS] gates 数组 7 项状态 = 1 完成 / 0 部分 / 6 未完成 :: ['未完成', '未完成', '未完成', '未完成', '未完成', '已完成', '未完成']
+[PASS] README 写“已完成 1 项 / 部分完成 0 项 / 未完成 6 项”
+[PASS] README 明确“不是互操作通过”且无正向互操作结论
+[PASS] 门槛 7 明确未完成，未把“识别后报错”写成完成
+[PASS] comparison.json conclusion 明确“能力缺口对照，不是互操作通过” :: ']

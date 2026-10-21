@@ -1,0 +1,13 @@
+### _build\native\debug\build\cmd\delta\delta.exe inspect fixtures/delta/table_a
+EXIT=0
+table            : fixtures/delta/table_a
+current version  : 12  (log versions: 13)
+files            : 120  rows: 120  bytes: 54232
+protocol         : reader=1 writer=1
+format           : parquet
+partition columns: (none)
+schema:
+  id: int
+last checkpoint  : version=10
+note             : checkpoint files exist; checkpoint-only tables are not readable by this kernel
+

@@ -1,0 +1,65 @@
+[PASS] 申报书.md 行数=52 :: 52
+[PASS] README.md 代码围栏=10 且成对
+[PASS] README.md 表格行（能力边界表）=12 :: rows=12
+[PASS] docs/ROADMAP.md 行数=68 :: 68
+[PASS] 申报书.md 代码围栏成对 :: fences=0
+[PASS] 申报书.md 表格列数一致 :: []
+[PASS] 申报书.md 相对链接全部存在（0 个） :: []
+[PASS] README.md 代码围栏成对 :: fences=10
+[PASS] README.md 表格列数一致 :: []
+[PASS] README.md 相对链接全部存在（9 个） :: []
+[PASS] docs/ROADMAP.md 代码围栏成对 :: fences=0
+[PASS] docs/ROADMAP.md 表格列数一致 :: []
+[PASS] docs/ROADMAP.md 相对链接全部存在（0 个） :: []
+[PASS] 申报书.md 无未验证断言 /moon package`?\s*通过/ :: []
+[PASS] 申报书.md 无未验证断言 /流水线已通过/ :: []
+[PASS] 申报书.md 无未验证断言 /安装并编译验证通过/ :: []
+[PASS] 申报书.md 无未验证断言 /已发布[：:]/ :: []
+[PASS] 申报书.md 无未验证断言 /warning 全部来自 vendored/ :: []
+[PASS] README.md 无未验证断言 /moon package`?\s*通过/ :: []
+[PASS] README.md 无未验证断言 /流水线已通过/ :: []
+[PASS] README.md 无未验证断言 /安装并编译验证通过/ :: []
+[PASS] README.md 无未验证断言 /已发布[：:]/ :: []
+[PASS] README.md 无未验证断言 /warning 全部来自 vendored/ :: []
+[PASS] docs/ROADMAP.md 无未验证断言 /moon package`?\s*通过/ :: []
+[PASS] docs/ROADMAP.md 无未验证断言 /流水线已通过/ :: []
+[PASS] docs/ROADMAP.md 无未验证断言 /安装并编译验证通过/ :: []
+[PASS] docs/ROADMAP.md 无未验证断言 /已发布[：:]/ :: []
+[PASS] docs/ROADMAP.md 无未验证断言 /warning 全部来自 vendored/ :: []
+[PASS] 申报书.md：moon package/CI 已标注待复核 :: missing '未在本机复核，发布/申报前需提供'
+[PASS] 申报书.md：mooncakes 发布状态待复核 :: missing 'mooncakes.io 发布状态待复核'
+[PASS] README.md：README 顶部/安装注释待复核 :: missing '发布记录待复核'
+[PASS] README.md：CI 远端结果待复核 :: missing '远端运行结果未在本机复核'
+[PASS] docs/ROADMAP.md：ROADMAP 发布行待复核 :: missing 'CI 与 mooncakes.io 发布记录待复核'
+[PASS] 申报书包含口径句：'43 条带文件定位的 warning 中 39 条在项目'
+[PASS] 申报书包含口径句：'4 条在 vendored parquet'
+[PASS] 申报书包含口径句：'另有 1 条无文件定位的 duplicate alias'
+[PASS] 申报书包含口径句：'不在这 43 条内'
+[PASS] md 记录 D4-I2 修正
+[PASS] md 含口径串：'121 份带退出码的 CLI/校验输出'
+[PASS] md 含口径串：'131 条记录'
+[PASS] md 记录 D4-I3 修正
+[PASS] 申报书.md 含 nested 1/7 或等效门槛表述
+[PASS] 申报书.md 无“删除向量[^。；\n]{0,40}明确拒绝”误写
+[PASS] 申报书.md 无“截断[^。；\n]{0,40}明确拒绝”误写
+[PASS] 申报书.md 无“reader\s*v?2[^。；\n]{0,40}明确拒绝”误写
+[PASS] 申报书.md 无无证据互通/完整声明 :: []
+[PASS] README.md 含 nested 1/7 或等效门槛表述
+[PASS] README.md 无“删除向量[^。；\n]{0,40}明确拒绝”误写
+[PASS] README.md 无“截断[^。；\n]{0,40}明确拒绝”误写
+[PASS] README.md 无“reader\s*v?2[^。；\n]{0,40}明确拒绝”误写
+[PASS] README.md 无无证据互通/完整声明 :: []
+[PASS] docs/ROADMAP.md 含 nested 1/7 或等效门槛表述
+[PASS] docs/ROADMAP.md 无“删除向量[^。；\n]{0,40}明确拒绝”误写
+[PASS] docs/ROADMAP.md 无“截断[^。；\n]{0,40}明确拒绝”误写
+[PASS] docs/ROADMAP.md 无“reader\s*v?2[^。；\n]{0,40}明确拒绝”误写
+[PASS] docs/ROADMAP.md 无无证据互通/完整声明 :: []
+[PASS] patch hunk 数=9 :: 9
+[PASS] patch 行数=172 :: 172
+[PASS] patch 大小=22063 B :: 22063
+[PASS] patch 目标文件=申报书/README/ROADMAP :: ['申报书.md', 'README.md', 'docs/ROADMAP.md']
+[PASS] md 自述 9 hunk / 22063 B / 172 行 / SHA
+[PASS] md 版本戳 v3 / 20:40
+[PASS] md 记录 D4-I1 修正
+[PASS] claim-alignment.patch SHA-256 与 Lead 声称一致 :: DBDE5AB7E0578C43828ACD5C601A29EB360A20795DB0C9101F14AE108FDEA3EA
+[PASS] claim-alignment.md SHA-256 与 Lead 声称一致 :: 0B4BB22025156F9CE3CCB52376055EEE2385D1E05DF3C3F505D142FE988291A7

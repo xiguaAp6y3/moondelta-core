@@ -1,0 +1,6 @@
+### delta read artifacts/protocol-audit/fixtures/probe-append-mismatch
+EXIT=0
+read 1 file(s), 1 row(s), version 1
+id (long) | name (string)
+not-a-long | 42
+

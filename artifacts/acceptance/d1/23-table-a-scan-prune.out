@@ -1,0 +1,15 @@
+### _build\native\debug\build\cmd\delta\delta.exe scan fixtures/delta/table_a --where id>=60
+EXIT=0
+table            : fixtures/delta/table_a (version 12)
+total files      : 120
+selected files   : 60
+skipped partition: 0
+skipped stats    : 60
+matched rows     : 60
+matched bytes    : 27116
+  - part-00001-f697bc51-b77f-4234-938a-5f85478cedec-c000.snappy.parquet
+  - part-00002-839f210e-cf84-4c5c-b185-fd2fe2b5ee6f-c000.snappy.parquet
+  - part-00003-9ebe1c22-87a1-4f37-a695-77658c3e70a8-c000.snappy.parquet
+  - part-00004-01b2687c-45e4-484c-b1d6-80e06b5b5d11-c000.snappy.parquet
+  - part-00005-05662cc4-6a79-4204-aec1-2311a44d8c74-c000.snappy.parquet
+

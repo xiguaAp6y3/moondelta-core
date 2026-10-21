@@ -1,0 +1,15 @@
+### 39-inspect-cdf-enabled
+$ delta.exe inspect artifacts/protocol-audit/fixtures/cdf-enabled
+[exit code: 0]
+--- stdout ---
+table            : artifacts/protocol-audit/fixtures/cdf-enabled
+current version  : 0  (log versions: 1)
+files            : 1  rows: 3  bytes: 500
+protocol         : reader=1 writer=4
+format           : parquet
+partition columns: (none)
+schema:
+  id: long
+--- stderr ---
+
+

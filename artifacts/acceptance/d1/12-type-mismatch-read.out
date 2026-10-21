@@ -1,0 +1,8 @@
+### _build\native\debug\build\cmd\delta\delta.exe read artifacts/protocol-audit/fixtures/type-mismatch
+EXIT=0
+read 1 file(s), 3 row(s), version 0
+id (long)
+abc
+def
+ghi
+

@@ -1,0 +1,259 @@
+# D4 申报文本一致性修订（claim-alignment）
+
+## 0. 交付摘要
+
+| 项 | 内容 |
+|---|---|
+| 补丁 | [artifacts/claim-alignment.patch](claim-alignment.patch)，标准 unified diff（`a/` `b/` 前缀，LF、无 BOM），共 **8 个 hunk** |
+| 范围 | `申报书.md` 2 hunk、`README.md` 5 hunk、`docs/ROADMAP.md` 1 hunk；`CHANGELOG.md` 无 hunk（理由见 §5） |
+| 校验 | `git apply -p1 --check artifacts/claim-alignment.patch` → exit 0；临时副本实际 apply → exit 0；工作区四个目标文件未被改动 |
+| 依据 | [docs/协议兼容性与互操作范围.md](../docs/协议兼容性与互操作范围.md) §1、§2、§3、§5、§7；本次实测（§1）；**D2/D3 工作期间已交付的对拍报告** |
+| 证据状态 | D2（[artifacts/interop-flat/README.md](../artifacts/interop-flat/README.md)）与 D3（[artifacts/interop-nested/README.md](../artifacts/interop-nested/README.md)）在生成 patch 过程中出现并已纳入；D1 的 `artifacts/protocol-audit.md` 生成时仍不存在（按权威文档口径完成，追加项见 §6） |
+
+> 提交提醒：`docs/协议兼容性与互操作范围.md`、`artifacts/interop-flat/`、`artifacts/interop-nested/` 目前都是**未跟踪文件/目录**（`git status` 显示 `??`）。patch 中的引用与“已对拍”证据依赖它们，须与 patch 一并入库，否则 README/申报书的链接与证据索引会失效。
+
+## 1. 生成时实测基线
+
+以下命令均在仓库根 `E:\Project\Moonbit Hackson\P1 RE` 执行：
+
+| 证据 | 命令 / 来源 | 结果 |
+|---|---|---|
+| 编译 | `moon check --target native` | `0 errors`，43 条 warning（38 条来自 `src/types.mbt` / `src/read.mbt` / `src/scan.mbt` 的 derive 触发 `implicit_impl_as_method`；4 条 vendored parquet 的 `unused_value`/`unused_package`；1 条未跟踪新示例的 `core_package_not_imported`；`moon test` 另有一条 `src/cmd/delta/moon.pkg` 重复 alias 提示） |
+| 测试 | `moon test --target native` | `Total tests: 14, passed: 14, failed: 0` |
+| 日志回放 | `delta inspect fixtures/delta/table_a` | version 12，13 个日志版本，120 文件 / 120 行 / 54232 B，`protocol: reader=1 writer=1`（fixture 自身），`last checkpoint: version=10`，并提示 checkpoint-only 不可读 |
+| 统计剪枝 | `delta scan fixtures/delta/table_a --where "id>=60"` | 120 → 60 文件，`skipped stats: 60` |
+| 真实数据 | `delta read fixtures/delta/covid --limit 157865` | `read 1 file(s), 157865 row(s)`，6 列 |
+| fixture 范围 | [fixtures/README.md](../fixtures/README.md) §3.1/§3.2 | `table_a` 只有日志、没有数据文件；`covid` 只入库 8 个数据文件中的第 1 个（`stats.numRecords = 157865`） |
+| 代码事实 | `src/actions.mbt` `parse_protocol`（L15–25）、`src/snapshot.mbt` `replay_until`（L103–168） | protocol 字段被解析但**无版本范围校验**；`replay_until` 只拒绝“日志不从 version 0 开始” |
+| 代码事实 | `src/schema.mbt` `ensure_readable_schema`（L113–131）、`src/write.mbt` `append_rows`（L227） | nested / decimal / unknown 返回 `Unsupported`；写入列一律 `@parquet.Optional` |
+| 代码事实 | `src/vendor/parquet/compression.mbt`（L100–117） | 只解 UNCOMPRESSED / SNAPPY，其余 codec 抛 `Unsupported` |
+| D2 flat 对拍 | [artifacts/interop-flat/README.md](../artifacts/interop-flat/README.md) | delta-rs 1.6.6 + DuckDB 1.5.6；A（delta-rs 写→本项目读）与 C（本项目写→delta-rs/DuckDB 读）逐列值一致；**无 FAIL/BLOCKED**，2 项已记录差异（R-1 写出列恒为 Optional；R-2 stats 缺 `nullCount` 与非数值列 min/max）；R-3：`reader=2/writer=5` 探针表被正常返回（未拒绝）；Spark/Databricks 未运行 |
+| D3 nested 对照 | [artifacts/interop-nested/README.md](../artifacts/interop-nested/README.md) | 外部引擎（delta-rs、DuckDB）能读 nested fixture；本项目 `read` 在 schema 阶段返回结构化 `Unsupported`，不返回假成功；第 3 节七项门槛 **0 项完成 / 2 项部分 / 5 项未完成**；另记录 CLI 失败退出码为 0、`create` 不校验 nested 可写性（代码问题，非文本问题） |
+| D1 审计 | `artifacts/protocol-audit.md` | **不存在**（只有 `fixtures/`、`run_cli.ps1`、`check.out` 等中间产物） |
+
+> D2 报告内部计数有一处不一致：README 写“48 PASS / 0 FAIL / 2 DIFF / 4 INFO”，`results.json` 的 `verdict` 为 `pass=49, fail=0, diff=2, info=5, blocked=0`。因此 patch 只采用稳定结论“无 FAIL/BLOCKED、2 项已记录差异”，不写具体 PASS 数，避免重跑后失真。
+
+## 2. 逐 hunk 说明
+
+行号为**原文**行号。改句保留原 Markdown 行内代码、链接与全角标点。
+
+### H1 — `申报书.md` `@@ -16,14 +16,14 @@`（L19、L20、L21、L25、L26）
+
+**B1｜L19（核心超范围承诺）**
+
+- 原句：`- 格式与生态一致：读写标准 Delta 目录，Spark / Databricks / delta-rs / DuckDB 可直接互通，已有表可以平移使用；`
+- 改句：`- 格式与生态一致：读写 Delta protocol reader v1 / writer v2、version 0 起连续 JSON 日志、flat schema、UNCOMPRESSED/SNAPPY 压缩与本地文件系统范围内的目录；flat 表已完成与 delta-rs 1.6.6、DuckDB 1.5.6 的双向目录级对拍（D2：对拍报告无 FAIL/BLOCKED、2 项已记录差异，见 `artifacts/interop-flat/README.md`），Spark / Databricks 未在本环境验证；嵌套 schema、checkpoint-only 表当前明确拒绝，nested 读写的第 3 节七项门槛 0 项完成（D3，见 `artifacts/interop-nested/README.md`），删除向量、column mapping 等未实现 feature 不在当前承诺范围，需完成 nested 读写、checkpoint 恢复与至少两种外部引擎对拍等 `docs/协议兼容性与互操作范围.md` 第 3 节七项门槛后再扩大承诺；`
+- 理由：原句把“遵循 Delta JSON 日志格式”写成“任意标准 Delta 表可互通”。按 §2 闭集只能承诺 flat + UNCOMPRESSED/SNAPPY + 本地文件系统；按 §3 第 33/45 行与 §5 第 81–85 行，nested 与 checkpoint 恢复完成前不得声称互通。D2 已交付，因此按任务要求改为“已对拍”，但只写实际验证的 delta-rs + DuckDB；Spark/Databricks 未运行（D2 §12），不得写入“已对拍”。D3 的七项门槛 0 项完成是 nested 仍为缺口的直接证据。
+- 映射：§2 全表（日志/protocol/schema/Parquet/checkpoint 行）、§3 第 33 行与第 35–45 行七项门槛、§5、§7 第 127–133 行。证据：§1 实测 + D2/D3 报告。
+
+**B2｜L20（存储边界）**
+
+- 原句：`- 不绑定存储与运行时：库只处理目录与文件，不依赖 JVM/Rust 运行时，native 目标可用，后续可扩 wasm/js；`
+- 改句：`- 不绑定运行时：库只处理目录与文件，不依赖 JVM/Rust 运行时，native 目标可用，后续可扩 wasm/js；当前存储只实现本地文件系统，对象存储未实现；`
+- 理由：“不绑定存储”易被读成已抽象 S3/R2，而 §2 明确对象存储属于暂不承诺；README 能力边界也写“存储：本地文件系统 / 对象存储不支持”。写明本地文件系统，与 §2 一致；对象存储仍留在 ROADMAP 0.3，不缩小已有实现。
+- 映射：§2 Parquet 行“本地文件系统”；ROADMAP 0.3 第 35 行（未来）。
+
+**B3｜L21（“类型层拒绝”过度表述）**
+
+- 原句：`- 边界显式：不支持的 schema、压缩、写入类型在类型层与错误信息里明确拒绝，不静默降级——数据基础设施宁可拒绝，不可返回错数据。`
+- 改句：`- 边界显式：不支持的嵌套 schema、压缩、写入类型在错误信息里明确拒绝（返回结构化错误，不 panic、不返回空结果），不静默降级——数据基础设施宁可拒绝，不可返回错数据。`
+- 理由：实际拒绝发生在运行时 `ensure_readable_schema` / `parquet_type_of` / vendored codec 分发处，返回 `DeltaError::Unsupported`，不是编译期类型层；把 schema 限定为 nested（decimal/unknown 另有分支）。D3 证实拒绝是安全的（不返回 0 行、不静默），但 CLI 退出码/错误通道另有问题（代码问题，见 §6）。
+- 映射：§2 第 29 行、§3 第 33 行。证据：测试 `schema: nested type is marked and rejected…`、`read: nested parquet column is rejected with a clear error`、`read: missing data file raises io error`、`snapshot: checkpoint-only table is rejected, not silently empty`；D3 §5–§6。
+
+**B4｜L25（“Spark 直接读”计划写成现状）**
+
+- 原句：`1. **MoonBit ETL 写出、Spark 直接读**：…输出标准 Delta 目录；Spark / Databricks / delta-rs 用 `spark.read.format("delta")` 直接读，MoonBit 侧不需要装 Spark。`
+- 改句：`1. **MoonBit ETL 写出、外部引擎读取**：…输出 Delta protocol reader v1 / writer v2 目录；D2 已用 delta-rs 1.6.6 与 DuckDB 1.5.6 回读本项目写出的 flat 表（schema/行数/逐列值一致，见 `artifacts/interop-flat/README.md`），Spark / Databricks 的 `spark.read.format("delta")` 读取尚未验证；MoonBit 侧不需要装 Spark。`
+- 理由：保留“预期使用场景”，但把“直接读”从现状改为“已用 delta-rs/DuckDB 验证、Spark/Databricks 未验证”，与 D2 实际覆盖一致；同时把“标准 Delta 目录”收敛到 reader v1 / writer v2。
+- 映射：§5 第 83 行、§6 D2、§7 第 128 行。证据：D2 §6/§10（delta-rs、DuckDB 回读通过）；D2 §12（Spark/Databricks 未运行）。
+
+**B5｜L26（fixture 范围与“两个版本”不符）**
+
+- 原句：`2. **外部表校验与迁移**：输入 delta-rs 或 Databricks 产出的表（例如 COVID-19_NYT，157,865 行 6 列），…对比两个版本的文件清单、行数与值…`
+- 改句：`2. **外部表校验与迁移**：输入 delta-rs 或 Databricks 产出的 flat 表（例如 COVID-19_NYT；本仓库 fixture 只含该表 1 个 157,865 行 6 列的数据文件与 version 0 日志，对比两个版本需另备日志与数据文件齐全的表），…对比文件清单、行数与值…`
+- 理由：`fixtures/delta/covid` 只有 `log0.json` 与 1/8 个数据文件，无法做“两个版本对比”；157,865 只是单文件 `stats.numRecords`（已实测读满该文件）。写明 fixture 范围后场景仍成立，但读者不会误以为仓库内可直接复现“两版本对比”。
+- 映射：§2 表操作行、§7 第 129 行；fixtures/README §3.2。证据：§1 实测；fixtures 清单。
+
+### H2 — `申报书.md` `@@ -40,11 +40,12 @@`（L43、L47、L48、L50）
+
+**B6｜L43（协议版本、日志连续性、写入 nullability）**
+
+- 原句：`- **边界与简化**：不实现嵌套 schema（struct/list/map）与 ZSTD/GZIP/BROTLI/LZ4；不解析 checkpoint parquet（checkpoint-only 表明确拒绝）；写入支持 Int32/Int64/String/Binary/Boolean/Double（Required/Optional），不写分区表；…`
+- 改句：`- **边界与简化**：读取只承诺 Delta protocol reader v1 的表（当前未按 protocol version / feature 做整体拒绝）、写出 writer v2 的表，且日志必须从 version 0 起连续；不实现嵌套 schema（struct/list/map）与 ZSTD/GZIP/BROTLI/LZ4，仅支持 UNCOMPRESSED/SNAPPY 压缩与本地文件系统；不解析 checkpoint parquet（checkpoint-only 表与日志被截断的表明确拒绝）；写入支持 Int32/Int64/String/Binary/Boolean/Double，写入端统一按 Parquet Optional 编码、不强制 schema 的 NOT NULL，不写分区表；…`
+- 理由：补齐 §1/§2 协议口径（reader v1 / writer v2、version 0 起连续、UNCOMPRESSED/SNAPPY、本地文件系统）与已测试的“日志截断拒绝”。明确写出“当前未按 protocol version / feature 整体拒绝”，对应 D2 R-3 的实测风险（`reader=2/writer=5` 表被正常返回），避免把“目标口径”写成“已实现拒绝”。“Required/Optional”按 D2 R-1 修正为实际行为（写入列恒为 Optional，不强制 NOT NULL）。
+- 映射：§1 第 9–12 行、§2 日志 / protocol / Parquet 行、§2 第 29 行。证据：`src/write.mbt` L174；`replay_until` L111–115；D2 §9 R-1/R-3；测试 `snapshot: checkpoint-only table is rejected…`。
+
+**B7｜L47（“已实测”范围与互操作状态）**
+
+- 原句：`- 已实测：delta-rs `table_a` 13 个版本回放 → 120 个文件；Databricks 写出的 COVID-19_NYT 数据文件读取 157,865 行 6 列；…`
+- 改句：`- 已实测（仓库 fixture 上的运行结果）：…（仓库只含日志、不含数据文件）；…（该表共 8 个数据文件，仅 1 个入库）；…`，并在其后新增：`- 互操作验证（D2）：与 delta-rs 1.6.6、DuckDB 1.5.6 完成 flat 表双向对拍（外部引擎写 → 本项目读、本项目写 → 外部引擎读，对拍报告无 FAIL/BLOCKED；已记录差异：本项目写出列恒为 Parquet Optional、stats 缺 `nullCount` 与非数值列 min/max，见 `artifacts/interop-flat/README.md`）；Spark / Databricks 未在本环境验证；nested 表只做到“识别嵌套类型并明确拒绝”（D3：第 3 节七项门槛 0 项完成，见 `artifacts/interop-nested/README.md`），不构成嵌套互操作；`
+- 理由：原句本身可复现（已实测），但“已实测”容易被理解为含外部引擎互操作；加限定并写明 fixture 缺口。新增互操作行按 D2 实际结论写“已对拍”（仅 flat、仅 delta-rs/DuckDB），并保留 D2 已记录差异与 D3 的 nested 缺口，符合 §5/§7“完成前只能写受限 flat 互操作、nested 不得写成互通”。
+- 映射：§3 第 33/75 行、§5、§7 第 133 行。证据：§1 实测；D2 §0/§9/§10；D3 §0/§7/§10。
+
+**B8｜L48（warning 来源与实测不符）**
+
+- 原句：`（warning 全部来自 vendored parquet 上游代码）`
+- 改句：`（当前工具链下 warning 主要来自本项目 derive 用法与 vendored parquet 上游代码，均非 error）`
+- 理由：`moon check --target native` 实测 43 条 warning，其中 38 条是 `src/types.mbt`、`src/read.mbt`、`src/scan.mbt` 的 `implicit_impl_as_method`，并非全部来自 vendored parquet。原句属“状态描述与实测不符”；未改变“0 error”的结论。
+- 映射：§7 第 127 行。证据：§1 命令行结果。
+
+**B9｜L50（未来计划中的 checkpoint 解析易被读成 nested 支持）**
+
+- 原句：`- 后续计划：ZSTD 解压与 checkpoint parquet 解析、分区表 append、Float/Timestamp 写入（季度扩展）。`
+- 改句：`- 后续计划：ZSTD 解压与 checkpoint parquet 解析（仅 checkpoint 所需的最小嵌套 shape，不等于 nested schema 兼容）、…`
+- 理由：§3 第 45 行要求路线图中的 checkpoint 最小嵌套 shape 只能作为中间实现；与 ROADMAP 的改动（H8）一致。
+- 映射：§3 第 35–45 行；ROADMAP 0.2 第 24–27 行。
+
+### H3 — `README.md` `@@ -15,14 +15,17 @@`（L17 插入、L21、L25 改写 + 新增状态段）
+
+**R1｜L17 后新增协议 bullet**
+
+- 新增：`-  协议范围：读取 Delta protocol reader v1 的表、写出 `minReaderVersion = 1, minWriterVersion = 2` 的表；日志从 version 0 起连续回放，checkpoint-only / 日志被截断的表明确拒绝`
+- 理由：README 正文原先没有协议版本与日志连续性声明，只在 CLI 样例里出现 `reader=1 writer=1`（fixture 自身字段），容易与申报书口径不一致。此条只写已实现且有测试的部分。
+- 映射：§1、§2 日志/protocol/checkpoint 行。证据：`src/write.mbt` L174；`replay_until` L111–115；测试 `snapshot: checkpoint-only table is rejected…`、`log: table_a exposes 13 versions…`。
+
+**R2a｜L21 写入条目（D2 R-1）**
+
+- 原句：`-  写入：`create_table` + `append_rows`（Int32/Int64/String/Binary/Boolean/Double，Required/Optional）；…`
+- 改句：`-  写入：`create_table` + `append_rows`（Int32/Int64/String/Binary/Boolean/Double；写入端统一按 Parquet Optional 编码，不强制 schema 的 `nullable=false`）；…`
+- 理由：D2 R-1 实测：Delta schema 声明 `id NOT NULL`，但本项目写出的 Parquet 中该列是 `optional int64`；原“Required/Optional”会被读成写入端支持 Required。按 D2 建议在文档中声明该限制（不修改代码、不缩小已支持的类型范围）。
+- 映射：§2 schema/表操作行；D2 §9 R-1。证据：`src/write.mbt` L227（恒 `@parquet.Optional`）；D2 `raw/c_moondelta_written_deltars_read.json`。
+
+**R2｜L25（“表”与“1 个数据文件”混用）**
+
+- 原句：`已用真实数据验证：delta-rs `table_a`（13 个版本回放 → 120 个文件）、Databricks 写出的 COVID-19_NYT 表（157,865 行 6 列，snappy）。`
+- 改句：`已用真实数据验证（均为仓库 fixture 读取）：…（仓库只含日志、不含数据文件）、Databricks 写出的 COVID-19_NYT 表的 1 个数据文件（157,865 行 6 列，snappy；该表共 8 个数据文件，其余 7 个未入库）。`
+- 理由：COVID-19_NYT 整表是 8 个文件（上游 `numOutputRows = 1,111,930`），仓库只入库 1 个；把“表（157,865 行）”改为“表的 1 个数据文件”。`table_a` 无数据文件也需写明。
+- 映射：§2 表操作行、§7 第 129 行；fixtures/README §3.1/§3.2。证据：§1 实测。
+
+**R3｜L25 后新增互操作状态段**
+
+- 新增：`外部引擎互操作（D2）：已与 delta-rs 1.6.6、DuckDB 1.5.6 完成 flat 表双向对拍（对拍报告无 FAIL/BLOCKED、2 项已记录差异，见 [artifacts/interop-flat/README.md](artifacts/interop-flat/README.md)）；Spark / Databricks 未验证。nested schema 当前明确拒绝，第 3 节七项门槛 0 项完成（[artifacts/interop-nested/README.md](artifacts/interop-nested/README.md)），不构成 nested 互操作；口径见 [docs/协议兼容性与互操作范围.md](docs/协议兼容性与互操作范围.md)。`
+- 理由：README 原先没有外部引擎声明，但申报书有；补一行状态与证据链接，使两处口径一致，并明确“已对拍的范围”（flat、两引擎）与“未对拍的范围”（Spark/Databricks、nested）。映射 §5、§6 D2/D3、§7 第 133 行。
+
+### H4 — `README.md` `@@ -58,6 +61,8 @@`（inspect 样例后加注）
+
+- 新增：`> 注：样例中的 `reader=1 writer=1` 是 delta-rs fixture 自身的协议字段；本项目写出的表为 `minReaderVersion = 1, minWriterVersion = 2`。`
+- 理由：样例输出确实为 `writer=1`（fixture 由 Spark/Delta 3.3 写出，见 fixtures/README §3.1），但读者可能误以为本项目 writer 也是 v1。注释只解释字段来源，不改样例输出（保持可复现）。
+- 映射：§1 第 9–10 行、§2 protocol 行。
+
+### H5 — `README.md` `@@ -91,6 +96,8 @@`（能力边界表新增 protocol / 日志 两行）
+
+- 新增行：
+  - `| protocol | reader v1 读取；writer v2 写出 | 高于 reader v1 的 protocol、删除向量 / column mapping 等未实现 feature（不在承诺内；当前未按 version / feature 做整体拒绝） |`
+  - `| 日志 | version 0 起的连续 JSON commit | checkpoint-only、日志从非 0 开始或缺少版本 |`
+- 理由：表格原先缺少 §2 闭集的第一、二行。注意“不支持”列写“不在承诺内/当前未整体拒绝”，而不是“明确拒绝”——D2 R-3 已实测 `reader=2/writer=5` 表被正常读取（`inspect`/`read` 退出码 0），不能新增未证实的拒绝声明。
+- 映射：§1、§2 日志/protocol 行、§2 第 29 行。证据：`replay_until` 对非 0 起始/缺版本抛错（有测试）；D2 §9 R-3。
+
+### H6 — `README.md` `@@ -99,7 +106,7 @@`（“边界已在测试里固化”过宽）
+
+- 原句：`这些边界来自底层 Parquet 实现的真实能力（见 `src/vendor/parquet/NOTICE.md`），已在测试里固化为**明确的错误信息**（不是 panic，也不是静默 0 行）。`
+- 改句：`这些边界来自底层 Parquet 实现与本项目读取路径的真实能力。其中嵌套列、缺失数据文件、checkpoint-only / 截断日志已有测试固化为**明确的错误信息**（不是 panic，也不是静默 0 行）；压缩 codec 与 decimal 等逻辑类型的拒绝分别由 vendored reader（见 `src/vendor/parquet/NOTICE.md`）和本项目 schema 校验返回 `Unsupported`（这两类尚无独立测试）。`
+- 理由：原句断言“这些边界”全部有测试；实测测试清单只覆盖 nested / 缺失文件 / checkpoint-only / 统计边界 / 分区，zstd-gzip-brotli-lz4、decimal、date/timestamp 没有测试。改为“部分有测试 + 其余由实现返回 Unsupported、尚无独立测试”。
+- 映射：§2 第 29 行、§7 第 127 行。证据：`src/delta_wbtest.mbt` 14 个测试清单；`src/schema.mbt` decimal 拒绝；`compression.mbt`。
+
+### H7 — `README.md` `@@ -117,7 +124,7 @@`（路线图 checkpoint“嵌套”歧义）
+
+- 原句：`- 0.2：ZSTD/GZIP/BROTLI 解压、checkpoint parquet 解析（嵌套）、分区表 append`
+- 改句：`- 0.2：ZSTD/GZIP/BROTLI 解压、checkpoint parquet 解析（仅 checkpoint 所需的最小嵌套 shape，不构成 nested schema 兼容）、分区表 append`
+- 理由：与 §3 第 45 行、ROADMAP“明确不做”一致；避免“0.2 做嵌套”被当成 nested 兼容承诺。
+- 映射：§3 第 35–45 行；ROADMAP 0.2 第 24–27 行。
+
+### H8 — `docs/ROADMAP.md` `@@ -48,7 +48,7 @@`（“明确不做”补门槛）
+
+- 原句：`- 不做通用嵌套类型（struct/list/map）的完整读写（只做 checkpoint 所需的最小 shape）；`
+- 改句：`- 不做通用嵌套类型（struct/list/map）的完整读写（只做 checkpoint 所需的最小 shape；该中间实现不构成 nested schema 兼容，完整 nested 需满足 `docs/协议兼容性与互操作范围.md` 第 3 节七项门槛）；`
+- 理由：§3 第 45 行点名路线图这一句只能作为中间实现；补“七项门槛”引用后，未来承诺有明确验收条件。D3 的 0/7 门槛结论可作为该句的证据背景。
+- 映射：§3 第 35–45 行七项门槛。
+
+## 3. 互操作承诺 → 闭集 / 测试 / 证据 映射
+
+| 修订后声明 | 闭集位置 | 证据 |
+|---|---|---|
+| 读取 Delta protocol reader v1 的表 | §1 第 9 行、§2 protocol 行 | `parse_protocol` 保留版本字段；fixture 均为 reader=1；**未做 reader>1 拒绝**（D2 R-3 实测），文档已注明“当前未整体拒绝” |
+| 写出 `minReaderVersion=1, minWriterVersion=2` 的表 | §1 第 10 行、§2 protocol 行 | `write.mbt create_table` L174；测试 `write: create + append + read back`；D2 C 组 delta-rs/DuckDB 回读通过 |
+| version 0 起连续 JSON 日志 | §1 第 11 行、§2 日志行 | `replay_until` L111–115；测试 `snapshot: checkpoint-only table is rejected…`、`log: table_a exposes 13 versions…` |
+| flat schema 子集 | §2 schema 行、§3 第 33 行 | `schema.mbt`；测试 `schema: parse flat delta schema`、`schema: nested type is marked and rejected…`；D2 双向对拍 |
+| UNCOMPRESSED / SNAPPY、本地文件系统 | §2 Parquet 行 | `compression.mbt` L100–117；测试 `read: real Databricks-written covid table (snappy parquet)`；D2 两引擎均读取 |
+| nested schema 明确拒绝 | §2 schema 行、§3 第 33 行 | 测试 `read: nested parquet column is rejected…`；D3 三类 kind 均结构化拒绝、无假成功 |
+| nested 七项门槛 0 项完成 | §3 第 35–45 行 | D3 §7/§10：0 完成 / 2 部分 / 5 未完成；读取不构成互操作 |
+| checkpoint-only / 日志截断明确拒绝 | §2 checkpoint 行 | `replay_until`；测试 `snapshot: checkpoint-only table is rejected…`；D3 §5.3 |
+| 外部引擎已对拍（flat，delta-rs + DuckDB） | §5、§6 D2、§7 第 128 行 | D2：A/B/C/D/E 组，无 FAIL/BLOCKED，逐列值一致；记录 R-1/R-2 差异 |
+| Spark / Databricks 未验证 | §5 措辞“Spark、Databricks、delta-rs、DuckDB” | D2 §12 明确“Spark / Databricks 未在本环境运行”，不得写“已对拍” |
+| 扩大承诺需完成第 3 节七项门槛 | §3 第 35–45 行 | D3 逐项缺口清单 + README/申报书新增门槛引用 |
+
+## 4. 保留不改的可疑表述及理由
+
+| 位置 | 表述 | 不修改的理由 |
+|---|---|---|
+| README L15 `MVP（0.1.0）：`、L32 `v0.1.0 已发布` | 与 `moon.mod` 0.1.1、CHANGELOG 0.1.1、ROADMAP“当前版本 0.1.1”不一致 | 修改等于断言 0.1.1 已成功发布到 mooncakes.io；本机无法联网核验，无证据不写。且 CLI `version` 仍输出 `moondelta-core 0.1.0`（代码问题），单独处理更合适 |
+| README L96 / 申报书 L24 `date、timestamp(INT96)` 读取 | 闭集允许识别，vendored reader 有 `read_int96_micros` 路径，但**无任何读取测试**；D2/D3 也未覆盖 | 属“已实测范围”证据不足而非超范围；删掉会缩小闭集、保留需补测。已在 H6 限定“已测试的范围”，故原行暂留，交 D1/后续补测 |
+| 申报书 L35 `统计信息（numRecords/min/max）随日志写入` | 表述本身准确（只声明写入了什么）；D2 R-2 实测缺 `nullCount` 与非数值列 min/max | 原句未声称完整 stats，不构成超范围；若后续要宣称“完整统计”，需先补齐实现。已在 H2/B7 的互操作行记录该差异 |
+| 申报书 L42 `日志回放可用真实 fixture 离线对拍` | “对拍”指 fixture 回放断言，不是外部引擎对拍 | 原意可读通，且 B7 已明确区分；改词会牵动更多行，收益低 |
+| 申报书 L48 `GitHub Actions 流水线已通过` | 本机无法核验远端 CI | 属发布记录类声明，无相反证据，保留 |
+| README L23 `真实 Delta 表 fixture（delta-rs、apache/parquet-testing）` | 未单列“Databricks 写出的 covid” | covid 的上游仓库是 delta-rs（由 Databricks 写出），与 fixtures/README §2 来源表一致，不是错误 |
+| README L5 `Delta Lake 表格式内核` 泛称 | 单看易被读成完整表格式实现 | 已由能力边界表与新增协议 bullet 限定；标题类泛称保留 |
+| CHANGELOG 0.1.0 `分区 + min/max 统计剪枝` | 与 0.1.1“分区表读取与分区过滤”看似重复 | 经 git 历史核对：`scan.mbt` 的分区等值过滤 + stats 剪枝在 0.1.0 前已合入（commit `e3232f8`）；0.1.1 补的是分区列补齐读取与测试。历史属实，不改 |
+| ROADMAP 0.2 `checkpoint parquet 解析…旧日志已清理的表` | 未来计划，不是现状 | 已由 H8 在“明确不做”处加门槛说明；0.2 条目本身是计划，保留 |
+| `docs/开发计划.md` L6 `reader/writer 未改` | 与 NOTICE/CHANGELOG“writer 扩展 BOOLEAN/DOUBLE”矛盾 | 不在本任务范围（任务只列申报书/README/ROADMAP/CHANGELOG），且是内部计划文档；建议后续单独清理（见 §6） |
+| D2 R-5 `metaData.id` 由路径派生、R-7 `createdTime=0` | 文档未把这些写成规范符合项，故无文本承诺需修 | 属实现观察（代码问题），交后续实现任务；D2 已记录，不影响文本一致性 |
+
+## 5. 为什么 CHANGELOG.md 没有 hunk
+
+逐条核对 0.1.0 / 0.1.1 条目与实现：
+
+- 0.1.1 的“BOOLEAN/DOUBLE 写入、partitionValues 补齐、10→14 测试”与代码、`moon test` 14/14 一致；
+- 0.1.0 的“分区 + min/max 统计剪枝”经 git 历史确认在 0.1.0 前落地（`e3232f8`）；
+- CHANGELOG 没有“任意标准 Delta 表”“完整 nested”“checkpoint 恢复”等超出 §2 闭集的现状声明，只有历史版本条目与正常变更记录。
+
+因此按“最小 diff”原则不改 CHANGELOG；若 D1 审计发现 0.1.0 条目的 action/feature 描述与实现不符，再追加（见 §6）。
+
+## 6. D1 / 后续证据到位后的待追加 hunk（不阻塞本次交付）
+
+生成 patch 时 `artifacts/protocol-audit.md` 仍不存在（D1 只留下 `fixtures/`、`run_cli.ps1`、`check.out`、`test.out` 等中间产物）。D2/D3 报告已交付并已纳入。以下条件式建议供 lead/D1 合并时使用：
+
+1. **协议版本 / feature 缺口（最可能的新证据）**：D1 的 fixture 已生成 `protocol-reader-v2`、`protocol-reader-v3-features`、`writer-v5-features`、`deletion-vector-add`、`column-mapping`；D2 R-3 已实测 `reader=2/writer=5` 表被正常读取。若 D1 确认删除向量/column mapping/CDF 表会被“按 v1 语义读取”而非拒绝，建议在 README 能力边界 protocol 行后补一句“读取端尚未按 protocol version / feature 校验，超出 reader v1 的表须人工确认”，并在申报书 L43 的括注中同步；**不能在拒绝逻辑补齐前改写成“明确拒绝”**。
+2. **D2 扩展（Spark/Databricks）**：若后续新增 Spark/Databricks 对拍（§3 门槛 5 的理想覆盖），把 B1/B4/B7 与 R3 的“Spark / Databricks 未验证/未在本环境验证”改为“已完成与 Spark 或 Databricks 的对拍（证据路径）”；若仍只有 delta-rs + DuckDB，则保持现状，不得删“未验证”。
+3. **D2 R-1/R-2 修复后**：若写入端改为对 `nullable=false` 落盘 required、并补 `nullCount`/字符串与布尔 min/max，更新 README L21、申报书 L43 与 L35，并更新 B7 互操作行里的“已记录差异”列表。
+4. **D3 结论变化时**：若 nested 读取/写入落地，按 §3 七项门槛逐项更新申报书“nested 七项门槛 0 项完成”、README 状态段与 ROADMAP；在七项全部完成前不得改成“nested 互通”。D3 另外记录的 CLI 失败退出码为 0、`create` 不校验 nested 可写性、`inspect` 丢子字段，属代码问题，应由实现任务修复；若修复，本 patch 无需改文本（文本未声称这些行为）。
+5. **date / timestamp(INT96) 证据**：若 D1 补测通过，可在 README L96 保持“支持”并补测试引用；若失败，删除 `date、timestamp(INT96)` 或降为“仅识别类型”。
+6. **D1 若发现其他状态差异**：测试数、代码行数、action 覆盖率、`UnknownAction` 处理（`UnknownAction(_) => ()` 静默忽略）、`txn`/`cdc`/`domainMetadata` action 未建模等，若与 README/申报书现有句子冲突，按同风格追加最小 hunk，并在 README 能力边界表补行。
+7. **`docs/开发计划.md` L6**：与 NOTICE/CHANGELOG 的 writer 扩展矛盾；不在本任务范围，建议由 lead 在文档收口 commit 中单独修正为“reader 未改，writer 扩展 BOOLEAN/DOUBLE”。
+8. **版本标签**：若确认 0.1.1 已发布，更新 README L15/L32 与 `src/cmd/delta/main.mbt` 的 `version` 输出（代码改动不在本任务范围）。
+9. **证据入库**：`artifacts/interop-flat/`、`artifacts/interop-nested/`、`docs/协议兼容性与互操作范围.md` 目前未跟踪；需与 patch 同一 commit 入库（或改为仓库内相对引用前先确认提交策略），否则新增引用会失效。
+
+## 7. 校验命令与结果
+
+在仓库根 `E:\Project\Moonbit Hackson\P1 RE` 执行：
+
+```powershell
+# 1) 补丁可应用性（不落盘）
+git apply -p1 --check artifacts/claim-alignment.patch
+# 结果：exit 0，无输出
+
+# 2) 改动规模（8 hunk）
+git apply -p1 --numstat artifacts/claim-alignment.patch
+# 10  9   "申报书.md"
+# 11  4   README.md
+# 1   1   docs/ROADMAP.md
+(Select-String -Path artifacts/claim-alignment.patch -Pattern '^@@').Count   # 8
+
+# 3) 临时副本真实 apply + Markdown 结构检查
+$tmp = Join-Path $env:TEMP "claim-check3"
+# 复制 申报书.md / README.md / CHANGELOG.md / docs/ROADMAP.md 到 $tmp 后：
+git apply -p1 artifacts/claim-alignment.patch   # exit 0
+(Select-String -Path README.md -Pattern '^```').Count      # 10（围栏成对）
+(Select-String -Path README.md -Pattern '^\|').Count       # 11（新增 2 行后表格仍连续）
+(Get-Content 申报书.md).Count                              # 51（原 50 行 + 新增 1 条互操作 bullet）
+(Get-Content docs/ROADMAP.md).Count                        # 68（行数不变，仅改 1 行）
+
+# 4) 工作区原文件未被修改
+git status --porcelain -- 申报书.md README.md CHANGELOG.md docs/ROADMAP.md
+# 结果：无输出
+```
+
+补充说明：
+
+- patch 由 `difflib.unified_diff` 生成，按原文逐行精确替换，未重排段落、未改动全角标点、未触碰既有行内代码与链接；
+- 临时副本位于 `%TEMP%`，验证后清理，不在仓库内留下中间文件；
+- 只写入 `artifacts/claim-alignment.patch` 与 `artifacts/claim-alignment.md` 两个交付路径，未改动任何现有文件、未 `git add/commit`、未触碰 `.tools/` 或其他 agent 的 `artifacts/` 子目录。

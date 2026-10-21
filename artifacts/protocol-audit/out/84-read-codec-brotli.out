@@ -1,0 +1,8 @@
+### 84-read-codec-brotli
+$ delta.exe read artifacts/protocol-audit/fixtures/codec-brotli
+[exit code: 0]
+--- stdout ---
+error: unsupported: cannot read 'data.parquet': Unsupported parquet codec: 4
+--- stderr ---
+
+

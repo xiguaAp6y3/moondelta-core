@@ -1,0 +1,4 @@
+{"commitInfo":{"timestamp":0,"operation":"CREATE TABLE","operationParameters":{},"engineInfo":"protocol-audit-fixture"}}
+{"protocol":{"minReaderVersion":2,"minWriterVersion":5,"readerFeatures":["columnMapping"],"writerFeatures":["columnMapping"]}}
+{"metaData":{"id":"fixture","format":{"provider":"parquet","options":{}},"schemaString":"{\"type\":\"struct\",\"fields\":[{\"name\":\"id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{\"delta.columnMapping.id\":1,\"delta.columnMapping.physicalName\":\"col-5f0c\"}}]}","partitionColumns":[],"configuration":{"delta.columnMapping.mode":"name","delta.columnMapping.maxColumnId":"1"},"createdTime":0}}
+{"add":{"path":"data.parquet","partitionValues":{},"size":524,"modificationTime":0,"dataChange":true,"stats":"{\"numRecords\":3}"}}

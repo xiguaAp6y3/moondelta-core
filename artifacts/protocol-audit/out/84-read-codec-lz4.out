@@ -1,0 +1,8 @@
+### 84-read-codec-lz4
+$ delta.exe read artifacts/protocol-audit/fixtures/codec-lz4
+[exit code: 0]
+--- stdout ---
+error: unsupported: cannot read 'data.parquet': Unsupported parquet codec: 7
+--- stderr ---
+
+

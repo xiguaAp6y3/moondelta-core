@@ -1,0 +1,8 @@
+### 40-inspect-log-gap
+$ delta.exe inspect artifacts/protocol-audit/fixtures/log-gap
+[exit code: 0]
+--- stdout ---
+error: not found: log version 1 is missing (checkpoint-only or truncated table?)
+--- stderr ---
+
+

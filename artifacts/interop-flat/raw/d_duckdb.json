@@ -1,0 +1,168 @@
+{
+  "engine": "duckdb",
+  "version": "1.5.6",
+  "tables": {
+    "engine-written": {
+      "table": "artifacts/interop-flat/engine-written",
+      "delta_scan": {
+        "rows": [
+          [
+            4,
+            "carol",
+            true
+          ],
+          [
+            5,
+            null,
+            null
+          ],
+          [
+            1,
+            "alice",
+            true
+          ],
+          [
+            2,
+            null,
+            false
+          ],
+          [
+            3,
+            "bob",
+            null
+          ]
+        ],
+        "describe": [
+          {
+            "column": "id",
+            "type": "BIGINT",
+            "null": "YES"
+          },
+          {
+            "column": "name",
+            "type": "VARCHAR",
+            "null": "YES"
+          },
+          {
+            "column": "active",
+            "type": "BOOLEAN",
+            "null": "YES"
+          }
+        ]
+      },
+      "read_parquet": {
+        "rows": [
+          [
+            1,
+            "alice",
+            true
+          ],
+          [
+            2,
+            null,
+            false
+          ],
+          [
+            3,
+            "bob",
+            null
+          ],
+          [
+            4,
+            "carol",
+            true
+          ],
+          [
+            5,
+            null,
+            null
+          ]
+        ],
+        "note": "非 Delta 级互操作（parquet 级补充）"
+      }
+    },
+    "moondelta-written": {
+      "table": "artifacts/interop-flat/moondelta-written",
+      "delta_scan": {
+        "rows": [
+          [
+            4,
+            "carol",
+            true
+          ],
+          [
+            5,
+            null,
+            null
+          ],
+          [
+            1,
+            "alice",
+            true
+          ],
+          [
+            2,
+            null,
+            false
+          ],
+          [
+            3,
+            "bob",
+            null
+          ]
+        ],
+        "describe": [
+          {
+            "column": "id",
+            "type": "BIGINT",
+            "null": "YES"
+          },
+          {
+            "column": "name",
+            "type": "VARCHAR",
+            "null": "YES"
+          },
+          {
+            "column": "active",
+            "type": "BOOLEAN",
+            "null": "YES"
+          }
+        ]
+      },
+      "read_parquet": {
+        "rows": [
+          [
+            1,
+            "alice",
+            true
+          ],
+          [
+            2,
+            null,
+            false
+          ],
+          [
+            3,
+            "bob",
+            null
+          ],
+          [
+            4,
+            "carol",
+            true
+          ],
+          [
+            5,
+            null,
+            null
+          ]
+        ],
+        "note": "非 Delta 级互操作（parquet 级补充）"
+      }
+    }
+  },
+  "delta_extension": {
+    "available": true,
+    "version": "6059958"
+  }
+}

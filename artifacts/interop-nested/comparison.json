@@ -1,0 +1,881 @@
+{
+  "generated_at": "2026-10-20T20:24:42+08:00",
+  "case": "docs/协议兼容性与互操作范围.md 第 4 节案例 B / 第 6 节任务 D3",
+  "environment": {
+    "os": "Windows-11-10.0.28000-SP0",
+    "python": "3.12.14",
+    "deltalake": "1.6.6",
+    "pyarrow": "26.0.0",
+    "duckdb": "1.5.6",
+    "pandas": "3.0.6",
+    "moondelta_cli": "_build/native/debug/build/cmd/delta/delta.exe",
+    "moondelta_version": "moondelta-core 0.1.0",
+    "duckdb_delta_extension": {
+      "load_ok": true,
+      "install_needed": false,
+      "extension_version": "6059958",
+      "error": null
+    }
+  },
+  "fixture_schema": {
+    "table": "engine-written",
+    "schemaString": "{\"type\":\"struct\",\"fields\":[{\"name\":\"id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{}},{\"name\":\"profile\",\"type\":{\"type\":\"struct\",\"fields\":[{\"name\":\"name\",\"type\":\"string\",\"nullable\":true,\"metadata\":{}},{\"name\":\"age\",\"type\":\"integer\",\"nullable\":true,\"metadata\":{}}]},\"nullable\":true,\"metadata\":{}},{\"name\":\"tags\",\"type\":{\"type\":\"array\",\"elementType\":\"string\",\"containsNull\":true},\"nullable\":true,\"metadata\":{}},{\"name\":\"attrs\",\"type\":{\"type\":\"map\",\"keyType\":\"string\",\"valueType\":\"string\",\"valueContainsNull\":true},\"nullable\":true,\"metadata\":{}}]}",
+    "protocol": {
+      "minReaderVersion": 1,
+      "minWriterVersion": 2
+    },
+    "row_count": 5,
+    "boundary_coverage": {
+      "profile_null": [
+        2
+      ],
+      "profile_all_children_null": [
+        3
+      ],
+      "profile_name_set_age_null": [
+        4
+      ],
+      "tags_empty_list": [
+        2,
+        5
+      ],
+      "tags_null": [
+        3
+      ],
+      "tags_null_element": [
+        4
+      ],
+      "attrs_empty_map": [
+        2,
+        4
+      ],
+      "attrs_null": [
+        5
+      ]
+    }
+  },
+  "oracles": {
+    "delta_rs": {
+      "ok": true,
+      "engine_version": "1.6.6",
+      "row_count": 5
+    },
+    "duckdb": {
+      "status": "ok",
+      "engine_version": "1.5.6",
+      "delta_extension": {
+        "load_ok": true,
+        "install_needed": false,
+        "extension_version": "6059958",
+        "error": null
+      },
+      "row_count": 5
+    },
+    "oracle_cross_check": {
+      "row_count_equal": true,
+      "id_sets_equal": true,
+      "rows_equal": true,
+      "differing_ids": []
+    },
+    "checkpoint_only_cross_check": {
+      "row_count_equal": true,
+      "id_sets_equal": true,
+      "rows_equal": true,
+      "differing_ids": []
+    },
+    "tables": {
+      "engine-written": {
+        "delta_rs_status": "ok",
+        "duckdb_status": "ok",
+        "row_count": 5
+      },
+      "kind-struct-only": {
+        "delta_rs_status": "ok",
+        "duckdb_status": "ok",
+        "row_count": 4
+      },
+      "kind-array-only": {
+        "delta_rs_status": "ok",
+        "duckdb_status": "ok",
+        "row_count": 4
+      },
+      "kind-map-only": {
+        "delta_rs_status": "ok",
+        "duckdb_status": "ok",
+        "row_count": 4
+      },
+      "checkpoint-nested": {
+        "delta_rs_status": "ok",
+        "duckdb_status": "ok",
+        "row_count": 5
+      },
+      "checkpoint-only-nested": {
+        "delta_rs_status": "ok",
+        "duckdb_status": "ok",
+        "row_count": 5
+      }
+    }
+  },
+  "moondelta": {
+    "engine-written": {
+      "inspect": {
+        "command": "delta.exe inspect artifacts/interop-nested/engine-written",
+        "exit_code": 0,
+        "stdout_file": "raw/engine-written__inspect.stdout.txt",
+        "stderr_file": "raw/engine-written__inspect.stderr.txt",
+        "parsed": {
+          "schema_display": [
+            "id: long",
+            "profile: struct",
+            "tags: array",
+            "attrs: map"
+          ],
+          "note_lines": [],
+          "last_checkpoint": null,
+          "current_version": 0,
+          "log_versions": 1,
+          "files": 1,
+          "rows": 5,
+          "protocol": {
+            "minReaderVersion": 1,
+            "minWriterVersion": 2
+          }
+        }
+      },
+      "history": {
+        "command": "delta.exe history artifacts/interop-nested/engine-written",
+        "exit_code": 0,
+        "stdout_file": "raw/engine-written__history.stdout.txt"
+      },
+      "read": {
+        "command": "delta.exe read artifacts/interop-nested/engine-written",
+        "exit_code": 0,
+        "stdout_file": "raw/engine-written__read.stdout.txt",
+        "stderr_file": "raw/engine-written__read.stderr.txt",
+        "stdout": "error: unsupported: nested column 'profile' (type=struct) is not supported by the parquet reader; only flat schemas are readable\r\n",
+        "stderr": "",
+        "parsed": {
+          "error_text": "unsupported: nested column 'profile' (type=struct) is not supported by the parquet reader; only flat schemas are readable",
+          "success_line": null,
+          "fake_success": false,
+          "files_read": null,
+          "row_count": null,
+          "version": null,
+          "returns_zero_rows": false,
+          "data_rows_printed": 0
+        }
+      }
+    },
+    "kind-struct-only": {
+      "inspect": {
+        "command": "delta.exe inspect artifacts/interop-nested/kind-struct-only",
+        "exit_code": 0,
+        "stdout_file": "raw/kind-struct-only__inspect.stdout.txt",
+        "stderr_file": "raw/kind-struct-only__inspect.stderr.txt",
+        "parsed": {
+          "schema_display": [
+            "id: long",
+            "profile: struct"
+          ],
+          "note_lines": [],
+          "last_checkpoint": null,
+          "current_version": 0,
+          "log_versions": 1,
+          "files": 1,
+          "rows": 4,
+          "protocol": {
+            "minReaderVersion": 1,
+            "minWriterVersion": 2
+          }
+        }
+      },
+      "history": {
+        "command": "delta.exe history artifacts/interop-nested/kind-struct-only",
+        "exit_code": 0,
+        "stdout_file": "raw/kind-struct-only__history.stdout.txt"
+      },
+      "read": {
+        "command": "delta.exe read artifacts/interop-nested/kind-struct-only",
+        "exit_code": 0,
+        "stdout_file": "raw/kind-struct-only__read.stdout.txt",
+        "stderr_file": "raw/kind-struct-only__read.stderr.txt",
+        "stdout": "error: unsupported: nested column 'profile' (type=struct) is not supported by the parquet reader; only flat schemas are readable\r\n",
+        "stderr": "",
+        "parsed": {
+          "error_text": "unsupported: nested column 'profile' (type=struct) is not supported by the parquet reader; only flat schemas are readable",
+          "success_line": null,
+          "fake_success": false,
+          "files_read": null,
+          "row_count": null,
+          "version": null,
+          "returns_zero_rows": false,
+          "data_rows_printed": 0
+        }
+      }
+    },
+    "kind-array-only": {
+      "inspect": {
+        "command": "delta.exe inspect artifacts/interop-nested/kind-array-only",
+        "exit_code": 0,
+        "stdout_file": "raw/kind-array-only__inspect.stdout.txt",
+        "stderr_file": "raw/kind-array-only__inspect.stderr.txt",
+        "parsed": {
+          "schema_display": [
+            "id: long",
+            "tags: array"
+          ],
+          "note_lines": [],
+          "last_checkpoint": null,
+          "current_version": 0,
+          "log_versions": 1,
+          "files": 1,
+          "rows": 4,
+          "protocol": {
+            "minReaderVersion": 1,
+            "minWriterVersion": 2
+          }
+        }
+      },
+      "history": {
+        "command": "delta.exe history artifacts/interop-nested/kind-array-only",
+        "exit_code": 0,
+        "stdout_file": "raw/kind-array-only__history.stdout.txt"
+      },
+      "read": {
+        "command": "delta.exe read artifacts/interop-nested/kind-array-only",
+        "exit_code": 0,
+        "stdout_file": "raw/kind-array-only__read.stdout.txt",
+        "stderr_file": "raw/kind-array-only__read.stderr.txt",
+        "stdout": "error: unsupported: nested column 'tags' (type=array) is not supported by the parquet reader; only flat schemas are readable\r\n",
+        "stderr": "",
+        "parsed": {
+          "error_text": "unsupported: nested column 'tags' (type=array) is not supported by the parquet reader; only flat schemas are readable",
+          "success_line": null,
+          "fake_success": false,
+          "files_read": null,
+          "row_count": null,
+          "version": null,
+          "returns_zero_rows": false,
+          "data_rows_printed": 0
+        }
+      }
+    },
+    "kind-map-only": {
+      "inspect": {
+        "command": "delta.exe inspect artifacts/interop-nested/kind-map-only",
+        "exit_code": 0,
+        "stdout_file": "raw/kind-map-only__inspect.stdout.txt",
+        "stderr_file": "raw/kind-map-only__inspect.stderr.txt",
+        "parsed": {
+          "schema_display": [
+            "id: long",
+            "attrs: map"
+          ],
+          "note_lines": [],
+          "last_checkpoint": null,
+          "current_version": 0,
+          "log_versions": 1,
+          "files": 1,
+          "rows": 4,
+          "protocol": {
+            "minReaderVersion": 1,
+            "minWriterVersion": 2
+          }
+        }
+      },
+      "history": {
+        "command": "delta.exe history artifacts/interop-nested/kind-map-only",
+        "exit_code": 0,
+        "stdout_file": "raw/kind-map-only__history.stdout.txt"
+      },
+      "read": {
+        "command": "delta.exe read artifacts/interop-nested/kind-map-only",
+        "exit_code": 0,
+        "stdout_file": "raw/kind-map-only__read.stdout.txt",
+        "stderr_file": "raw/kind-map-only__read.stderr.txt",
+        "stdout": "error: unsupported: nested column 'attrs' (type=map) is not supported by the parquet reader; only flat schemas are readable\r\n",
+        "stderr": "",
+        "parsed": {
+          "error_text": "unsupported: nested column 'attrs' (type=map) is not supported by the parquet reader; only flat schemas are readable",
+          "success_line": null,
+          "fake_success": false,
+          "files_read": null,
+          "row_count": null,
+          "version": null,
+          "returns_zero_rows": false,
+          "data_rows_printed": 0
+        }
+      }
+    },
+    "checkpoint-nested": {
+      "inspect": {
+        "command": "delta.exe inspect artifacts/interop-nested/checkpoint-nested",
+        "exit_code": 0,
+        "stdout_file": "raw/checkpoint-nested__inspect.stdout.txt",
+        "stderr_file": "raw/checkpoint-nested__inspect.stderr.txt",
+        "parsed": {
+          "schema_display": [
+            "id: long",
+            "profile: struct",
+            "tags: array",
+            "attrs: map"
+          ],
+          "note_lines": [
+            "checkpoint files exist; checkpoint-only tables are not readable by this kernel"
+          ],
+          "last_checkpoint": 0,
+          "current_version": 0,
+          "log_versions": 1,
+          "files": 1,
+          "rows": 5,
+          "protocol": {
+            "minReaderVersion": 1,
+            "minWriterVersion": 2
+          }
+        }
+      },
+      "history": {
+        "command": "delta.exe history artifacts/interop-nested/checkpoint-nested",
+        "exit_code": 0,
+        "stdout_file": "raw/checkpoint-nested__history.stdout.txt"
+      },
+      "read": {
+        "command": "delta.exe read artifacts/interop-nested/checkpoint-nested",
+        "exit_code": 0,
+        "stdout_file": "raw/checkpoint-nested__read.stdout.txt",
+        "stderr_file": "raw/checkpoint-nested__read.stderr.txt",
+        "stdout": "error: unsupported: nested column 'profile' (type=struct) is not supported by the parquet reader; only flat schemas are readable\r\n",
+        "stderr": "",
+        "parsed": {
+          "error_text": "unsupported: nested column 'profile' (type=struct) is not supported by the parquet reader; only flat schemas are readable",
+          "success_line": null,
+          "fake_success": false,
+          "files_read": null,
+          "row_count": null,
+          "version": null,
+          "returns_zero_rows": false,
+          "data_rows_printed": 0
+        }
+      }
+    },
+    "checkpoint-only-nested": {
+      "inspect": {
+        "command": "delta.exe inspect artifacts/interop-nested/checkpoint-only-nested",
+        "exit_code": 0,
+        "stdout_file": "raw/checkpoint-only-nested__inspect.stdout.txt",
+        "stderr_file": "raw/checkpoint-only-nested__inspect.stderr.txt",
+        "parsed": {
+          "schema_display": [],
+          "note_lines": [],
+          "last_checkpoint": null,
+          "current_version": null,
+          "log_versions": null,
+          "files": null,
+          "rows": null,
+          "protocol": null
+        }
+      },
+      "history": {
+        "command": "delta.exe history artifacts/interop-nested/checkpoint-only-nested",
+        "exit_code": 0,
+        "stdout_file": "raw/checkpoint-only-nested__history.stdout.txt"
+      },
+      "read": {
+        "command": "delta.exe read artifacts/interop-nested/checkpoint-only-nested",
+        "exit_code": 0,
+        "stdout_file": "raw/checkpoint-only-nested__read.stdout.txt",
+        "stderr_file": "raw/checkpoint-only-nested__read.stderr.txt",
+        "stdout": "error: not found: table 'artifacts/interop-nested/checkpoint-only-nested' has no log entries\r\n",
+        "stderr": "",
+        "parsed": {
+          "error_text": "not found: table 'artifacts/interop-nested/checkpoint-only-nested' has no log entries",
+          "success_line": null,
+          "fake_success": false,
+          "files_read": null,
+          "row_count": null,
+          "version": null,
+          "returns_zero_rows": false,
+          "data_rows_printed": 0
+        }
+      }
+    },
+    "negative-physical-nested": {
+      "inspect": {
+        "command": "delta.exe inspect artifacts/interop-nested/negative-physical-nested",
+        "exit_code": 0,
+        "stdout_file": "raw/negative-physical-nested__inspect.stdout.txt",
+        "stderr_file": "raw/negative-physical-nested__inspect.stderr.txt",
+        "parsed": {
+          "schema_display": [
+            "int64_list: long",
+            "utf8_list: string"
+          ],
+          "note_lines": [],
+          "last_checkpoint": null,
+          "current_version": 0,
+          "log_versions": 1,
+          "files": 1,
+          "rows": 3,
+          "protocol": {
+            "minReaderVersion": 1,
+            "minWriterVersion": 2
+          }
+        }
+      },
+      "history": {
+        "command": "delta.exe history artifacts/interop-nested/negative-physical-nested",
+        "exit_code": 0,
+        "stdout_file": "raw/negative-physical-nested__history.stdout.txt"
+      },
+      "read": {
+        "command": "delta.exe read artifacts/interop-nested/negative-physical-nested",
+        "exit_code": 0,
+        "stdout_file": "raw/negative-physical-nested__read.stdout.txt",
+        "stderr_file": "raw/negative-physical-nested__read.stderr.txt",
+        "stdout": "error: unsupported: cannot read 'data/list_columns.parquet': Repeated columns are not supported yet\r\n",
+        "stderr": "",
+        "parsed": {
+          "error_text": "unsupported: cannot read 'data/list_columns.parquet': Repeated columns are not supported yet",
+          "success_line": null,
+          "fake_success": false,
+          "files_read": null,
+          "row_count": null,
+          "version": null,
+          "returns_zero_rows": false,
+          "data_rows_printed": 0
+        }
+      }
+    },
+    "write-attempt-nested": {
+      "inspect": {
+        "command": "delta.exe inspect artifacts/interop-nested/write-attempt-nested",
+        "exit_code": 0,
+        "stdout_file": "raw/write-attempt-nested__inspect.stdout.txt",
+        "stderr_file": "raw/write-attempt-nested__inspect.stderr.txt",
+        "parsed": {
+          "schema_display": [
+            "id: long",
+            "profile: struct"
+          ],
+          "note_lines": [],
+          "last_checkpoint": null,
+          "current_version": 0,
+          "log_versions": 1,
+          "files": 0,
+          "rows": 0,
+          "protocol": {
+            "minReaderVersion": 1,
+            "minWriterVersion": 2
+          }
+        }
+      },
+      "history": {
+        "command": "delta.exe history artifacts/interop-nested/write-attempt-nested",
+        "exit_code": 0,
+        "stdout_file": "raw/write-attempt-nested__history.stdout.txt"
+      },
+      "read": {
+        "command": "delta.exe read artifacts/interop-nested/write-attempt-nested",
+        "exit_code": 0,
+        "stdout_file": "raw/write-attempt-nested__read.stdout.txt",
+        "stderr_file": "raw/write-attempt-nested__read.stderr.txt",
+        "stdout": "error: unsupported: nested column 'profile' (type=struct) is not supported by the parquet reader; only flat schemas are readable\r\n",
+        "stderr": "",
+        "parsed": {
+          "error_text": "unsupported: nested column 'profile' (type=struct) is not supported by the parquet reader; only flat schemas are readable",
+          "success_line": null,
+          "fake_success": false,
+          "files_read": null,
+          "row_count": null,
+          "version": null,
+          "returns_zero_rows": false,
+          "data_rows_printed": 0
+        }
+      }
+    }
+  },
+  "scan_on_nested_table": {
+    "note": "scan 只做文件级规划，不读数据；成功不代表 nested 读取成功。",
+    "runs": {
+      "scan": {
+        "command": "delta.exe scan artifacts/interop-nested/engine-written",
+        "exit_code": 0,
+        "parsed": {
+          "selected_files": 1,
+          "skipped_partition": 0,
+          "skipped_stats": 0,
+          "matched_rows": 5,
+          "matched_bytes": 2279
+        }
+      },
+      "scan_where_id_ge_99": {
+        "command": "delta.exe scan artifacts/interop-nested/engine-written --where id>=99",
+        "exit_code": 0,
+        "parsed": {
+          "selected_files": 0,
+          "skipped_partition": 0,
+          "skipped_stats": 1,
+          "matched_rows": 0,
+          "matched_bytes": 0
+        }
+      },
+      "scan_where_profile_ge_1": {
+        "command": "delta.exe scan artifacts/interop-nested/engine-written --where profile>=1",
+        "exit_code": 0,
+        "parsed": {
+          "selected_files": 1,
+          "skipped_partition": 0,
+          "skipped_stats": 0,
+          "matched_rows": 5,
+          "matched_bytes": 2279
+        }
+      }
+    }
+  },
+  "checks": {
+    "engine-written": {
+      "external_delta_rs_ok": true,
+      "external_duckdb_ok": true,
+      "inspect_reports_nested_types": true,
+      "inspect_schema_display": [
+        "id: long",
+        "profile: struct",
+        "tags: array",
+        "attrs: map"
+      ],
+      "inspect_does_not_expand_struct_subfields": true,
+      "inspect_detects_checkpoint": false,
+      "read_structured_unsupported": true,
+      "read_error_field_path": "profile",
+      "read_error_nested_kind": "struct",
+      "read_error_parquet_file": null,
+      "read_error_parquet_reason": null,
+      "read_error_has_deep_nested_path": false,
+      "fake_success": false,
+      "returns_zero_rows": false,
+      "data_rows_printed": 0,
+      "cli_exit_code": 0,
+      "cli_exit_nonzero_on_failure": false,
+      "error_text": "unsupported: nested column 'profile' (type=struct) is not supported by the parquet reader; only flat schemas are readable",
+      "read_stdout_file": "raw/engine-written__read.stdout.txt",
+      "read_stderr_empty": true
+    },
+    "kind-struct-only": {
+      "external_delta_rs_ok": true,
+      "external_duckdb_ok": true,
+      "inspect_reports_nested_types": true,
+      "inspect_schema_display": [
+        "id: long",
+        "profile: struct"
+      ],
+      "inspect_does_not_expand_struct_subfields": true,
+      "inspect_detects_checkpoint": false,
+      "read_structured_unsupported": true,
+      "read_error_field_path": "profile",
+      "read_error_nested_kind": "struct",
+      "read_error_parquet_file": null,
+      "read_error_parquet_reason": null,
+      "read_error_has_deep_nested_path": false,
+      "fake_success": false,
+      "returns_zero_rows": false,
+      "data_rows_printed": 0,
+      "cli_exit_code": 0,
+      "cli_exit_nonzero_on_failure": false,
+      "error_text": "unsupported: nested column 'profile' (type=struct) is not supported by the parquet reader; only flat schemas are readable",
+      "read_stdout_file": "raw/kind-struct-only__read.stdout.txt",
+      "read_stderr_empty": true
+    },
+    "kind-array-only": {
+      "external_delta_rs_ok": true,
+      "external_duckdb_ok": true,
+      "inspect_reports_nested_types": true,
+      "inspect_schema_display": [
+        "id: long",
+        "tags: array"
+      ],
+      "inspect_does_not_expand_struct_subfields": true,
+      "inspect_detects_checkpoint": false,
+      "read_structured_unsupported": true,
+      "read_error_field_path": "tags",
+      "read_error_nested_kind": "array",
+      "read_error_parquet_file": null,
+      "read_error_parquet_reason": null,
+      "read_error_has_deep_nested_path": false,
+      "fake_success": false,
+      "returns_zero_rows": false,
+      "data_rows_printed": 0,
+      "cli_exit_code": 0,
+      "cli_exit_nonzero_on_failure": false,
+      "error_text": "unsupported: nested column 'tags' (type=array) is not supported by the parquet reader; only flat schemas are readable",
+      "read_stdout_file": "raw/kind-array-only__read.stdout.txt",
+      "read_stderr_empty": true
+    },
+    "kind-map-only": {
+      "external_delta_rs_ok": true,
+      "external_duckdb_ok": true,
+      "inspect_reports_nested_types": true,
+      "inspect_schema_display": [
+        "id: long",
+        "attrs: map"
+      ],
+      "inspect_does_not_expand_struct_subfields": true,
+      "inspect_detects_checkpoint": false,
+      "read_structured_unsupported": true,
+      "read_error_field_path": "attrs",
+      "read_error_nested_kind": "map",
+      "read_error_parquet_file": null,
+      "read_error_parquet_reason": null,
+      "read_error_has_deep_nested_path": false,
+      "fake_success": false,
+      "returns_zero_rows": false,
+      "data_rows_printed": 0,
+      "cli_exit_code": 0,
+      "cli_exit_nonzero_on_failure": false,
+      "error_text": "unsupported: nested column 'attrs' (type=map) is not supported by the parquet reader; only flat schemas are readable",
+      "read_stdout_file": "raw/kind-map-only__read.stdout.txt",
+      "read_stderr_empty": true
+    },
+    "checkpoint-nested": {
+      "external_delta_rs_ok": true,
+      "external_duckdb_ok": true,
+      "inspect_reports_nested_types": true,
+      "inspect_schema_display": [
+        "id: long",
+        "profile: struct",
+        "tags: array",
+        "attrs: map"
+      ],
+      "inspect_does_not_expand_struct_subfields": true,
+      "inspect_detects_checkpoint": true,
+      "read_structured_unsupported": true,
+      "read_error_field_path": "profile",
+      "read_error_nested_kind": "struct",
+      "read_error_parquet_file": null,
+      "read_error_parquet_reason": null,
+      "read_error_has_deep_nested_path": false,
+      "fake_success": false,
+      "returns_zero_rows": false,
+      "data_rows_printed": 0,
+      "cli_exit_code": 0,
+      "cli_exit_nonzero_on_failure": false,
+      "error_text": "unsupported: nested column 'profile' (type=struct) is not supported by the parquet reader; only flat schemas are readable",
+      "read_stdout_file": "raw/checkpoint-nested__read.stdout.txt",
+      "read_stderr_empty": true
+    },
+    "checkpoint-only-nested": {
+      "external_delta_rs_ok": true,
+      "external_duckdb_ok": true,
+      "inspect_reports_nested_types": false,
+      "inspect_schema_display": [],
+      "inspect_does_not_expand_struct_subfields": true,
+      "inspect_detects_checkpoint": false,
+      "read_structured_unsupported": false,
+      "read_error_field_path": null,
+      "read_error_nested_kind": null,
+      "read_error_parquet_file": null,
+      "read_error_parquet_reason": null,
+      "read_error_has_deep_nested_path": false,
+      "fake_success": false,
+      "returns_zero_rows": false,
+      "data_rows_printed": 0,
+      "cli_exit_code": 0,
+      "cli_exit_nonzero_on_failure": false,
+      "error_text": "not found: table 'artifacts/interop-nested/checkpoint-only-nested' has no log entries",
+      "read_stdout_file": "raw/checkpoint-only-nested__read.stdout.txt",
+      "read_stderr_empty": true
+    },
+    "negative-physical-nested": {
+      "external_delta_rs_ok": false,
+      "external_duckdb_ok": false,
+      "inspect_reports_nested_types": false,
+      "inspect_schema_display": [
+        "int64_list: long",
+        "utf8_list: string"
+      ],
+      "inspect_does_not_expand_struct_subfields": true,
+      "inspect_detects_checkpoint": false,
+      "read_structured_unsupported": true,
+      "read_error_field_path": null,
+      "read_error_nested_kind": null,
+      "read_error_parquet_file": "data/list_columns.parquet",
+      "read_error_parquet_reason": "Repeated columns are not supported yet",
+      "read_error_has_deep_nested_path": false,
+      "fake_success": false,
+      "returns_zero_rows": false,
+      "data_rows_printed": 0,
+      "cli_exit_code": 0,
+      "cli_exit_nonzero_on_failure": false,
+      "error_text": "unsupported: cannot read 'data/list_columns.parquet': Repeated columns are not supported yet",
+      "read_stdout_file": "raw/negative-physical-nested__read.stdout.txt",
+      "read_stderr_empty": true
+    },
+    "write-attempt-nested": {
+      "external_delta_rs_ok": false,
+      "external_duckdb_ok": false,
+      "inspect_reports_nested_types": false,
+      "inspect_schema_display": [
+        "id: long",
+        "profile: struct"
+      ],
+      "inspect_does_not_expand_struct_subfields": true,
+      "inspect_detects_checkpoint": false,
+      "read_structured_unsupported": true,
+      "read_error_field_path": "profile",
+      "read_error_nested_kind": "struct",
+      "read_error_parquet_file": null,
+      "read_error_parquet_reason": null,
+      "read_error_has_deep_nested_path": false,
+      "fake_success": false,
+      "returns_zero_rows": false,
+      "data_rows_printed": 0,
+      "cli_exit_code": 0,
+      "cli_exit_nonzero_on_failure": false,
+      "error_text": "unsupported: nested column 'profile' (type=struct) is not supported by the parquet reader; only flat schemas are readable",
+      "read_stdout_file": "raw/write-attempt-nested__read.stdout.txt",
+      "read_stderr_empty": true
+    }
+  },
+  "case_b_checklist": [
+    {
+      "expectation": "能读取并报告 Delta schema 中的 nested 类型",
+      "result": "通过（但不完整）",
+      "evidence": "`delta inspect` 输出 `profile: struct`、`tags: array`、`attrs: map`；未显示 struct 子字段 name/age。",
+      "status": "partial"
+    },
+    {
+      "expectation": "在进入 Parquet 数据读取前返回 Unsupported，错误包含字段路径和 nested kind",
+      "result": "通过（字段路径仅为顶层列名）",
+      "evidence": "`unsupported: nested column 'profile' (type=struct) is not supported by the parquet reader; only flat schemas are readable`（文件 raw/engine-written__read.stdout.txt）；错误发生在打开 Parquet 之前（ensure_readable_schema），但路径只有 `profile`，没有 `profile.age` 这类深层路径。",
+      "status": "partial"
+    },
+    {
+      "expectation": "不得返回 0 行",
+      "result": "通过",
+      "evidence": "read 未打印任何 `read N file(s), M row(s)` 成功行，也没有数据行；只输出 error。",
+      "status": "pass"
+    },
+    {
+      "expectation": "不得把 array 当 string",
+      "result": "通过（拒绝）",
+      "evidence": "schema 阶段直接拒绝，未进入列值解码；`kind-array-only` 用例给出 `nested column 'tags' (type=array)`。",
+      "status": "pass"
+    },
+    {
+      "expectation": "不得丢弃 struct 子字段",
+      "result": "数据层通过（拒绝），识别层已丢失",
+      "evidence": "数据读取被拒绝；但 `src/schema.mbt` 的 `NestedType(kind~)` 只保留 kind，`DeltaField` 不保存 struct 子字段，`inspect` 无法打印 name/age。",
+      "status": "partial"
+    },
+    {
+      "expectation": "不得静默忽略 map",
+      "result": "通过（拒绝）",
+      "evidence": "`kind-map-only` 用例给出 `nested column 'attrs' (type=map)`。",
+      "status": "pass"
+    },
+    {
+      "expectation": "CLI 失败时退出码非 0（任务补充检查）",
+      "result": "不通过",
+      "evidence": "read 失败的退出码为 0；`fail()` 只打印 `error: ...` 后正常返回，`main` 无失败退出路径。",
+      "status": "fail"
+    },
+    {
+      "expectation": "结构化错误写到 stderr（任务补充检查）",
+      "result": "不通过",
+      "evidence": "read 的 stderr 为空（raw/engine-written__read.stderr.txt），错误在 stdout。",
+      "status": "fail"
+    }
+  ],
+  "gates": [
+    {
+      "id": 1,
+      "title": "Parquet definition/repetition level，正确处理 struct、list（标准 3-level LIST）和 map 的 null、empty、重复元素与嵌套组合",
+      "status": "未完成",
+      "evidence": [
+        "`raw/engine-written__read.stdout.txt`：本项目在 schema 校验阶段就拒绝，根本没有进入 Parquet 解码；",
+        "`raw/negative-physical-nested__read.stdout.txt`：当 Delta schema 伪装成 flat、物理层是 repeated LIST 时，底层 `mizchi/parquet` 报 `Repeated columns are not supported yet`，说明连 list 的 repetition level 都不支持；",
+        "`src/vendor/parquet/` 为移植的 flat reader，无 Dremel definition/repetition level 解码。"
+      ],
+      "work": "替换/扩展 Parquet 读取层，实现 definition/repetition level、3-level LIST / MAP 的 null-empty-空集合语义，并用 `engine-written`、`kind-*`、`negative-physical-nested` 做正负回归。"
+    },
+    {
+      "id": 2,
+      "title": "Delta schema JSON 与 Parquet schema 双向映射，保留 nullable、字段顺序、字段名和嵌套路径",
+      "status": "未完成",
+      "evidence": [
+        "`src/schema.mbt:36-73`：`parse_type_node` 对 struct/array/map 只返回 `NestedType(kind)`，丢弃 `fields`/`elementType`/`keyType`/`valueType`；`DeltaField`（`src/types.mbt:23-27`）没有子字段；",
+        "`raw/engine-written__inspect.stdout.txt` 仅打印 `profile: struct`、`tags: array`、`attrs: map`，无子字段/嵌套路径；",
+        "fixture `engine-written/_delta_log/00000000000000000000.json` 的 `metaData.schemaString` 保留完整嵌套 JSON，但解析后信息丢失；写端 `is_writable_type`（`src/schema.mbt:135-145`）排除 nested，无 Parquet schema 生成映射。"
+      ],
+      "work": "把 Delta 类型建模为可递归结构（struct fields / array element / map key-value），并实现 Delta↔Arrow/Parquet schema 双向转换（nullable、字段顺序、嵌套路径、map valueContainsNull、list containsNull）。"
+    },
+    {
+      "id": 3,
+      "title": "add.stats 对嵌套字段的缺失、null 和 min/max 不能被当作 flat 值误用；无法安全剪枝时必须放弃剪枝",
+      "status": "未完成",
+      "evidence": [
+        "`fixture-manifest.json` 的 `engine-written.adds[0].stats_json` 含嵌套 `minValues.profile`、`nullCount.profile.age/name`，delta-rs 对 tags/attrs 完全省略统计；",
+        "`src/snapshot.mbt:59-70` 只读取 `numRecords`；`src/scan.mbt:54-94` 的 min/max 只接受标量（`json_as_double`），遇到嵌套对象返回 None → 不剪枝；",
+        "`raw/engine-written__scan_where_profile_1.stdout.txt` 显示 `skipped stats: 0`、选中 1 个文件（未误用为浮点）；但也没有任何嵌套字段的语义化剪枝能力；`nullCount` 被整体忽略。"
+      ],
+      "work": "定义嵌套 stats 的读取模型（按字段路径解析 min/max/nullCount），实现“无法安全剪枝就放弃”的显式判定，并补 stats 缺失/部分缺失/嵌套 null 的测试；不能把 struct 对象当标量比较。"
+    },
+    {
+      "id": 4,
+      "title": "checkpoint 中的嵌套 action schema 可解析，能从 checkpoint 加载快照，并与 JSON 回放快照逐字段一致",
+      "status": "未完成",
+      "evidence": [
+        "`checkpoint-nested.json`：delta-rs 生成的 `00000000000000000000.checkpoint.parquet` 中，`metaData.schemaString` 内含完整 nested schema，`add.stats` 字符串内含嵌套 `minValues`/`nullCount`，checkpoint 本身是 struct<add, remove, metaData, protocol, txn, ...> 的嵌套 action 行式快照；",
+        "`src/log.mbt:99-129`：只解析 `_last_checkpoint` 的 version/size/parts 并检测 `.checkpoint.parquet` 是否存在，不解析 checkpoint Parquet；",
+        "`oracle-delta-rs.json` / `comparison.json` 的 `checkpoint_only_cross_check`：delta-rs 能从 `checkpoint-only-nested/`（已删除全部 JSON 日志）读回与主表逐字段一致的 5 行，证明 checkpoint 本身完整可用；而本项目同一张表直接 `not found`（`raw/checkpoint-only-nested__inspect.stdout.txt`）。"
+      ],
+      "work": "实现 checkpoint Parquet 读取（nested action struct schema）、按版本合并 checkpoint + 后续 JSON，并对 nested 表做 checkpoint 快照与 JSON 回放逐字段比对。"
+    },
+    {
+      "id": 5,
+      "title": "外部引擎写入和读取对拍：Spark/Databricks、delta-rs 或 DuckDB 至少两种，分别覆盖 flat 与 nested 表",
+      "status": "未完成",
+      "evidence": [
+        "nested 侧外部引擎已完成两种：delta-rs 1.6.6（写 + 读回）与 DuckDB 1.5.6 + delta 扩展（版本见 `oracle-duckdb.json`），两种引擎对 `engine-written` 的 5 行逐字段编码一致（见 `oracle-delta-rs.json` / `oracle-duckdb.json` 与 `comparison.json` 的 `oracle_cross_check`）；",
+        "但“对拍”的本项目一侧缺失：本项目读不出任何一行嵌套数据（只返回 Unsupported）；",
+        "flat 对拍属于任务 D2（`artifacts/interop-flat/`），不在本目录结论内。"
+      ],
+      "work": "在本项目实现 nested 读取后，加入 delta-rs + DuckDB 双向对拍（写后读回、读后逐字段 diff）；flat 部分沿用 D2。"
+    },
+    {
+      "id": 6,
+      "title": "对 nested struct、array/list、map 各提供至少一个正向 fixture、一个 null/empty 边界用例、一个外部引擎结果对照",
+      "status": "已完成",
+      "evidence": [
+        "`engine-written/` 同时包含 struct/array/map，另有 `kind-struct-only/`、`kind-array-only/`、`kind-map-only/` 三个单一 kind 的合法 nested fixture（均为 delta-rs 写出的真实嵌套 Delta 表）；",
+        "`fixture-manifest.json` 的 `boundary_coverage` 证明覆盖 profile=NULL、struct 子字段全 null/age null、tags=[]/NULL/含 null 元素、attrs={}/NULL；",
+        "外部引擎对照：delta-rs 与 DuckDB 均成功读回并给出逐字段编码（oracle 文件），且两引擎结果一致；",
+        "注意：本门槛是“fixture/证据”门槛，已完成仅表示证据已交付；它不表示本项目可读 nested——本项目读取仍被门槛 1/2/7 阻塞（见负向对照）。"
+      ],
+      "work": "fixture/边界/外部引擎对照已交付，本条无剩余证据工作；待本项目实现 nested 读取后，把本目录从“拒绝对照”升级为“项目↔外部引擎正向断言”（属于门槛 5/7 的验收扩展）。"
+    },
+    {
+      "id": 7,
+      "title": "写入端生成的 nested Parquet 必须能被外部引擎读回；外部引擎生成的 nested Delta 必须能被本项目读回（只做“识别后报错”不算完成）",
+      "status": "未完成",
+      "evidence": [
+        "读方向：外部引擎生成的 `engine-written` 被本项目 `read` 拒绝（`raw/engine-written__read.stdout.txt`）；",
+        "写方向：`src/schema.mbt:135-145` 的 `is_writable_type` 排除 nested；`src/write.mbt:45-58` 的 `parquet_type_of` 只映射 int/long/string/binary/boolean/double，append 无法写 nested；",
+        "`write-attempt-nested.json`（补充观察）：`delta create` 甚至不校验 schema 可写性，会生成一张metadata 声称 nested、实际无法 append 且自身无法 read 的空表——这也不等于“写入支持”。"
+      ],
+      "work": "实现 nested 写入（Parquet writer 的 struct/list/map 编码、Delta schema 生成、add.stats），写出后交给 delta-rs/DuckDB 读回逐字段对拍；同时让 `create_table` 对不可写 schema 明确拒绝。"
+    }
+  ],
+  "gate_counts": {
+    "done": 1,
+    "partial": 0,
+    "missing": 6
+  },
+  "conclusion": [
+    "外部引擎（delta-rs、DuckDB）读取 nested fixture 成功，oracle 逐字段一致；",
+    "本项目 read 在进入 Parquet 前结构化拒绝，未读出任何嵌套行；",
+    "本项目未返回 0 行假成功、未类型混淆、未静默忽略 map；",
+    "但按第 3 节门槛 7，“识别后报错”不算完成，且 CLI 失败退出码为 0、错误写 stdout；",
+    "七项门槛：已完成 1 / 部分完成 0 / 未完成 6。",
+    "结论：能力缺口对照，不是互操作通过。"
+  ]
+}

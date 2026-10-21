@@ -1,0 +1,89 @@
+### D4 v3 关键声明检索
+  新增行含 'moon package' : 1
+    +- `moon check` / `moon test`（native）通过（0 errors、14/14；当前工具链 43 条带文件定位的 warning 中 39 条在项目 `src/`（38 条 derive 触发 `implicit_impl_as_method` + 1 条示例 env 未 import）、4 条在 vendored parquet；另有 1 条无文件定位的 duplicate alias 工程配置 warning 不在这 43 条内，均非 err
+  新增行含 'mooncakes' : 4
+    +- mooncakes.io 发布状态待复核：`moon add xiguaAp6y3/moondelta-core@0.1.1` 的空工程安装与编译未在本机复核，发布前需提供安装日志与页面链接；页面 https://mooncakes.io/docs/xiguaAp6y3/moondelta-core ；
+    +> 发布记录待复核：[mooncakes.io/docs/xiguaAp6y3/moondelta-core](https://mooncakes.io/docs/xiguaAp6y3/moondelta-core)（`moon add xiguaAp6y3/moondelta-core`；本机未做安装验证，发布前需复核并留存安装日志）
+    +# 从 mooncakes.io 安装（发布记录待复核，见上方说明；README/CLI 版本文案待统一为 0.1.1）
+    +| CLI、示例 | ✅ 0.1.0；CI 与 mooncakes.io 发布记录待复核（本机未跑 CI、未做安装验证） |
+  新增行含 'GitHub Actions' : 1
+    +- `moon check` / `moon test`（native）通过（0 errors、14/14；当前工具链 43 条带文件定位的 warning 中 39 条在项目 `src/`（38 条 derive 触发 `implicit_impl_as_method` + 1 条示例 env 未 import）、4 条在 vendored parquet；另有 1 条无文件定位的 duplicate alias 工程配置 warning 不在这 43 条内，均非 err
+  新增行含 '流水线' : 1
+    +- `moon check` / `moon test`（native）通过（0 errors、14/14；当前工具链 43 条带文件定位的 warning 中 39 条在项目 `src/`（38 条 derive 触发 `implicit_impl_as_method` + 1 条示例 env 未 import）、4 条在 vendored parquet；另有 1 条无文件定位的 duplicate alias 工程配置 warning 不在这 43 条内，均非 err
+  新增行含 '已发布' : 0
+  新增行含 '安装并编译验证通过' : 0
+  新增行含 '安装验证通过' : 0
+  新增行含 'warning 全部来自 vendored' : 0
+  '待复核' 出现: 4
+  '未在本机复核' 出现: 3
+  '需提供' 出现: 3
+  '发布前需' 出现: 3
+  +- `moon check` / `moon test`（native）通过（0 errors、14/14；当前工具链 43 条带文件定位的 warning 中 39 条在项目 `src/`（38 条 derive 触发 `implicit_impl_as_method` + 1 条示例 env 未 import）、4 条在 vendored parquet；另有 1 条无文件定位的 duplicate alias 工程配置 warning 不在这 43 条内，均非 error）；CLI 六子命令与示例可运行；`moon package` 与 GitHub Actions 流水线（check / build / test）未在本机复核，发布/申报前需提供 `moon package` 输出与 CI 运行链接；
+  md 含 '121' : 5
+    13: | 本版核心（v2→v3） | ① **D4-I1**：把 `moon package` / GitHub Actions / mooncakes 安装三项未验证断言改为“未在本机复核、发布前需提供输出 / CI 链接 / 安装日志”，并同步 README 顶部“已发布”、快速开始安装注释、开发章节 CI 描述、ROADMAP 0.1.x 表；② **D4-I2**：warning 统计精确为“43 条带文件定位 = 39 条项目 sr
+    29: | F4（严重）：**121 份带退出码的 CLI/校验输出（112 个编号 CLI case + 9 个探针/Parquet 复核脚本）全部 `[exit code: 0]`**（含 not found / parse error / unsupported）。口径说明：`commands.txt` 共 **131 条记录**，含重复 probe 块与首轮 `probe-library` 的 `exit 1`（随后同块重跑 `exit
+    49: | D4-I3（低） | `claim-alignment.md` 转录“121 次带退出码运行全部 exit 0”，继承 `commands.txt` 131 条记录/1 条 exit 1 的口径瑕疵 | 本文件 §1.1 F4、§3 改为“121 份带退出码的 CLI/校验输出全部 exit 0”，并写明 `commands.txt` 131 条记录口径 |
+    262: | CLI 错误退出码恒 0 | 审计 §3.7 E4、§4.4；**121 份带退出码的 CLI/校验输出（112 编号 case + 9 探针）全部 exit 0**；`commands.txt` 共 131 条记录（含重复 probe 块与首轮 `probe-library` exit 1，重跑 exit 0，计数以 out/ 带退出码输出为准）；`src/cmd/delta/main.mbt` L44–46 |
+  md 含 '131' : 5
+    13: | 本版核心（v2→v3） | ① **D4-I1**：把 `moon package` / GitHub Actions / mooncakes 安装三项未验证断言改为“未在本机复核、发布前需提供输出 / CI 链接 / 安装日志”，并同步 README 顶部“已发布”、快速开始安装注释、开发章节 CI 描述、ROADMAP 0.1.x 表；② **D4-I2**：warning 统计精确为“43 条带文件定位 = 39 条项目 sr
+    29: | F4（严重）：**121 份带退出码的 CLI/校验输出（112 个编号 CLI case + 9 个探针/Parquet 复核脚本）全部 `[exit code: 0]`**（含 not found / parse error / unsupported）。口径说明：`commands.txt` 共 **131 条记录**，含重复 probe 块与首轮 `probe-library` 的 `exit 1`（随后同块重跑 `exit
+    49: | D4-I3（低） | `claim-alignment.md` 转录“121 次带退出码运行全部 exit 0”，继承 `commands.txt` 131 条记录/1 条 exit 1 的口径瑕疵 | 本文件 §1.1 F4、§3 改为“121 份带退出码的 CLI/校验输出全部 exit 0”，并写明 `commands.txt` 131 条记录口径 |
+    262: | CLI 错误退出码恒 0 | 审计 §3.7 E4、§4.4；**121 份带退出码的 CLI/校验输出（112 编号 case + 9 探针）全部 exit 0**；`commands.txt` 共 131 条记录（含重复 probe 块与首轮 `probe-library` exit 1，重跑 exit 0，计数以 out/ 带退出码输出为准）；`src/cmd/delta/main.mbt` L44–46 |
+  md 含 '9 个 hunk' : 1
+    10: | 补丁 | [artifacts/claim-alignment.patch](claim-alignment.patch)，标准 unified diff（`a/` `b/` 前缀，LF、无 BOM），共 **9 个 hunk**，22,063 B / 172 行，SHA-256 `DBDE5AB7E0578C43828ACD5C601A29EB360A20795DB0C9101F14AE108FDEA3EA` |
+  md 含 'v3' : 20
+    3: > 版本：**v3（D4c）**，覆盖 v1/v2；生成时间：**2026-10-20 20:40 +08:00**。
+    13: | 本版核心（v2→v3） | ① **D4-I1**：把 `moon package` / GitHub Actions / mooncakes 安装三项未验证断言改为“未在本机复核、发布前需提供输出 / CI 链接 / 安装日志”，并同步 README 顶部“已发布”、快速开始安装注释、开发章节 CI 描述、ROADMAP 0.1.x 表；② **D4-I2**：warning 统计精确为“43 条带文件定位 = 39 条项目 sr
+    21: ### 1.1 D1 协议审计的关键结论（v2 已并入，v3 仅修正统计口径）
+    34: | §5 #15：`moon package`、GitHub Actions、“mooncakes 0.1.1 空工程安装”均**未验证** | v3 已按 D4-I1 改为“未在本机复核、发布前需提供输出/链接/日志”（B11、B13、R0、R5b、H7、H8） |
+  md 含 '52' : 4
+    111: - 原句：`- **实现方式**：从零手写约 2,390 行 MoonBit（核心库 1,420、CLI 373、测试 552、示例 45）；…`
+    125: - 原句：`- 手写 MoonBit 代码 2,390 行（核心库 1,420、CLI 373、测试 552、示例 45）；14 个具名测试全部通过，含负向用例（嵌套列拒绝、checkpoint-only 表拒绝、缺失数据文件、统计边界）与分区表读取/过滤；`
+    256: | checkpoint-only 返回结构化 NotFound；截断日志+checkpoint 未检测 | 审计 §3.3 C4（out/50）、C5（out/51/52）、§4.2、§5 #3；`replay_until` 只查 `versions[0]==0` |
+    327: (Get-Content 申报书.md).Count                              # 52（原 50 行 + 2 条新增 bullet）
+  md 含 '68' : 1
+    328: (Get-Content docs/ROADMAP.md).Count                        # 68（仅改 3 行，行数不变）
+  md 含 'D4-I1' : 24
+    4: > 本版修正 D5 独立验收（[artifacts/acceptance-report.md](../artifacts/acceptance-report.md) §6.5）发现的 D4-I1（中）、D4-I2（低）、D4-I3（低），并保留 v2 已并入的 D1 协议审计（[artifacts/protocol-audit.md](../artifacts/protocol-audit.md)）、D2 flat 对拍（[artifa
+    13: | 本版核心（v2→v3） | ① **D4-I1**：把 `moon package` / GitHub Actions / mooncakes 安装三项未验证断言改为“未在本机复核、发布前需提供输出 / CI 链接 / 安装日志”，并同步 README 顶部“已发布”、快速开始安装注释、开发章节 CI 描述、ROADMAP 0.1.x 表；② **D4-I2**：warning 统计精确为“43 条带文件定位 = 39 条项目 sr
+    34: | §5 #15：`moon package`、GitHub Actions、“mooncakes 0.1.1 空工程安装”均**未验证** | v3 已按 D4-I1 改为“未在本机复核、发布前需提供输出/链接/日志”（B11、B13、R0、R5b、H7、H8） |
+    47: | D4-I1（中，发布前须处理） | patch 保留 `moon package` 通过 / GitHub Actions 已通过 / mooncakes 安装验证三项声明，而 D1 §5 #15 与 D5 均未验证 | 申报书 B11/B13 重写为“未在本机复核、发布前需提供 `moon package` 输出 / CI 链接 / 安装日志”；README 顶部发布声明、快速开始安装注释、开发章节 CI 描述、ROADMAP 0
+  md 含 'D4-I2' : 8
+    4: > 本版修正 D5 独立验收（[artifacts/acceptance-report.md](../artifacts/acceptance-report.md) §6.5）发现的 D4-I1（中）、D4-I2（低）、D4-I3（低），并保留 v2 已并入的 D1 协议审计（[artifacts/protocol-audit.md](../artifacts/protocol-audit.md)）、D2 flat 对拍（[artifa
+    13: | 本版核心（v2→v3） | ① **D4-I1**：把 `moon package` / GitHub Actions / mooncakes 安装三项未验证断言改为“未在本机复核、发布前需提供输出 / CI 链接 / 安装日志”，并同步 README 顶部“已发布”、快速开始安装注释、开发章节 CI 描述、ROADMAP 0.1.x 表；② **D4-I2**：warning 统计精确为“43 条带文件定位 = 39 条项目 sr
+    48: | D4-I2（低） | “43 条 warning 中 39 条在 src/：…另有重复 alias 与示例 env 未 import”把 duplicate alias 混入 43 条 | 改为“43 条带文件定位 = 39（38 derive + 1 示例 env）+ 4 vendored；duplicate alias 是第 44 条无文件定位的工程配置 warning，不在这 43 条内” |
+    140: **B11｜L48（CI/package/warning 三处事实修正 —— D4-I1、D4-I2）**
+  md 含 'D4-I3' : 5
+    4: > 本版修正 D5 独立验收（[artifacts/acceptance-report.md](../artifacts/acceptance-report.md) §6.5）发现的 D4-I1（中）、D4-I2（低）、D4-I3（低），并保留 v2 已并入的 D1 协议审计（[artifacts/protocol-audit.md](../artifacts/protocol-audit.md)）、D2 flat 对拍（[artifa
+    13: | 本版核心（v2→v3） | ① **D4-I1**：把 `moon package` / GitHub Actions / mooncakes 安装三项未验证断言改为“未在本机复核、发布前需提供输出 / CI 链接 / 安装日志”，并同步 README 顶部“已发布”、快速开始安装注释、开发章节 CI 描述、ROADMAP 0.1.x 表；② **D4-I2**：warning 统计精确为“43 条带文件定位 = 39 条项目 sr
+    29: | F4（严重）：**121 份带退出码的 CLI/校验输出（112 个编号 CLI case + 9 个探针/Parquet 复核脚本）全部 `[exit code: 0]`**（含 not found / parse error / unsupported）。口径说明：`commands.txt` 共 **131 条记录**，含重复 probe 块与首轮 `probe-library` 的 `exit 1`（随后同块重跑 `exit
+    49: | D4-I3（低） | `claim-alignment.md` 转录“121 次带退出码运行全部 exit 0”，继承 `commands.txt` 131 条记录/1 条 exit 1 的口径瑕疵 | 本文件 §1.1 F4、§3 改为“121 份带退出码的 CLI/校验输出全部 exit 0”，并写明 `commands.txt` 131 条记录口径 |
+  md 含 '待复核' : 13
+    157: - 改句：`- mooncakes.io 发布状态待复核：`moon add xiguaAp6y3/moondelta-core@0.1.1` 的空工程安装与编译未在本机复核，发布前需提供安装日志与页面链接；页面 https://mooncakes.io/docs/xiguaAp6y3/moondelta-core ；`
+    158: - 理由：**D4-I1**：D1 §5 #15 与 D5 §6.5 明确未做安装验证（需联网空工程安装）；原句“空工程安装并编译验证通过”属未验证断言，改为待复核并给出所需证据类型。
+    166: - 改句：`> 发布记录待复核：[…](…)（`moon add xiguaAp6y3/moondelta-core`；本机未做安装验证，发布前需复核并留存安装日志）`
+    167: - 理由：与 B13 同源；README 首页声明与申报书口径必须一致，避免 README 仍写“已发布”而申报书写“待复核”。
+  +- 格式与生态一致：读写 Delta protocol reader v1 / writer v2、version 0 起连续 JSON 日志、flat schema、UNCOMPRESSED/SNAPPY 压缩与本地文件系统范围内的目录；flat 表已完成与 delta-rs 1.6.6、DuckDB 1.5.6 的双向目录级对拍（D2：49 PASS / 0 FAIL / 2 项已记录差异，
+  +- 互操作验证（D2）：与 delta-rs 1.6.6、DuckDB 1.5.6 完成 flat 表双向对拍（外部引擎写 → 本项目读、本项目写 → 外部引擎读，49 PASS / 0 FAIL / 2 项已记录差异，见 `artifacts/interop-flat/README.md`）；Spark / Databricks 未在本环境验证；nested 表只做到“识别嵌套类型并明确拒绝”
+  +外部引擎互操作（D2）：已与 delta-rs 1.6.6、DuckDB 1.5.6 完成 flat 表双向对拍（49 PASS / 0 FAIL / 2 项已记录差异，见 [artifacts/interop-flat/README.md](artifacts/interop-flat/README.md)）；Spark / Databricks 未验证。nested schema 当前明确拒
+  # D4 申报文本一致性修订（claim-alignment）· 第三版
+  
+  > 版本：**v3（D4c）**，覆盖 v1/v2；生成时间：**2026-10-20 20:40 +08:00**。
+  > 本版修正 D5 独立验收（[artifacts/acceptance-report.md](../artifacts/acceptance-report.md) §6.5）发现的 D4-I1（中）、D4-I2（低）、D4-I3（低），并保留 v2 已并入的 D1 协议审计（[artifacts/protocol-audit.md](../artifacts/protocol-audit.md)）、D2 flat 对拍（[artifacts/interop-flat/README.md](../artifacts/interop-flat/README.md)）与 D3 nested 结论（[artifacts/interop-nested/README.md](../artifacts/interop-nested/README.md)）。
+  
+  ## 0. 交付摘要
+  
+  | 项 | 内容 |
+  |---|---|
+  | 补丁 | [artifacts/claim-alignment.patch](claim-alignment.patch)，标准 unified diff（`a/` `b/` 前缀，LF、无 BOM），共 **9 个 hunk**，22,063 B / 172 行，SHA-256 `DBDE5AB7E0578C43828ACD5C601A29EB360A20795DB0C9101F14AE108FDEA3EA` |
+  | 范围 | `申报书.md` 2 hunk、`README.md` 5 hunk、`docs/ROADMAP.md` 2 hunk；`CHANGELOG.md` 无 hunk（理由见 §5） |
+  | 校验 | `git apply -p1 --check artifacts/claim-alignment.patch` → exit 0；临时副本实际 apply → exit 0；四个目标文件工作区未改动 |
+  | 本版核心（v2→v3） | ① **D4-I1**：把 `moon package` / GitHub Actions / mooncakes 安装三项未验证断言改为“未在本机复核、发布前需提供输出 / CI 链接 / 安装日志”，并同步 README 顶部“已发布”、快速开始安装注释、开发章节 CI 描述、ROADMAP 0.1.x 表；② **D4-I2**：warning 统计精确为“43 条带文件定位 = 39 条项目 src/ + 4 条 vendored；duplicate alias 是第 44 条无文件定位的工程配置 warning，不在这 43 条内”；③ **D4-I3**：md 中“121 次运行全部 exit 0”改为“121 份带退出码的 CLI/校验输出全部 exit 0”，并注明 `commands.txt` 131 条记录（含重复 probe 块与首轮 `probe-library` exit 1）的口径；④ 顺手为“约 2,575 行”标注“按文件全行统计、含空行/注释、含 D2 示例 69 行” |
+  
+  ...
+  
+  **最终哈希（v3）**：patch = `DBDE5AB7E0578C43828ACD5C601A29EB360A20795DB0C9101F14AE108FDEA3EA`（22,063 B、172 行、9 hunk）；`claim-alignment.md` 的 SHA-256 在本文写定后由交付消息给出（本文件无法自引用自身哈希）。
+  
+  ---
+  
+  **版本**：v3（D4c，覆盖 v1/v2）　**生成时间**：2026-10-20 20:40 +08:00　**依据**：`artifacts/protocol-audit.md`、`artifacts/acceptance-report.md`（D5）、`artifacts/interop-flat/README.md`、`artifacts/interop-nested/README.md`、`docs/协议兼容性与互操作范围.md`。

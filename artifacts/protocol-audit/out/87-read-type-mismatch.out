@@ -1,0 +1,12 @@
+### 87-read-type-mismatch
+$ delta.exe read artifacts/protocol-audit/fixtures/type-mismatch
+[exit code: 0]
+--- stdout ---
+read 1 file(s), 3 row(s), version 0
+id (long)
+abc
+def
+ghi
+--- stderr ---
+
+

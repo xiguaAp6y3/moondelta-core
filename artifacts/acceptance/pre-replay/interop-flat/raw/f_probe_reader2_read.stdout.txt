@@ -1,0 +1,3 @@
+read 1 file(s), 1 row(s), version 0
+id (long) | name (string) | active (boolean)
+1 | probe | true

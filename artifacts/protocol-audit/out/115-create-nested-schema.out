@@ -1,0 +1,8 @@
+### 115-create-nested-schema
+$ delta.exe create artifacts/protocol-audit/fixtures/cli-nested "{\"type\":\"struct\",\"fields\":[{\"name\":\"id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{}},{\"name\":\"tags\",\"type\":{\"type\":\"array\",\"elementType\":\"string\",\"containsNull\":true},\"nullable\":true,\"metadata\":{}}]}"
+[exit code: 0]
+--- stdout ---
+created Delta table at artifacts/protocol-audit/fixtures/cli-nested (version 0)
+--- stderr ---
+
+

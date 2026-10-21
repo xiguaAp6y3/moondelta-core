@@ -1,0 +1,11 @@
+### 82-read-date-col
+$ delta.exe read artifacts/protocol-audit/fixtures/date-col
+[exit code: 0]
+--- stdout ---
+read 1 file(s), 2 row(s), version 0
+d (date)
+18262
+18263
+--- stderr ---
+
+

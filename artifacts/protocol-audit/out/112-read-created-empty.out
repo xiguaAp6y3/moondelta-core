@@ -1,0 +1,9 @@
+### 112-read-created-empty
+$ delta.exe read artifacts/protocol-audit/fixtures/cli-created
+[exit code: 0]
+--- stdout ---
+read 0 file(s), 0 row(s), version 0
+id (long) | name (string)
+--- stderr ---
+
+

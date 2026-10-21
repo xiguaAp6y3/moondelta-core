@@ -1,0 +1,1 @@
+E:\Project\Moonbit Hackson\P1 RE\_build\native\debug\build\examples\interop_flat_writer\interop_flat_writer.exe artifacts/interop-flat/moondelta-written

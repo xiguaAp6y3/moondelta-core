@@ -1,0 +1,8 @@
+### 01-version
+$ delta.exe version
+[exit code: 0]
+--- stdout ---
+moondelta-core 0.1.0
+--- stderr ---
+
+

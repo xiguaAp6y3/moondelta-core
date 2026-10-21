@@ -1,0 +1,14 @@
+### 126-read-overwritten
+$ delta.exe read artifacts/protocol-audit/fixtures/cli-overwrite
+[exit code: 0]
+--- stdout ---
+read 2 file(s), 5 row(s), version 2
+id (long)
+1
+2
+3
+4
+5
+--- stderr ---
+
+

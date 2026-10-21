@@ -1,0 +1,2 @@
+{"commitInfo":{"timestamp":1001,"operation":"WRITE","operationParameters":{"mode":"Append","partitionBy":"[]"},"isolationLevel":"Serializable","isBlindAppend":true,"engineInfo":"moondelta-core"}}
+{"add":{"path":"part-0000-1001-1.parquet","partitionValues":{},"size":196,"modificationTime":1001,"dataChange":true,"stats":"{\"numRecords\":1,\"minValues\":{\"id\":1},\"maxValues\":{\"id\":1}}"}}

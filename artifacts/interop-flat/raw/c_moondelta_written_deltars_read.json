@@ -1,0 +1,171 @@
+{
+  "table": "artifacts/interop-flat/moondelta-written",
+  "protocol": {
+    "min_reader_version": 1,
+    "min_writer_version": 2,
+    "writer_features": null,
+    "reader_features": null
+  },
+  "version": 2,
+  "log_versions": 3,
+  "files": [
+    "part-0000-1750000000000-1.parquet",
+    "part-0000-1750000001000-2.parquet"
+  ],
+  "adds": [
+    {
+      "version": 1,
+      "path": "part-0000-1750000000000-1.parquet",
+      "size": 297,
+      "modificationTime": 1750000000000,
+      "partitionValues": {},
+      "stats_raw": "{\"numRecords\":3,\"minValues\":{\"id\":1},\"maxValues\":{\"id\":3}}",
+      "stats": {
+        "numRecords": 3,
+        "minValues": {
+          "id": 1
+        },
+        "maxValues": {
+          "id": 3
+        }
+      }
+    },
+    {
+      "version": 2,
+      "path": "part-0000-1750000001000-2.parquet",
+      "size": 280,
+      "modificationTime": 1750000001000,
+      "partitionValues": {},
+      "stats_raw": "{\"numRecords\":2,\"minValues\":{\"id\":4},\"maxValues\":{\"id\":5}}",
+      "stats": {
+        "numRecords": 2,
+        "minValues": {
+          "id": 4
+        },
+        "maxValues": {
+          "id": 5
+        }
+      }
+    }
+  ],
+  "schema_fields": [
+    {
+      "name": "id",
+      "type": "long",
+      "nullable": false,
+      "metadata": {}
+    },
+    {
+      "name": "name",
+      "type": "string",
+      "nullable": true,
+      "metadata": {}
+    },
+    {
+      "name": "active",
+      "type": "boolean",
+      "nullable": true,
+      "metadata": {}
+    }
+  ],
+  "delta_arrow_schema": [
+    {
+      "name": "id",
+      "type": "int64",
+      "nullable": false
+    },
+    {
+      "name": "name",
+      "type": "string",
+      "nullable": true
+    },
+    {
+      "name": "active",
+      "type": "bool",
+      "nullable": true
+    }
+  ],
+  "deltars_rows": [
+    [
+      4,
+      "carol",
+      true
+    ],
+    [
+      5,
+      null,
+      null
+    ],
+    [
+      1,
+      "alice",
+      true
+    ],
+    [
+      2,
+      null,
+      false
+    ],
+    [
+      3,
+      "bob",
+      null
+    ]
+  ],
+  "parquet_physical": [
+    {
+      "path": "part-0000-1750000000000-1.parquet",
+      "num_rows": 3,
+      "compression": [
+        "UNCOMPRESSED",
+        "UNCOMPRESSED",
+        "UNCOMPRESSED"
+      ],
+      "created_by": "mizchi/parquet",
+      "arrow_fields": [
+        {
+          "name": "id",
+          "nullable": true,
+          "type": "int64"
+        },
+        {
+          "name": "name",
+          "nullable": true,
+          "type": "string"
+        },
+        {
+          "name": "active",
+          "nullable": true,
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "path": "part-0000-1750000001000-2.parquet",
+      "num_rows": 2,
+      "compression": [
+        "UNCOMPRESSED",
+        "UNCOMPRESSED",
+        "UNCOMPRESSED"
+      ],
+      "created_by": "mizchi/parquet",
+      "arrow_fields": [
+        {
+          "name": "id",
+          "nullable": true,
+          "type": "int64"
+        },
+        {
+          "name": "name",
+          "nullable": true,
+          "type": "string"
+        },
+        {
+          "name": "active",
+          "nullable": true,
+          "type": "bool"
+        }
+      ]
+    }
+  ]
+}

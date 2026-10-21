@@ -1,0 +1,4 @@
+{"commitInfo":{"timestamp":0,"operation":"CREATE TABLE","operationParameters":{},"engineInfo":"protocol-audit-fixture"}}
+{"protocol":{"minReaderVersion":1,"minWriterVersion":1}}
+{"metaData":{"id":"fixture","format":{"provider":"parquet","options":{}},"schemaString":"{\"type\":\"struct\",\"fields\":[{\"name\":\"id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{}},{\"name\":\"tags\",\"type\":{\"type\":\"array\",\"elementType\":\"string\",\"containsNull\":true},\"nullable\":true,\"metadata\":{}}]}","partitionColumns":[],"configuration":{},"createdTime":0}}
+{"add":{"path":"missing.parquet","partitionValues":{},"size":0,"modificationTime":0,"dataChange":true,"stats":"{\"numRecords\":2}"}}

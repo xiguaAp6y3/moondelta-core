@@ -1,0 +1,16 @@
+### 111-inspect-created-empty
+$ delta.exe inspect artifacts/protocol-audit/fixtures/cli-created
+[exit code: 0]
+--- stdout ---
+table            : artifacts/protocol-audit/fixtures/cli-created
+current version  : 0  (log versions: 1)
+files            : 0  rows: 0  bytes: 0
+protocol         : reader=1 writer=2
+format           : parquet
+partition columns: (none)
+schema:
+  id: long
+  name: string
+--- stderr ---
+
+

@@ -1,0 +1,329 @@
+### grep tokens in src/ (repo)
+----- token: deletionVector  hits=0
+----- token: readerFeatures  hits=0
+----- token: writerFeatures  hits=0
+----- token: columnMapping  hits=0
+----- token: is_writable_type  hits=1
+  src\schema.mbt:135: pub fn is_writable_type(ty : DeltaType) -> Bool {
+----- token: Repeated columns are not supported yet  hits=18
+  src\vendor\parquet\reader.mbt:1307: unsupported("Repeated columns are not supported yet")
+  src\vendor\parquet\reader.mbt:1472: unsupported("Repeated columns are not supported yet")
+  src\vendor\parquet\reader.mbt:1927: unsupported("Repeated columns are not supported yet")
+  src\vendor\parquet\reader.mbt:1992: unsupported("Repeated columns are not supported yet")
+  src\vendor\parquet\reader.mbt:2095: unsupported("Repeated columns are not supported yet")
+  src\vendor\parquet\reader.mbt:2161: unsupported("Repeated columns are not supported yet")
+  src\vendor\parquet\reader.mbt:2265: unsupported("Repeated columns are not supported yet")
+  src\vendor\parquet\reader.mbt:2330: unsupported("Repeated columns are not supported yet")
+  src\vendor\parquet\reader.mbt:2433: unsupported("Repeated columns are not supported yet")
+  src\vendor\parquet\reader.mbt:2499: unsupported("Repeated columns are not supported yet")
+  src\vendor\parquet\reader.mbt:2603: unsupported("Repeated columns are not supported yet")
+  src\vendor\parquet\reader.mbt:2692: unsupported("Repeated columns are not supported yet")
+  src\vendor\parquet\reader.mbt:2813: unsupported("Repeated columns are not supported yet")
+  src\vendor\parquet\reader.mbt:2902: unsupported("Repeated columns are not supported yet")
+  src\vendor\parquet\reader.mbt:3023: unsupported("Repeated columns are not supported yet")
+  src\vendor\parquet\reader.mbt:3113: unsupported("Repeated columns are not supported yet")
+  src\vendor\parquet\reader.mbt:3235: unsupported("Repeated columns are not supported yet")
+  src\vendor\parquet\reader.mbt:3325: unsupported("Repeated columns are not supported yet")
+----- token: total_rows  hits=12
+  src\cmd\delta\main.mbt:81: snapshot.total_rows.to_string() +
+  src\examples\interop_flat_writer\main.mbt:61: println("self-check: version=\{snapshot.version} files=\{snapshot.files.length()} rows=\{snapshot.total_rows}")
+  src\examples\read_covid\main.mbt:17: "table \{root}: version=\{snapshot.version}, files=\{snapshot.files.length()}, rows=\{snapshot.total_rows}",
+  src\vendor\parquet\reader.mbt:3857: let mut total_rows = 0
+  src\vendor\parquet\reader.mbt:3862: total_rows += row_group.num_rows.to_int()
+  src\vendor\parquet\reader.mbt:3885: total_rows,
+  src\delta_wbtest.mbt:156: assert_eq(latest.total_rows, 120L)
+  src\delta_wbtest.mbt:343: assert_eq(snapshot.total_rows, 3L)
+  src\snapshot.mbt:153: let mut total_rows = 0L
+  src\snapshot.mbt:156: total_rows = total_rows + stats_num_records(f.stats)
+  src\snapshot.mbt:164: total_rows,
+  src\types.mbt:92: total_rows : Int64
+
+### key code lines
+----- src/actions.mbt : 14-26
+  14: ///|
+  15: fn parse_protocol(j : Json) -> Protocol {
+  16:   let min_reader = match json_field_int(j, "minReaderVersion") {
+  17:     Some(v) => v
+  18:     None => 1
+  19:   }
+  20:   let min_writer = match json_field_int(j, "minWriterVersion") {
+  21:     Some(v) => v
+  22:     None => 1
+  23:   }
+  24:   { min_reader_version: min_reader, min_writer_version: min_writer, }
+  25: }
+  26: 
+----- src/actions.mbt : 86-93
+  86:   let data_change = match json_field_bool(j, "dataChange") {
+  87:     Some(b) => b
+  88:     None => true
+  89:   }
+  90:   let stats = json_field_string(j, "stats")
+  91:   { path, partition_values, size, modification_time, data_change, stats, }
+  92: }
+  93: 
+----- src/actions.mbt : 144-150
+  144:   match json_field(j, "commitInfo") {
+  145:     Some(c) => return CommitInfoAction(parse_commit_info(c, version))
+  146:     None => ()
+  147:   }
+  148:   UnknownAction("unrecognized action")
+  149: }
+----- src/snapshot.mbt : 57-71
+  57: 
+  58: ///|
+  59: fn stats_num_records(stats : String?) -> Int64 {
+  60:   match stats {
+  61:     Some(s) => {
+  62:       let j = @json.parse(s) catch { _ => return 0L }
+  63:       match json_field_int64(j, "numRecords") {
+  64:         Some(v) => v
+  65:         None => 0L
+  66:       }
+  67:     }
+  68:     None => 0L
+  69:   }
+  70: }
+  71: 
+----- src/snapshot.mbt : 105-118
+  105:   target : Int32?,
+  106: ) -> (Snapshot, Array[HistoryEntry]) raise DeltaError {
+  107:   let versions = list_versions(root)
+  108:   if versions.length() == 0 {
+  109:     raise DeltaError::NotFound("table '\{root}' has no log entries")
+  110:   }
+  111:   if versions[0] != 0 {
+  112:     raise DeltaError::Unsupported(
+  113:       "log starts at version \{versions[0]}; checkpoint-only or truncated tables are not supported (replay requires the initial log entries)",
+  114:     )
+  115:   }
+  116:   let latest = versions[versions.length() - 1]
+  117:   let target_version = match target {
+  118:     Some(v) => v
+----- src/snapshot.mbt : 144-150
+  144:             version: c.version,
+  145:             timestamp: c.timestamp,
+  146:             operation: c.operation,
+  147:           })
+  148:         UnknownAction(_) => ()
+  149:       }
+  150:     }
+----- src/write.mbt : 163-186
+  163: ///|
+  164: /// 创建一张新的 Delta 表（写入 version 0：commitInfo + protocol + metaData）。
+  165: pub fn create_table(
+  166:   root : String,
+  167:   schema_json : String,
+  168:   partition_columns : Array[String],
+  169: ) -> Int32 raise DeltaError {
+  170:   ensure_dir(root)
+  171:   let log = log_dir(root)
+  172:   ensure_dir(log)
+  173:   let commit_info = "{\"commitInfo\":{\"timestamp\":0,\"operation\":\"CREATE TABLE\",\"operationParameters\":{},\"isolationLevel\":\"Serializable\",\"isBlindAppend\":true,\"engineInfo\":\"moondelta-core\"}}"
+  174:   let protocol = "{\"protocol\":{\"minReaderVersion\":1,\"minWriterVersion\":2}}"
+  175:   let meta_data = "{\"metaData\":{\"id\":" +
+  176:     json_string("moondelta-" + root) +
+  177:     ",\"format\":{\"provider\":\"parquet\",\"options\":{}},\"schemaString\":" +
+  178:     json_string(schema_json) +
+  179:     ",\"partitionColumns\":" +
+  180:     json_string_array(partition_columns) +
+  181:     ",\"configuration\":{},\"createdTime\":0}}"
+  182:   let content = commit_info + "\n" + protocol + "\n" + meta_data + "\n"
+  183:   write_text(log + "/" + version_file_name(0), content)
+  184:   0
+  185: }
+  186: 
+----- src/write.mbt : 195-240
+  195:   let table = DeltaTable::open(root)
+  196:   let snapshot = table.snapshot()
+  197:   if snapshot.metadata.partition_columns.length() > 0 {
+  198:     raise DeltaError::Unsupported(
+  199:       "append to partitioned tables is not supported yet (MVP writes only unpartitioned tables)",
+  200:     )
+  201:   }
+  202:   let schema_fields = snapshot.metadata.schema.fields
+  203:   if columns.length() != schema_fields.length() {
+  204:     raise DeltaError::ParseError(
+  205:       "append: expected \{schema_fields.length()} columns, got \{columns.length()}",
+  206:     )
+  207:   }
+  208:   let mut i = 0
+  209:   if columns.length() > 0 {
+  210:     let row_count = columns[0].cells.length()
+  211:     while i < columns.length() {
+  212:       if columns[i].cells.length() != row_count {
+  213:         raise DeltaError::ParseError("append: column lengths differ")
+  214:       }
+  215:       i = i + 1
+  216:     }
+  217:   }
+  218:   let row_count = if columns.length() > 0 {
+  219:     columns[0].cells.length()
+  220:   } else {
+  221:     0
+  222:   }
+  223:   // 构造 parquet 列
+  224:   let pcols : Array[@parquet.Column] = []
+  225:   for c in columns {
+  226:     pcols.push(
+  227:       @parquet.new_column(c.name, parquet_type_of(c.type_), @parquet.Optional),
+  228:     )
+  229:   }
+  230:   // 构造行
+  231:   let rows : Array[Array[@parquet.Value]] = []
+  232:   let mut r = 0
+  233:   while r < row_count {
+  234:     let row : Array[@parquet.Value] = []
+  235:     for c in columns {
+  236:       row.push(parquet_value_of(c.cells[r]))
+  237:     }
+  238:     rows.push(row)
+  239:     r = r + 1
+  240:   }
+----- src/cmd/delta/main.mbt : 42-48
+  42: 
+  43: ///|
+  44: fn fail(message : String) -> Unit {
+  45:   println("error: " + message)
+  46: }
+  47: 
+  48: ///|
+----- src/cmd/delta/main.mbt : 142-172
+  142: 
+  143: ///|
+  144: fn parse_where(text : String) -> @delta.ColumnPredicate? {
+  145:   let cleaned = text.replace_all(old=" ", new="")
+  146:   let ops : Array[(String, @delta.CompareOp)] = [
+  147:     (">=", GeV),
+  148:     ("<=", LeV),
+  149:     (">", GtV),
+  150:     ("<", LtV),
+  151:     ("=", EqV),
+  152:   ]
+  153:   for pair in ops {
+  154:     let (op_text, op) = pair
+  155:     match cleaned.split_once(op_text) {
+  156:       Some(split) => {
+  157:         let (left, right) = split
+  158:         let value = @string.parse_double(right) catch {
+  159:           _ => {
+  160:             fail("invalid number in --where: " + text)
+  161:             return None
+  162:           }
+  163:         }
+  164:         return Some({ column: left.to_owned(), op, value, })
+  165:       }
+  166:       None => ()
+  167:     }
+  168:   }
+  169:   fail("invalid --where expression, expected like: id>=60 (no spaces)")
+  170:   None
+  171: }
+  172: 
+----- src/cmd/delta/main.mbt : 200-206
+  200:         }
+  201:       }
+  202:       i = i + 2
+  203:     } else if rest[i] == "--where" && i + 1 < rest.length() {
+  204:       let parsed = parse_where(rest[i + 1])
+  205:       predicate = parsed
+  206:       i = i + 2
+----- src/cmd/delta/main.mbt : 245-252
+  245:       fail("\{err}")
+  246:       return
+  247:     }
+  248:   }
+  249:   let mut limit : Int32? = Some(10)
+  250:   let mut i = 0
+  251:   while i < rest.length() {
+  252:     if rest[i] == "--limit" && i + 1 < rest.length() {
+----- src/schema.mbt : 110-132
+  110: 
+  111: ///|
+  112: /// 判断 schema 是否能在当前读取路径上安全读取；不能则给出明确原因。
+  113: pub fn ensure_readable_schema(schema : DeltaSchema) -> Unit raise DeltaError {
+  114:   for f in schema.fields {
+  115:     match f.type_ {
+  116:       NestedType(kind~) =>
+  117:         raise DeltaError::Unsupported(
+  118:           "nested column '\{f.name}' (type=\{kind}) is not supported by the parquet reader; only flat schemas are readable",
+  119:         )
+  120:       UnknownType(raw~) =>
+  121:         raise DeltaError::Unsupported(
+  122:           "unsupported delta type '\{raw}' for column '\{f.name}'",
+  123:         )
+  124:       DecimalType(precision~, scale~) =>
+  125:         raise DeltaError::Unsupported(
+  126:           "decimal(\{precision},\{scale}) column '\{f.name}' is not supported (logical type is lost by the reader)",
+  127:         )
+  128:       _ => ()
+  129:     }
+  130:   }
+  131: }
+  132: 
+----- src/log.mbt : 99-130
+  99: pub fn checkpoint_info(root : String) -> CheckpointInfo? raise DeltaError {
+  100:   let path = log_dir(root) + "/_last_checkpoint"
+  101:   if !@fs.path_exists(path) {
+  102:     return None
+  103:   }
+  104:   let text = read_text(path)
+  105:   let j = @json.parse(text) catch { _ => return None }
+  106:   let version = match json_field_int(j, "version") {
+  107:     Some(v) => v
+  108:     None => return None
+  109:   }
+  110:   let size = json_field_int(j, "size")
+  111:   let parts = json_field_int(j, "parts")
+  112:   Some({ version, size, parts, })
+  113: }
+  114: 
+  115: ///|
+  116: /// 是否存在 checkpoint 文件（`.checkpoint.parquet`）
+  117: pub fn has_checkpoint_file(root : String) -> Bool {
+  118:   let dir = log_dir(root)
+  119:   if !@fs.path_exists(dir) {
+  120:     return false
+  121:   }
+  122:   let names = @fs.read_dir(dir) catch { _ => return false }
+  123:   for name in names {
+  124:     if name.has_suffix(".checkpoint.parquet") {
+  125:       return true
+  126:     }
+  127:   }
+  128:   false
+  129: }
+----- src/read.mbt : 140-152
+  140:     if row_count >= max_rows {
+  141:       break
+  142:     }
+  143:     let path = root + "/" + file.path
+  144:     let pf = @parquet.read_file(path) catch {
+  145:       @parquet.Unsupported(msg) =>
+  146:         raise DeltaError::Unsupported("cannot read '\{file.path}': \{msg}")
+  147:       @parquet.InvalidData(msg) =>
+  148:         raise DeltaError::ParseError("corrupt parquet '\{file.path}': \{msg}")
+  149:       @parquet.Io(msg) => raise DeltaError::IoError(msg)
+  150:     }
+  151:     files_read = files_read + 1
+  152:     let rows = pf.rows()
+----- src/types.mbt : 128-146
+  128: ///|
+  129: pub(all) suberror DeltaError {
+  130:   IoError(String)
+  131:   ParseError(String)
+  132:   Unsupported(String)
+  133:   NotFound(String)
+  134: } derive(Eq, Debug)
+  135: 
+  136: ///|
+  137: pub fn describe_error(e : DeltaError) -> String {
+  138:   match e {
+  139:     IoError(m) => "io error: " + m
+  140:     ParseError(m) => "parse error: " + m
+  141:     Unsupported(m) => "unsupported: " + m
+  142:     NotFound(m) => "not found: " + m
+  143:   }
+  144: }
+  145: 
+  146: ///|

@@ -1,0 +1,10 @@
+### _build\native\debug\build\cmd\delta\delta.exe scan fixtures/delta/table_a --partition id=7
+EXIT=0
+table            : fixtures/delta/table_a (version 12)
+total files      : 120
+selected files   : 0
+skipped partition: 120
+skipped stats    : 0
+matched rows     : 0
+matched bytes    : 0
+

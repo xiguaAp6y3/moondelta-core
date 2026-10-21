@@ -1,0 +1,5 @@
+writer,file,version,numRecords,minValues_keys,maxValues_keys,nullCount_keys,minValues,maxValues,nullCount
+engine-written,part-00000-a84180dd-113f-467e-9428-b0b48082ca2c-c000.snappy.parquet,0,3,active;id;name,active;id;name,active;id;name,"{""active"": false, ""id"": 1, ""name"": ""alice""}","{""name"": ""bob"", ""active"": true, ""id"": 3}","{""active"": 1, ""id"": 0, ""name"": 1}"
+engine-written,part-00000-291b0f4f-41cb-4fea-897e-80f10e4b3835-c000.snappy.parquet,1,2,active;id;name,active;id;name,active;id;name,"{""active"": true, ""id"": 4, ""name"": ""carol""}","{""name"": ""carol"", ""active"": true, ""id"": 5}","{""active"": 1, ""id"": 0, ""name"": 1}"
+moondelta-written,part-0000-1750000000000-1.parquet,1,3,id,id,,"{""id"": 1}","{""id"": 3}",null
+moondelta-written,part-0000-1750000001000-2.parquet,2,2,id,id,,"{""id"": 4}","{""id"": 5}",null

@@ -1,0 +1,31 @@
+source,id,name,active
+delta-rs read (oracle),4,carol,True
+delta-rs read (oracle),5,,
+delta-rs read (oracle),1,alice,True
+delta-rs read (oracle),2,,False
+delta-rs read (oracle),3,bob,
+moondelta CLI read,1,alice,True
+moondelta CLI read,2,,False
+moondelta CLI read,3,bob,
+moondelta CLI read,4,carol,True
+moondelta CLI read,5,,
+DuckDB delta_scan (artifacts/interop-flat/engine-written),4,carol,True
+DuckDB delta_scan (artifacts/interop-flat/engine-written),5,,
+DuckDB delta_scan (artifacts/interop-flat/engine-written),1,alice,True
+DuckDB delta_scan (artifacts/interop-flat/engine-written),2,,False
+DuckDB delta_scan (artifacts/interop-flat/engine-written),3,bob,
+DuckDB read_parquet [非 Delta 级] (artifacts/interop-flat/engine-written),1,alice,True
+DuckDB read_parquet [非 Delta 级] (artifacts/interop-flat/engine-written),2,,False
+DuckDB read_parquet [非 Delta 级] (artifacts/interop-flat/engine-written),3,bob,
+DuckDB read_parquet [非 Delta 级] (artifacts/interop-flat/engine-written),4,carol,True
+DuckDB read_parquet [非 Delta 级] (artifacts/interop-flat/engine-written),5,,
+DuckDB delta_scan (artifacts/interop-flat/moondelta-written),4,carol,True
+DuckDB delta_scan (artifacts/interop-flat/moondelta-written),5,,
+DuckDB delta_scan (artifacts/interop-flat/moondelta-written),1,alice,True
+DuckDB delta_scan (artifacts/interop-flat/moondelta-written),2,,False
+DuckDB delta_scan (artifacts/interop-flat/moondelta-written),3,bob,
+DuckDB read_parquet [非 Delta 级] (artifacts/interop-flat/moondelta-written),1,alice,True
+DuckDB read_parquet [非 Delta 级] (artifacts/interop-flat/moondelta-written),2,,False
+DuckDB read_parquet [非 Delta 级] (artifacts/interop-flat/moondelta-written),3,bob,
+DuckDB read_parquet [非 Delta 级] (artifacts/interop-flat/moondelta-written),4,carol,True
+DuckDB read_parquet [非 Delta 级] (artifacts/interop-flat/moondelta-written),5,,

@@ -1,0 +1,15 @@
+### 74-scan-nested-list
+$ delta.exe scan artifacts/protocol-audit/fixtures/nested-list
+[exit code: 0]
+--- stdout ---
+table            : artifacts/protocol-audit/fixtures/nested-list (version 0)
+total files      : 1
+selected files   : 1
+skipped partition: 0
+skipped stats    : 0
+matched rows     : 2
+matched bytes    : 836
+  - data.parquet
+--- stderr ---
+
+

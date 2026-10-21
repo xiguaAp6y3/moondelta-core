@@ -1,0 +1,16 @@
+### 18-unknown-subcommand
+$ delta.exe frobnicate
+[exit code: 0]
+--- stdout ---
+moondelta-core 0.1.0 — MoonBit Delta Lake table-format kernel
+
+Usage:
+  delta inspect <table-root>
+  delta history <table-root>
+  delta scan    <table-root> [--partition k=v]... [--where col>=number]
+  delta read    <table-root> [--limit N]
+  delta create  <table-root> <schema.json|schemaString> [--partition k1,k2]
+  delta version
+--- stderr ---
+
+

@@ -1,0 +1,172 @@
+--- a/申报书.md
++++ b/申报书.md
+@@ -16,14 +16,14 @@
+ ## 通用性说明
+ 
+ - 与具体业务无关：凡是需要"版本化表"的场景都能直接复用——ETL 写出、外部表校验与迁移、CI 数据契约审计、增量入湖；
+-- 格式与生态一致：读写标准 Delta 目录，Spark / Databricks / delta-rs / DuckDB 可直接互通，已有表可以平移使用；
+-- 不绑定存储与运行时：库只处理目录与文件，不依赖 JVM/Rust 运行时，native 目标可用，后续可扩 wasm/js；
+-- 边界显式：不支持的 schema、压缩、写入类型在类型层与错误信息里明确拒绝，不静默降级——数据基础设施宁可拒绝，不可返回错数据。
++- 格式与生态一致：读写 Delta protocol reader v1 / writer v2、version 0 起连续 JSON 日志、flat schema、UNCOMPRESSED/SNAPPY 压缩与本地文件系统范围内的目录；flat 表已完成与 delta-rs 1.6.6、DuckDB 1.5.6 的双向目录级对拍（D2：49 PASS / 0 FAIL / 2 项已记录差异，见 `artifacts/interop-flat/README.md`），Spark / Databricks 未在本环境验证；闭集之外当前并非“明确拒绝”：删除向量被静默忽略并读全量、截断日志 + checkpoint 被当作旧版本读、reader v2/v3 与未知必需 feature 不被拒绝（见 `artifacts/protocol-audit.md` §5）；nested 读写的第 3 节七项门槛仅完成 1/7（仅证据门槛 6，不构成 nested 兼容，见 `artifacts/interop-nested/README.md`），需完成 nested 读写、checkpoint 恢复与至少两种外部引擎对拍等门槛后再扩大承诺；
++- 不绑定运行时：库只处理目录与文件，不依赖 JVM/Rust 运行时，native 目标可用，后续可扩 wasm/js；当前存储只实现本地文件系统，对象存储未实现；
++- 边界显式：对已识别的闭集边界（嵌套 schema、ZSTD/GZIP/BROTLI/LZ4、不在支持列表的写入类型）返回结构化错误；但闭集之外尚未全部拒绝——删除向量与未知 feature 未检测、append 不校验列名/类型/NOT NULL、stats 非 string 时行数显示 0、CLI 错误退出码恒 0（`artifacts/protocol-audit.md` §5 列出 15 条声明不一致），这些是待修复的静默/未检测项，不能视为“不静默降级”——数据基础设施宁可拒绝，不可返回错数据。
+ 
+ ## 预期使用场景
+ 
+-1. **MoonBit ETL 写出、Spark 直接读**：输入是清洗后的记录（Int64/String 列），操作 `create_table` + `append_rows`（写 Parquet 数据文件并提交新版本），输出标准 Delta 目录；Spark / Databricks / delta-rs 用 `spark.read.format("delta")` 直接读，MoonBit 侧不需要装 Spark。
+-2. **外部表校验与迁移**：输入 delta-rs 或 Databricks 产出的表（例如 COVID-19_NYT，157,865 行 6 列），操作 `snapshot_at(v)` + 扫描 + 读取，对比两个版本的文件清单、行数与值，输出校验报告或 CSV——迁移前确认数据没缺、历史对得上。
++1. **MoonBit ETL 写出、外部引擎读取**：输入是清洗后的记录（Int64/String 列），操作 `create_table` + `append_rows`（写 Parquet 数据文件并提交新版本），输出 Delta protocol reader v1 / writer v2 目录；D2 已用 delta-rs 1.6.6 与 DuckDB 1.5.6 回读本项目写出的 flat 表（schema/行数/逐列值一致，见 `artifacts/interop-flat/README.md`），Spark / Databricks 的 `spark.read.format("delta")` 读取尚未验证；本场景仅覆盖闭集内 flat 表，闭集外表的已知缺口见 `artifacts/protocol-audit.md` §5；MoonBit 侧不需要装 Spark。
++2. **外部表校验与迁移**：输入 delta-rs 或 Databricks 产出的 flat 表（例如 COVID-19_NYT；本仓库 fixture 只含该表 1 个 157,865 行 6 列的数据文件与 version 0 日志，对比两个版本需另备日志与数据文件齐全的表），操作 `snapshot_at(v)` + 扫描 + 读取，对比文件清单、行数与值，输出校验报告或 CSV——迁移前确认数据没缺、历史对得上；注意当前对 reader≥2、含删除向量或 column mapping 的表未做检测（见 `artifacts/protocol-audit.md` §5）。
+ 3. **CI 数据契约审计**：输入仓库里随代码提交的小型 Delta 表和两个版本号，操作按版本回放 + 分区/min-max 剪枝，输出"这次提交改了 N 个数据文件、影响 M 行、落在 dt=… 分区"的 Markdown artifact；纯读路径，不需要写权限。
+ 
+ ## 拟实现的核心功能
+@@ -32,19 +32,21 @@
+ - **快照与时间旅行**：按版本顺序叠加 add/remove，同路径 add→remove→add 正确收敛；`snapshot_at(v)`、`history()`；
+ - **扫描规划**：分区等值过滤 + 文件级 min/max 统计剪枝，返回文件清单、跳过数、命中行数与字节数；
+ - **读取**：flat schema + UNCOMPRESSED/SNAPPY 数据文件；分区列按 `partitionValues` 补齐；
+-- **写入**：`create_table` + `append_rows`，写 Parquet 数据文件、提交新的 JSON 版本，统计信息（numRecords/min/max）随日志写入；
++- **写入**：`create_table` + `append_rows`，写 Parquet 数据文件、提交新的 JSON 版本，统计信息（numRecords 与数值列 min/max；无 nullCount、无字符串/布尔 min/max）随日志写入；
+ - **CLI 与工程化**：`delta inspect | history | scan | read | create`、可运行示例、14 个单元测试（含负向）、CI（check/build/test）、mooncakes.io 发布。
+ 
+ ## 移植或参考说明
+ 
+ - **参考规范**：Delta Lake 协议规范 https://github.com/delta-io/delta （Apache-2.0），仅按规范实现，未复制 delta-rs / Spark 代码；测试数据来自 delta-rs 与 apache/parquet-testing（均 Apache-2.0），逐项来源与哈希见 `fixtures/README.md` 与 `THIRD_PARTY_NOTICES.md`；
+-- **实现方式**：从零手写约 2,390 行 MoonBit（核心库 1,420、CLI 373、测试 552、示例 45）；唯一运行时依赖为 `moonbitlang/x@0.5.5`；Parquet 编解码 vendored `mizchi/parquet@0.2.2`（Apache-2.0，删掉两个 DuckDB 演示子包；reader 未改，writer 扩展 BOOLEAN/DOUBLE 写入，NOTICE 记录来源与修改）；
++- **实现方式**：从零手写约 2,575 行 MoonBit（按文件全行统计、含空行/注释：核心库 1,508、CLI 383、测试 570、示例 114，其中含 D2 新增的 69 行互操作写入示例）；唯一运行时依赖为 `moonbitlang/x@0.5.5`；Parquet 编解码 vendored `mizchi/parquet@0.2.2`（Apache-2.0，删掉两个 DuckDB 演示子包；reader 未改，writer 扩展 BOOLEAN/DOUBLE 写入，NOTICE 记录来源与修改）；
+ - **实现路径**：不包 delta-rs/Spark（MoonBit 没有 JVM/Rust 绑定，且只是壳），也不自造列存（重复造轮子）；只做协议层，复用 Parquet 与 core JSON，sans-IO 核心 + 文件系统薄封装，日志回放可用真实 fixture 离线对拍；
+-- **边界与简化**：不实现嵌套 schema（struct/list/map）与 ZSTD/GZIP/BROTLI/LZ4；不解析 checkpoint parquet（checkpoint-only 表明确拒绝）；写入支持 Int32/Int64/String/Binary/Boolean/Double（Required/Optional），不写分区表；不做对象存储、删除向量、列映射、MERGE/UPDATE/DELETE、并发写冲突仲裁、SQL/DataFrame 层。
++- **边界与简化**：读取只承诺 Delta protocol reader v1 的表、写出 writer v2 的表，且日志必须从 version 0 起连续；高于 reader v1 的 protocol（v2/v3）、`readerFeatures`/`writerFeatures` 与未知必需 feature 当前不校验、不拒绝；不实现嵌套 schema（struct/list/map）与 ZSTD/GZIP/BROTLI/LZ4，仅支持 UNCOMPRESSED/SNAPPY 压缩与本地文件系统；不解析 checkpoint parquet：checkpoint-only 表返回结构化 NotFound（消息为“has no log entries”），而日志被截断但存在 checkpoint 的表当前会当作旧版本读取（未检测，已知缺口）；删除向量（`deletionVector`）、column mapping、CDF 当前未检测（可能读全量或报误导错误）；写入支持 Int32/Int64/String/Binary/Boolean/Double，append 只校验列数/行长、不校验列名/类型/NOT NULL，写出列恒为 Parquet Optional；不写分区表；不做对象存储、MERGE/UPDATE/DELETE、并发写冲突仲裁、SQL/DataFrame 层。
+ 
+ ## 当前交付状态
+-- 手写 MoonBit 代码 2,390 行（核心库 1,420、CLI 373、测试 552、示例 45）；14 个具名测试全部通过，含负向用例（嵌套列拒绝、checkpoint-only 表拒绝、缺失数据文件、统计边界）与分区表读取/过滤；
+-- 已实测：delta-rs `table_a` 13 个版本回放 → 120 个文件；Databricks 写出的 COVID-19_NYT 数据文件读取 157,865 行 6 列；`id>=60` 统计剪枝 120 → 60 个文件；create + append + 重新读回通过；
+-- `moon check` / `moon test`（native）通过，`moon package` 通过，CLI 六子命令与示例可运行（warning 全部来自 vendored parquet 上游代码）；GitHub Actions 流水线已通过（check / build / test 全绿）；
+-- 已发布 mooncakes.io：`moon add xiguaAp6y3/moondelta-core@0.1.1`（空工程安装并编译验证通过），页面 https://mooncakes.io/docs/xiguaAp6y3/moondelta-core ；
+-- 后续计划：ZSTD 解压与 checkpoint parquet 解析、分区表 append、Float/Timestamp 写入（季度扩展）。
++- 手写 MoonBit 代码约 2,575 行（按文件全行统计、含空行/注释与 D2 新增的 69 行互操作写入示例；核心库 1,508、CLI 383、测试 570、示例 114）；14 个具名测试全部通过，含负向用例（嵌套列拒绝、日志非 0 起点/缺版本拒绝、缺失数据文件、统计边界）与分区表读取/过滤；但名为 checkpoint-only 的用例实际构造的是非 0 起点日志，真实 checkpoint-only、删除向量、reader≥2 拒绝均无测试；
++- 已实测（仓库 fixture 上的运行结果，D1 已复核）：delta-rs `table_a` 13 个版本回放 → 120 个文件（仓库只含日志、不含数据文件）；Databricks 写出的 COVID-19_NYT 数据文件读取 157,865 行 6 列（该表共 8 个数据文件，仅 1 个入库）；`id>=60` 统计剪枝 120 → 60 个文件；create + append + 重新读回通过；
++- 互操作验证（D2）：与 delta-rs 1.6.6、DuckDB 1.5.6 完成 flat 表双向对拍（外部引擎写 → 本项目读、本项目写 → 外部引擎读，49 PASS / 0 FAIL / 2 项已记录差异，见 `artifacts/interop-flat/README.md`）；Spark / Databricks 未在本环境验证；nested 表只做到“识别嵌套类型并明确拒绝”（D3：七项门槛 1/7，仅证据门槛 6，见 `artifacts/interop-nested/README.md`），不构成嵌套互操作；
++- 已知缺口（D1 审计，见 `artifacts/protocol-audit.md` §5）：删除向量被静默忽略并读全量（3 行 fixture 返回 3 行、正确应为 2 行）、截断日志 + checkpoint 被当作旧版本读（报 v9/90 文件而非 checkpoint v10）、reader v2/v3 与未知必需 feature 不被拒绝（reader=3/writer=7 的 read 成功）、append 不校验列名/类型/NOT NULL、stats 非 string 时 rows 显示 0、CLI 错误退出码恒 0；这些是待修复项，当前不能描述为“明确拒绝/不静默降级”；
++- `moon check` / `moon test`（native）通过（0 errors、14/14；当前工具链 43 条带文件定位的 warning 中 39 条在项目 `src/`（38 条 derive 触发 `implicit_impl_as_method` + 1 条示例 env 未 import）、4 条在 vendored parquet；另有 1 条无文件定位的 duplicate alias 工程配置 warning 不在这 43 条内，均非 error）；CLI 六子命令与示例可运行；`moon package` 与 GitHub Actions 流水线（check / build / test）未在本机复核，发布/申报前需提供 `moon package` 输出与 CI 运行链接；
++- mooncakes.io 发布状态待复核：`moon add xiguaAp6y3/moondelta-core@0.1.1` 的空工程安装与编译未在本机复核，发布前需提供安装日志与页面链接；页面 https://mooncakes.io/docs/xiguaAp6y3/moondelta-core ；
++- 后续计划：ZSTD 解压与 checkpoint parquet 解析（仅 checkpoint 所需的最小嵌套 shape，不等于 nested schema 兼容）、分区表 append、Float/Timestamp 写入（季度扩展）；同时修复 `artifacts/protocol-audit.md` §5 列出的闭集外静默/未检测项（删除向量、截断 checkpoint、protocol version/feature 校验、append 校验、CLI 退出码）；
+--- a/README.md
++++ b/README.md
+@@ -8,28 +8,31 @@
+ >
+ > 参赛申报书：[申报书.md](申报书.md) ｜ 第三方声明：[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
+ >
+-> 已发布：[mooncakes.io/docs/xiguaAp6y3/moondelta-core](https://mooncakes.io/docs/xiguaAp6y3/moondelta-core)（`moon add xiguaAp6y3/moondelta-core`）
++> 发布记录待复核：[mooncakes.io/docs/xiguaAp6y3/moondelta-core](https://mooncakes.io/docs/xiguaAp6y3/moondelta-core)（`moon add xiguaAp6y3/moondelta-core`；本机未做安装验证，发布前需复核并留存安装日志）
+ 
+ ## 状态
+ 
+-MVP（0.1.0）：
++MVP（README/CLI 仍标 0.1.0，`moon.mod` 已为 0.1.1，版本文案待统一，见 `artifacts/protocol-audit.md` §5 第 9 条）：
+ 
+ -  日志解析与回放：`protocol` / `metaData` / `add` / `remove` / `commitInfo`，`_last_checkpoint` 识别
++-  协议范围：读取 Delta protocol reader v1 的表、写出 `minReaderVersion = 1, minWriterVersion = 2` 的表；日志从非 0 起点/缺版本明确拒绝；checkpoint-only 返回结构化 NotFound；日志被截断但存在 checkpoint 的表当前未检测（会读旧快照，已知缺口）；reader v2/v3 与未知必需 feature 当前不校验
+ -  快照、版本历史、时间旅行（`snapshot_at`）
+ -  扫描规划：分区等值过滤 + 文件级 min/max 统计剪枝
+ -  读取：flat schema + UNCOMPRESSED/SNAPPY 的 Delta 数据文件
+--  写入：`create_table` + `append_rows`（Int32/Int64/String/Binary/Boolean/Double，Required/Optional）；分区列读取时按 `partitionValues` 补齐
++-  写入：`create_table` + `append_rows`（Int32/Int64/String/Binary/Boolean/Double）；append 只校验列数/行长，不校验列名/类型/NOT NULL，写出列恒为 Parquet Optional（已知缺口，见 `artifacts/protocol-audit.md` §5）；分区列读取时按 `partitionValues` 补齐
+ -  CLI：`inspect / history / scan / read / create / version`
+--  14 个单元测试（含分区读/过滤、统计剪枝边界、缺失数据文件、嵌套列拒绝等负向用例）+ 真实 Delta 表 fixture（delta-rs、apache/parquet-testing）
++-  14 个单元测试（含分区读/过滤、统计剪枝边界、缺失数据文件、嵌套列拒绝等负向用例；其中名为 checkpoint-only 的用例实际构造的是非 0 起点日志，真实 checkpoint-only / 删除向量 / reader≥2 拒绝无测试）+ 真实 Delta 表 fixture（delta-rs、apache/parquet-testing）
+ 
+-已用真实数据验证：delta-rs `table_a`（13 个版本回放 → 120 个文件）、Databricks 写出的 COVID-19_NYT 表（157,865 行 6 列，snappy）。
++已用真实数据验证（均为仓库 fixture 读取，D1 已复核）：delta-rs `table_a`（13 个版本回放 → 120 个文件，仓库只含日志、不含数据文件）、Databricks 写出的 COVID-19_NYT 表的 1 个数据文件（157,865 行 6 列，snappy；该表共 8 个数据文件，其余 7 个未入库）。
++
++外部引擎互操作（D2）：已与 delta-rs 1.6.6、DuckDB 1.5.6 完成 flat 表双向对拍（49 PASS / 0 FAIL / 2 项已记录差异，见 [artifacts/interop-flat/README.md](artifacts/interop-flat/README.md)）；Spark / Databricks 未验证。nested schema 当前明确拒绝，七项门槛 1/7（仅证据门槛 6，[artifacts/interop-nested/README.md](artifacts/interop-nested/README.md)），不构成 nested 互操作。闭集外的静默/未检测项与测试缺口见 [artifacts/protocol-audit.md](artifacts/protocol-audit.md) §5；口径见 [docs/协议兼容性与互操作范围.md](docs/协议兼容性与互操作范围.md)。
+ 
+ ## 快速开始
+ 
+ 要求：MoonBit 工具链（`moon` / `moonc`，建议 2026-10 之后的版本）。
+ 
+ ```bash
+-# 从 mooncakes.io 安装（v0.1.0 已发布）
++# 从 mooncakes.io 安装（发布记录待复核，见上方说明；README/CLI 版本文案待统一为 0.1.1）
+ moon add xiguaAp6y3/moondelta-core
+ 
+ # 或从源码构建
+@@ -57,6 +60,8 @@
+ last checkpoint  : version=10
+ note             : checkpoint files exist; checkpoint-only tables are not readable by this kernel
+ ```
++
++> 注：样例中的 `reader=1 writer=1` 是 delta-rs fixture 自身的协议字段；本项目写出的表为 `minReaderVersion = 1, minWriterVersion = 2`。
+ 
+ `scan ... --where "id>=60"` 会利用日志里的 min/max 统计把 120 个文件剪到 60 个（`skipped stats: 60`）。
+ 
+@@ -87,19 +92,22 @@
+ @delta.append_rows(root, columns, 1750000000000L) // 写 parquet + 提交新版本
+ ```
+ 
+-## 能力边界（遇到即报错，不静默降级）
++## 能力边界（对已识别边界返回结构化错误；闭集外尚未全部拒绝）
+ 
+ | 维度 | 支持 | 不支持 |
+ |---|---|---|
+-| schema | flat 原始类型 | 嵌套 struct / list / map |
+-| 压缩 | UNCOMPRESSED、SNAPPY | ZSTD、GZIP、BROTLI、LZ4 |
++| protocol | reader v1 读取；writer v2 写出 | 高于 reader v1 的 protocol、`readerFeatures` / `writerFeatures`、未知必需 feature 当前不校验、不拒绝（已知缺口） |
++| 日志 | version 0 起的连续 JSON commit；非 0 起点/缺版本拒绝 | checkpoint-only 返回结构化 NotFound；日志被截断但存在 checkpoint 的表未检测（会读旧快照，已知缺口） |
++| schema | flat 原始类型 | 嵌套 struct / list / map（明确拒绝）；decimal/uuid（明确拒绝） |
++| 压缩 | UNCOMPRESSED、SNAPPY | ZSTD、GZIP、BROTLI、LZ4（明确拒绝） |
+ | 逻辑类型 | string、int、long、float、double、boolean、date、timestamp(INT96) | decimal、uuid 等（会丢语义） |
+-| 表 | 日志完整、可从头回放的本地表 | checkpoint-only / 日志被截断的表 |
+-| 写入类型 | Int32 / Int64 / String / Binary / Boolean / Double（Required/Optional） | Float / Timestamp / Repeated |
+-| 写入表 | 非分区表 | 分区表 append（MVP 明确拒绝） |
+-| 存储 | 本地文件系统 | 对象存储（S3/R2）、删除向量、列映射 |
++| 表 | 日志完整、可从头回放的本地表 | checkpoint-only / 截断日志（后者未检测，见上） |
++| 写入类型 | Int32 / Int64 / String / Binary / Boolean / Double | Float / Timestamp / Repeated |
++| 写入表 | 非分区表 | 分区表 append（MVP 明确拒绝）；append 不校验列名/类型/NOT NULL，列恒为 Parquet Optional |
++| 存储 | 本地文件系统 | 对象存储（S3/R2） |
++| 闭集外 feature | — | 删除向量、column mapping、CDF 当前未检测；删除向量被静默忽略并读全量（已知缺口） |
+ 
+-这些边界来自底层 Parquet 实现的真实能力（见 `src/vendor/parquet/NOTICE.md`），已在测试里固化为**明确的错误信息**（不是 panic，也不是静默 0 行）。
++其中嵌套列、缺失数据文件、非 0 起点/缺版本日志、四种不支持压缩、decimal/未知类型已实测为结构化错误（部分有测试）；但**闭集外并非全部拒绝**：删除向量被静默忽略并读全量、截断日志 + checkpoint 读旧快照、reader v2/v3 接受、stats 非 string 时 `rows: 0`、append 不校验列名/类型/NOT NULL、CLI 错误退出码恒 0（见 `artifacts/protocol-audit.md` §5）。这些是已知缺口/待修复项，不能当成“不静默降级”的证据。
+ 
+ ## 依赖说明：vendored parquet
+ 
+@@ -117,7 +125,7 @@
+ 
+ 完整路线图见 [docs/ROADMAP.md](docs/ROADMAP.md)，近期重点：
+ 
+-- 0.2：ZSTD/GZIP/BROTLI 解压、checkpoint parquet 解析（嵌套）、分区表 append
++- 0.2：ZSTD/GZIP/BROTLI 解压、checkpoint parquet 解析（仅 checkpoint 所需的最小嵌套 shape，不构成 nested schema 兼容）、分区表 append
+ - 0.3：对象存储（S3/R2）抽象、变更数据（CDF）读取、Float/Timestamp 写入
+ - 1.0：流式读取与 row-group 级剪枝、Arrow IPC / DataFrame / moonice 互操作
+ 
+@@ -129,7 +137,7 @@
+ moon fmt
+ ```
+ 
+-CI：`.github/workflows/ci.yml`（安装最新 MoonBit 工具链 → `moon update` → check/test/build）。
++CI：`.github/workflows/ci.yml`（安装最新 MoonBit 工具链 → `moon update` → check/test/build）；远端运行结果未在本机复核（D1/D5），发布前需提供 CI 运行链接。
+ 
+ ## 许可证
+ 
+--- a/docs/ROADMAP.md
++++ b/docs/ROADMAP.md
+@@ -12,8 +12,8 @@
+ | 分区等值过滤 + 文件 min/max 统计剪枝 | ✅ 0.1.0（分区/边界用例 0.1.1 补齐） |
+ | flat schema + UNCOMPRESSED/SNAPPY 读取；分区列按 `partitionValues` 补齐 | ✅ 0.1.0 / 0.1.1 |
+ | 写入：Int32/Int64/String/Binary/Boolean/Double；create + append | ✅ 0.1.0 / 0.1.1 |
+-| CLI、示例、CI、mooncakes.io 发布 | ✅ 0.1.0 |
+-| 负向边界：嵌套 schema、checkpoint-only、缺失文件、未知类型 | ✅ 明确报错 |
++| CLI、示例 | ✅ 0.1.0；CI 与 mooncakes.io 发布记录待复核（本机未跑 CI、未做安装验证） |
++| 负向边界：嵌套 schema、非 0 起点/缺版本日志、缺失文件、未知类型 | ✅ 行为：结构化错误；真实 checkpoint-only、删除向量、reader≥2 拒绝等测试缺口见 `artifacts/protocol-audit.md` §6 |
+ 
+ ## 0.2 — 读取能力扩展（近期，1–2 周）
+ 
+@@ -48,7 +48,7 @@
+ 
+ ## 明确不做
+ 
+-- 不做通用嵌套类型（struct/list/map）的完整读写（只做 checkpoint 所需的最小 shape）；
++- 不做通用嵌套类型（struct/list/map）的完整读写（只做 checkpoint 所需的最小 shape；该中间实现不构成 nested schema 兼容，完整 nested 需满足 `docs/协议兼容性与互操作范围.md` 第 3 节七项门槛）；
+ - 不做 SQL 引擎、DataFrame、元数据服务（catalog）——这些由生态内其他项目承担；
+ - 不复刻 mooncakes.io 审计工具、moon-fmt 等官方工具。
+ 

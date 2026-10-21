@@ -1,0 +1,181 @@
+### D1 内部一致性/证据存在性独立核对
+----- 具名测试数: 14
+  test "schema: parse flat delta schema" {
+  test "schema: nested type is marked and rejected with a clear error" {
+  test "actions: parse protocol and metadata from real log line" {
+  test "log: table_a exposes 13 versions with 20-digit names" {
+  test "snapshot: replay 13 versions to 120 files and time travel" {
+  test "scan: stats pruning selects 60 of 120 files for id>=60" {
+  test "read: real Databricks-written covid table (snappy parquet)" {
+  test "snapshot: checkpoint-only table is rejected, not silently empty" {
+  test "read: nested parquet column is rejected with a clear error" {
+  test "write: create + append + read back (int64/string, nullable)" {
+  test "write: boolean and double columns roundtrip" {
+  test "read/scan: partitioned table fills partition values and filters by partition" {
+  test "scan: files without stats are kept, min==max boundary respected" {
+  test "read: missing data file raises io error" {
+
+----- warning 块总数(带文件定位): 43
+   43  E
+  => 定位在 src/ 下:  ; 其中 vendor/parquet:  ; 项目自身(src 非 vendor): 0
+  => moon check 汇总行: Finished. moon: ran 4 tasks, now up to date (43 warnings, 0 errors)
+
+----- commands.txt exit code 记录数: 0; 非 0 数: 0
+----- fixtures 目录数: 62
+----- fixtures.sha256 行数: 108
+----- out/ 文件数: 123
+----- out/code-evidence.out 行数: 206
+  code-evidence 含 deletionVector : pattern 'deletionVector' => 0 match(es)
+  code-evidence 含 readerFeatures : pattern 'readerFeatures' => 0 match(es)
+  code-evidence 含 writerFeatures : pattern 'writerFeatures' => 0 match(es)
+  code-evidence 含 columnMapping : pattern 'columnMapping' => 0 match(es) | pattern 'delta.columnMapping' => 0 match(es)
+  code-evidence 含 MERGE : pattern 'MERGE' => 0 match(es)
+  code-evidence 含 UPDATE : pattern 'UPDATE' => 0 match(es)
+----- src/ 中 raise DeltaError:: 次数(独立统计): 40
+
+----- delta_wbtest.mbt 220-300
+  220:   assert_eq(result.files_read, 1)
+  221:   assert_eq(result.row_count, 3)
+  222:   assert_eq(result.columns.length(), 6)
+  223:   assert_eq(result.columns[0].name, "date")
+  224:   assert_eq(cell_to_display(result.columns[0].cells[0]), "2020-01-21")
+  225:   assert_eq(cell_to_display(result.columns[1].cells[0]), "Snohomish")
+  226:   assert_eq(cell_to_display(result.columns[4].cells[0]), "1")
+  227: }
+  228: 
+  229: ///|
+  230: test "snapshot: checkpoint-only table is rejected, not silently empty" {
+  231:   let root = "_build/test-tmp/table-checkpoint-only"
+  232:   reset_dir(root)
+  233:   ensure_dir(root) catch {
+  234:     _ => ()
+  235:   }
+  236:   ensure_dir(root + "/_delta_log") catch {
+  237:     _ => ()
+  238:   }
+  239:   write_text(
+  240:     root + "/_delta_log/00000000000000000003.json",
+  241:     "{\"protocol\":{\"minReaderVersion\":1,\"minWriterVersion\":1}}\n",
+  242:   ) catch {
+  243:     _ => fail("cannot write fixture")
+  244:   }
+  245:   let message = snapshot_error_of(root)
+  246:   assert_true(message.contains("checkpoint-only"))
+  247: }
+  248: 
+  249: ///|
+  250: test "read: nested parquet column is rejected with a clear error" {
+  251:   let root = "_build/test-tmp/table-nested"
+  252:   reset_dir(root)
+  253:   ensure_dir(root) catch {
+  254:     _ => ()
+  255:   }
+  256:   ensure_dir(root + "/_delta_log") catch {
+  257:     _ => ()
+  258:   }
+  259:   let bytes = @fs.read_file_to_bytes("fixtures/parquet/list_columns.parquet") catch {
+  260:     _ => {
+  261:       fail("fixture missing")
+  262:       return
+  263:     }
+  264:   }
+  265:   @fs.write_bytes_to_file(root + "/data.parquet", bytes) catch {
+  266:     _ => {
+  267:       fail("cannot copy fixture")
+  268:       return
+  269:     }
+  270:   }
+  271:   let schema_json = "{\"type\":\"struct\",\"fields\":[{\"name\":\"int64_list\",\"type\":{\"type\":\"array\",\"elementType\":\"long\",\"containsNull\":true},\"nullable\":true,\"metadata\":{}}]}"
+  272:   let meta = "{\"metaData\":{\"id\":\"x\",\"format\":{\"provider\":\"parquet\",\"options\":{}},\"schemaString\":" +
+  273:     json_string(schema_json) +
+  274:     ",\"partitionColumns\":[],\"configuration\":{}}}"
+  275:   let add = "{\"add\":{\"path\":\"data.parquet\",\"partitionValues\":{},\"size\":2526,\"modificationTime\":0,\"dataChange\":true}}"
+  276:   write_text(
+  277:     root + "/_delta_log/00000000000000000000.json",
+  278:     meta + "\n" + add + "\n",
+  279:   ) catch {
+  280:     _ => ()
+  281:   }
+  282:   let table = DeltaTable::open(root) catch {
+  283:     err => {
+  284:       fail("\{err}")
+  285:       return
+  286:     }
+  287:   }
+  288:   let snapshot = table.snapshot() catch {
+  289:     err => {
+  290:       fail("\{err}")
+  291:       return
+  292:     }
+  293:   }
+  294:   let message = read_error_of(root, snapshot)
+  295:   assert_true(message.contains("nested column"))
+  296: }
+  297: 
+  298: ///|
+  299: test "write: create + append + read back (int64/string, nullable)" {
+  300:   let root = "_build/test-tmp/table-write"
+
+----- T24 create 非法 schema (exit=0)
+created Delta table at artifacts/acceptance/tmp/created-bad (version 0)
+----- 随后 inspect (exit=0)
+error: parse error: invalid schema JSON
+
+----- T26 interop_flat_writer 写出 (exit=0)
+created version 0 at artifacts/acceptance/tmp/appended-check
+appended batch1 => version 1
+appended batch2 => version 2
+self-check: version=2 files=2 rows=5
+  file: part-0000-1750000000000-1.parquet size=297 stats={"numRecords":3,"minValues":{"id":1},"maxValues":{"id":3}}
+  file: part-0000-1750000001000-2.parquet size=280 stats={"numRecords":2,"minValues":{"id":4},"maxValues":{"id":5}}
+----- inspect appended-check (exit=0)
+table            : artifacts/acceptance/tmp/appended-check
+current version  : 2  (log versions: 3)
+files            : 2  rows: 5  bytes: 577
+protocol         : reader=1 writer=2
+format           : parquet
+partition columns: (none)
+schema:
+  id: long (not null)
+  name: string
+  active: boolean
+----- read appended-check (exit=0)
+read 2 file(s), 5 row(s), version 2
+id (long) | name (string) | active (boolean)
+1 | alice | true
+2 | NULL | false
+3 | bob | NULL
+4 | carol | true
+5 | NULL | NULL
+----- 覆盖前 v2 add: {"commitInfo":{"timestamp":1750000001000,"operation":"WRITE","operationParameters":{"mode":"Append","partitionBy":"[]"},"isolationLevel":"Serializable","isBlindAppend":true,"engineInfo":"moondelta-core"}}
+{"add":{"path":"part-0000-1750000001000-2.parquet","partitionValues":{},"size":280,"modificationTime":1750000001000,"dataChange":true,"stats":"{\"numRecords\":2,\"minValues\":{\"id\":4},\"maxValues\":{\"id\":5}}"}}
+
+
+----- T25 create 覆盖已有表 (exit=0)
+created Delta table at artifacts/acceptance/tmp/appended-check (version 0)
+----- 覆盖后 inspect (exit=0)
+table            : artifacts/acceptance/tmp/appended-check
+current version  : 2  (log versions: 3)
+files            : 2  rows: 5  bytes: 577
+protocol         : reader=1 writer=2
+format           : parquet
+partition columns: (none)
+schema:
+  id: long (not null)
+----- 覆盖后 read（预期静默只读 id、旧列消失）(exit=0)
+read 2 file(s), 5 row(s), version 2
+id (long)
+1
+2
+3
+4
+5
+
+----- D2 交叉证据文件
+  f_probe_reader2_inspect.cmd.txt :: E:\Project\Moonbit Hackson\P1 RE\_build\native\debug\build\cmd\delta\delta.exe inspect artifacts/interop-flat/probe/protocol-reader2 |
+  f_probe_reader2_inspect.exit.txt :: 0 |
+  f_probe_reader2_inspect.stdout.txt :: table            : artifacts/interop-flat/probe/protocol-reader2 | current version  : 0  (log versions: 1) | files            : 1  rows: 1  bytes: 960 | protocol         : reader=2 writer=5 | format           : parquet | partition columns: (none) | schema: |   id: long (not null) |   name: string |   active: boolean |
+  f_probe_reader2_read.cmd.txt :: E:\Project\Moonbit Hackson\P1 RE\_build\native\debug\build\cmd\delta\delta.exe read artifacts/interop-flat/probe/protocol-reader2 |
+  f_probe_reader2_read.exit.txt :: 0 |
+  f_probe_reader2_read.stdout.txt :: read 1 file(s), 1 row(s), version 0 | id (long) | name (string) | active (boolean) | 1 | probe | true |
+----- D2 probe/protocol-reader2 protocol log

@@ -1,0 +1,5 @@
+{"commitInfo":{"timestamp":0,"operation":"CREATE TABLE","operationParameters":{},"engineInfo":"protocol-audit-fixture"}}
+{"protocol":{"minReaderVersion":1,"minWriterVersion":1}}
+{"metaData":{"id":"fixture","format":{"provider":"parquet","options":{}},"schemaString":"{\"type\":\"struct\",\"fields\":[{\"name\":\"id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{}},{\"name\":\"name\",\"type\":\"string\",\"nullable\":true,\"metadata\":{}},{\"name\":\"ok\",\"type\":\"boolean\",\"nullable\":true,\"metadata\":{}}]}","partitionColumns":[],"configuration":{},"createdTime":0}}
+{"add":{"path":"a.parquet","partitionValues":{},"size":886,"modificationTime":0,"dataChange":true,"stats":"{\"numRecords\":2,\"minValues\":{\"id\":1,\"name\":\"a\",\"ok\":false},\"maxValues\":{\"id\":2,\"name\":\"b\",\"ok\":true},\"nullCount\":{\"id\":0,\"name\":0,\"ok\":0}}"}}
+{"add":{"path":"b.parquet","partitionValues":{},"size":886,"modificationTime":0,"dataChange":true,"stats":"{\"numRecords\":2,\"minValues\":{\"id\":10,\"name\":\"x\",\"ok\":true},\"maxValues\":{\"id\":11,\"name\":\"z\",\"ok\":true},\"nullCount\":{\"id\":0,\"name\":0,\"ok\":0}}"}}

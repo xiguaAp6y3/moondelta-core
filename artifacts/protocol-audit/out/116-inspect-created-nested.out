@@ -1,0 +1,16 @@
+### 116-inspect-created-nested
+$ delta.exe inspect artifacts/protocol-audit/fixtures/cli-nested
+[exit code: 0]
+--- stdout ---
+table            : artifacts/protocol-audit/fixtures/cli-nested
+current version  : 0  (log versions: 1)
+files            : 0  rows: 0  bytes: 0
+protocol         : reader=1 writer=2
+format           : parquet
+partition columns: (none)
+schema:
+  id: long
+  tags: array
+--- stderr ---
+
+

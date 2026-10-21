@@ -1,0 +1,3 @@
+{"protocol": {"minReaderVersion": 1, "minWriterVersion": 1}}
+{"metaData": {"id": "fixture", "format": {"provider": "parquet", "options": {}}, "schemaString": "{\"type\":\"struct\",\"fields\":[{\"name\":\"id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{}}]}", "partitionColumns": [], "configuration": {}, "createdTime": 0}}
+{"add": {"size": 10, "dataChange": true}}

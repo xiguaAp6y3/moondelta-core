@@ -1,0 +1,206 @@
+# 代码证据索引（Select-String 原始输出，行号为文件内 1-based 行号）
+# 生成时间: 2026-10-20T20:22:13.1662320+08:00
+
+## 1) protocol 解析与缺省（src/actions.mbt:15-25）
+E:\Project\Moonbit Hackson\P1 RE\src\actions.mbt:15: fn parse_protocol(j : Json) -> Protocol {
+E:\Project\Moonbit Hackson\P1 RE\src\actions.mbt:16: let min_reader = match json_field_int(j, "minReaderVersion") {
+E:\Project\Moonbit Hackson\P1 RE\src\actions.mbt:17: Some(v) => v
+E:\Project\Moonbit Hackson\P1 RE\src\actions.mbt:18: None => 1
+E:\Project\Moonbit Hackson\P1 RE\src\actions.mbt:20: let min_writer = match json_field_int(j, "minWriterVersion") {
+E:\Project\Moonbit Hackson\P1 RE\src\actions.mbt:21: Some(v) => v
+E:\Project\Moonbit Hackson\P1 RE\src\actions.mbt:22: None => 1
+E:\Project\Moonbit Hackson\P1 RE\src\actions.mbt:79: Some(v) => v
+E:\Project\Moonbit Hackson\P1 RE\src\actions.mbt:83: Some(v) => v
+E:\Project\Moonbit Hackson\P1 RE\src\actions.mbt:148: UnknownAction("unrecognized action")
+
+## 2) 未知 action 的识别与回放时忽略（src/actions.mbt:148、src/snapshot.mbt:137-149）
+E:\Project\Moonbit Hackson\P1 RE\src\actions.mbt:129: Some(p) => return ProtocolAction(parse_protocol(p))
+E:\Project\Moonbit Hackson\P1 RE\src\actions.mbt:133: Some(m) => return MetaDataAction(parse_metadata(m))
+E:\Project\Moonbit Hackson\P1 RE\src\actions.mbt:137: Some(a) => return AddAction(parse_add(a))
+E:\Project\Moonbit Hackson\P1 RE\src\actions.mbt:141: Some(r) => return RemoveAction(parse_remove(r))
+E:\Project\Moonbit Hackson\P1 RE\src\actions.mbt:145: Some(c) => return CommitInfoAction(parse_commit_info(c, version))
+E:\Project\Moonbit Hackson\P1 RE\src\actions.mbt:148: UnknownAction("unrecognized action")
+E:\Project\Moonbit Hackson\P1 RE\src\snapshot.mbt:138: ProtocolAction(p) => protocol = p
+E:\Project\Moonbit Hackson\P1 RE\src\snapshot.mbt:139: MetaDataAction(m) => metadata = m
+E:\Project\Moonbit Hackson\P1 RE\src\snapshot.mbt:140: AddAction(f) => upsert_file(files, f)
+E:\Project\Moonbit Hackson\P1 RE\src\snapshot.mbt:141: RemoveAction(r) => drop_file(files, r.path)
+E:\Project\Moonbit Hackson\P1 RE\src\snapshot.mbt:142: CommitInfoAction(c) =>
+E:\Project\Moonbit Hackson\P1 RE\src\snapshot.mbt:148: UnknownAction(_) => ()
+
+## 3) 回放起点/版本范围/缺版本（src/snapshot.mbt:107-128、src/log.mbt:78-95）
+E:\Project\Moonbit Hackson\P1 RE\src\snapshot.mbt:111: if versions[0] != 0 {
+E:\Project\Moonbit Hackson\P1 RE\src\snapshot.mbt:113: "log starts at version \{versions[0]}; checkpoint-only or truncated tables are not supported (replay requires the initial log entries)",
+E:\Project\Moonbit Hackson\P1 RE\src\snapshot.mbt:123: "requested version \{target_version} is out of range (latest = \{latest})",
+E:\Project\Moonbit Hackson\P1 RE\src\snapshot.mbt:126: if !versions.contains(target_version) {
+E:\Project\Moonbit Hackson\P1 RE\src\log.mbt:83: "log version \{version} is missing (checkpoint-only or truncated table?)",
+
+## 4) checkpoint 仅识别、不解析（src/log.mbt:99-129、src/snapshot.mbt:195-202）
+E:\Project\Moonbit Hackson\P1 RE\src\log.mbt:99: pub fn checkpoint_info(root : String) -> CheckpointInfo? raise DeltaError {
+E:\Project\Moonbit Hackson\P1 RE\src\log.mbt:116: /// 是否存在 checkpoint 文件（`.checkpoint.parquet`）
+E:\Project\Moonbit Hackson\P1 RE\src\log.mbt:117: pub fn has_checkpoint_file(root : String) -> Bool {
+E:\Project\Moonbit Hackson\P1 RE\src\log.mbt:124: if name.has_suffix(".checkpoint.parquet") {
+E:\Project\Moonbit Hackson\P1 RE\src\snapshot.mbt:199: let cp = checkpoint_info(self.root)
+
+## 5) schema 类型解析与拒绝（src/schema.mbt:36-131）
+E:\Project\Moonbit Hackson\P1 RE\src\schema.mbt:16: /// 解析 `decimal(p,s)` 形式
+E:\Project\Moonbit Hackson\P1 RE\src\schema.mbt:18: let body = s.replace(old="decimal(", new="")
+E:\Project\Moonbit Hackson\P1 RE\src\schema.mbt:22: DecimalType(
+E:\Project\Moonbit Hackson\P1 RE\src\schema.mbt:27: UnknownType(raw=s)
+E:\Project\Moonbit Hackson\P1 RE\src\schema.mbt:34: /// 扁平原始类型按名字映射；`struct` / `array` / `map` 统一标记为 `NestedType`，
+E:\Project\Moonbit Hackson\P1 RE\src\schema.mbt:60: UnknownType(raw=s)
+E:\Project\Moonbit Hackson\P1 RE\src\schema.mbt:66: NestedType(kind~)
+E:\Project\Moonbit Hackson\P1 RE\src\schema.mbt:68: UnknownType(raw=kind)
+E:\Project\Moonbit Hackson\P1 RE\src\schema.mbt:70: None => UnknownType(raw="<missing type>")
+E:\Project\Moonbit Hackson\P1 RE\src\schema.mbt:113: pub fn ensure_readable_schema(schema : DeltaSchema) -> Unit raise DeltaError {
+E:\Project\Moonbit Hackson\P1 RE\src\schema.mbt:116: NestedType(kind~) =>
+E:\Project\Moonbit Hackson\P1 RE\src\schema.mbt:118: "nested column '\{f.name}' (type=\{kind}) is not supported by the parquet reader; only flat schemas are readable",
+E:\Project\Moonbit Hackson\P1 RE\src\schema.mbt:120: UnknownType(raw~) =>
+E:\Project\Moonbit Hackson\P1 RE\src\schema.mbt:122: "unsupported delta type '\{raw}' for column '\{f.name}'",
+E:\Project\Moonbit Hackson\P1 RE\src\schema.mbt:124: DecimalType(precision~, scale~) =>
+E:\Project\Moonbit Hackson\P1 RE\src\schema.mbt:126: "decimal(\{precision},\{scale}) column '\{f.name}' is not supported (logical type is lost by the reader)",
+E:\Project\Moonbit Hackson\P1 RE\src\schema.mbt:135: pub fn is_writable_type(ty : DeltaType) -> Bool {
+
+## 6) 读取路径错误映射/列定位/分区补齐（src/read.mbt:31-43,69-114,122-190）
+E:\Project\Moonbit Hackson\P1 RE\src\read.mbt:31: fn convert_cell(v : @parquet.Value) -> Cell {
+E:\Project\Moonbit Hackson\P1 RE\src\read.mbt:69: fn cell_from_partition(ty : DeltaType, raw : String) -> Cell raise DeltaError {
+E:\Project\Moonbit Hackson\P1 RE\src\read.mbt:98: BooleanType => CellBool(raw == "true")
+E:\Project\Moonbit Hackson\P1 RE\src\read.mbt:122: pub fn read_snapshot(
+E:\Project\Moonbit Hackson\P1 RE\src\read.mbt:127: ensure_readable_schema(snapshot.metadata.schema)
+E:\Project\Moonbit Hackson\P1 RE\src\read.mbt:144: let pf = @parquet.read_file(path) catch {
+E:\Project\Moonbit Hackson\P1 RE\src\read.mbt:145: @parquet.Unsupported(msg) =>
+E:\Project\Moonbit Hackson\P1 RE\src\read.mbt:147: @parquet.InvalidData(msg) =>
+E:\Project\Moonbit Hackson\P1 RE\src\read.mbt:149: @parquet.Io(msg) => raise DeltaError::IoError(msg)
+E:\Project\Moonbit Hackson\P1 RE\src\read.mbt:181: "column '\{field.name}' is missing from parquet file '\{file.path}'",
+
+## 7) 扫描剪枝（src/scan.mbt:36-124）
+E:\Project\Moonbit Hackson\P1 RE\src\scan.mbt:4: EqV
+E:\Project\Moonbit Hackson\P1 RE\src\scan.mbt:6: GeV
+E:\Project\Moonbit Hackson\P1 RE\src\scan.mbt:29: skipped_partition : Int32
+E:\Project\Moonbit Hackson\P1 RE\src\scan.mbt:30: skipped_stats : Int32
+E:\Project\Moonbit Hackson\P1 RE\src\scan.mbt:36: fn partition_matches(f : AddFile, wanted : Array[(String, String)]) -> Bool {
+E:\Project\Moonbit Hackson\P1 RE\src\scan.mbt:54: fn min_max_for_column(stats : String?, column : String) -> (Double?, Double?) {
+E:\Project\Moonbit Hackson\P1 RE\src\scan.mbt:81: fn stats_prunes(f : AddFile, pred : ColumnPredicate) -> Bool {
+E:\Project\Moonbit Hackson\P1 RE\src\scan.mbt:86: EqV => mx < pred.value || mn > pred.value
+E:\Project\Moonbit Hackson\P1 RE\src\scan.mbt:88: GeV => mx < pred.value
+E:\Project\Moonbit Hackson\P1 RE\src\scan.mbt:92: _ => false
+E:\Project\Moonbit Hackson\P1 RE\src\scan.mbt:101: let mut skipped_partition = 0
+E:\Project\Moonbit Hackson\P1 RE\src\scan.mbt:102: let mut skipped_stats = 0
+E:\Project\Moonbit Hackson\P1 RE\src\scan.mbt:107: skipped_partition = skipped_partition + 1
+E:\Project\Moonbit Hackson\P1 RE\src\scan.mbt:115: skipped_stats = skipped_stats + 1
+E:\Project\Moonbit Hackson\P1 RE\src\scan.mbt:123: { files, skipped_partition, skipped_stats, matched_rows, matched_bytes, }
+
+## 8) 写入路径校验与固定 Optional/stats（src/write.mbt:107-136,165-185,190-271）
+E:\Project\Moonbit Hackson\P1 RE\src\write.mbt:45: fn parquet_type_of(ty : DeltaType) -> @parquet.ColumnType raise DeltaError {
+E:\Project\Moonbit Hackson\P1 RE\src\write.mbt:107: fn build_stats_json(columns : Array[ReadColumn], row_count : Int32) -> String {
+E:\Project\Moonbit Hackson\P1 RE\src\write.mbt:174: let protocol = "{\"protocol\":{\"minReaderVersion\":1,\"minWriterVersion\":2}}"
+E:\Project\Moonbit Hackson\P1 RE\src\write.mbt:199: "append to partitioned tables is not supported yet (MVP writes only unpartitioned tables)",
+E:\Project\Moonbit Hackson\P1 RE\src\write.mbt:205: "append: expected \{schema_fields.length()} columns, got \{columns.length()}",
+E:\Project\Moonbit Hackson\P1 RE\src\write.mbt:213: raise DeltaError::ParseError("append: column lengths differ")
+E:\Project\Moonbit Hackson\P1 RE\src\write.mbt:227: @parquet.new_column(c.name, parquet_type_of(c.type_), @parquet.Optional),
+E:\Project\Moonbit Hackson\P1 RE\src\write.mbt:247: let next_version = snapshot.version + 1
+E:\Project\Moonbit Hackson\P1 RE\src\write.mbt:248: let file_name = "part-0000-\{timestamp}-\{next_version}.parquet"
+E:\Project\Moonbit Hackson\P1 RE\src\write.mbt:253: let stats = build_stats_json(columns, row_count)
+E:\Project\Moonbit Hackson\P1 RE\src\write.mbt:265: ",\"dataChange\":true,\"stats\":" +
+E:\Project\Moonbit Hackson\P1 RE\src\write.mbt:266: json_string(stats) +
+E:\Project\Moonbit Hackson\P1 RE\src\write.mbt:269: write_text(log_dir(root) + "/" + version_file_name(next_version), content)
+E:\Project\Moonbit Hackson\P1 RE\src\write.mbt:270: next_version
+
+## 9) CLI 错误处理（src/cmd/delta/main.mbt:44-46 及所有 catch）
+E:\Project\Moonbit Hackson\P1 RE\src\cmd\delta\main.mbt:3: println("moondelta-core 0.1.0 — MoonBit Delta Lake table-format kernel")
+E:\Project\Moonbit Hackson\P1 RE\src\cmd\delta\main.mbt:44: fn fail(message : String) -> Unit {
+E:\Project\Moonbit Hackson\P1 RE\src\cmd\delta\main.mbt:45: println("error: " + message)
+E:\Project\Moonbit Hackson\P1 RE\src\cmd\delta\main.mbt:50: let table = @delta.DeltaTable::open(root) catch {
+E:\Project\Moonbit Hackson\P1 RE\src\cmd\delta\main.mbt:53: return
+E:\Project\Moonbit Hackson\P1 RE\src\cmd\delta\main.mbt:56: let inspected = table.inspect() catch {
+E:\Project\Moonbit Hackson\P1 RE\src\cmd\delta\main.mbt:59: return
+E:\Project\Moonbit Hackson\P1 RE\src\cmd\delta\main.mbt:63: let versions = table.versions() catch {
+E:\Project\Moonbit Hackson\P1 RE\src\cmd\delta\main.mbt:66: return
+E:\Project\Moonbit Hackson\P1 RE\src\cmd\delta\main.mbt:116: let table = @delta.DeltaTable::open(root) catch {
+E:\Project\Moonbit Hackson\P1 RE\src\cmd\delta\main.mbt:119: return
+E:\Project\Moonbit Hackson\P1 RE\src\cmd\delta\main.mbt:122: let history = table.history() catch {
+E:\Project\Moonbit Hackson\P1 RE\src\cmd\delta\main.mbt:125: return
+E:\Project\Moonbit Hackson\P1 RE\src\cmd\delta\main.mbt:158: let value = @string.parse_double(right) catch {
+E:\Project\Moonbit Hackson\P1 RE\src\cmd\delta\main.mbt:161: return None
+E:\Project\Moonbit Hackson\P1 RE\src\cmd\delta\main.mbt:164: return Some({ column: left.to_owned(), op, value, })
+E:\Project\Moonbit Hackson\P1 RE\src\cmd\delta\main.mbt:175: let table = @delta.DeltaTable::open(root) catch {
+E:\Project\Moonbit Hackson\P1 RE\src\cmd\delta\main.mbt:178: return
+E:\Project\Moonbit Hackson\P1 RE\src\cmd\delta\main.mbt:181: let snapshot = table.snapshot() catch {
+E:\Project\Moonbit Hackson\P1 RE\src\cmd\delta\main.mbt:184: return
+E:\Project\Moonbit Hackson\P1 RE\src\cmd\delta\main.mbt:199: return
+E:\Project\Moonbit Hackson\P1 RE\src\cmd\delta\main.mbt:237: let table = @delta.DeltaTable::open(root) catch {
+E:\Project\Moonbit Hackson\P1 RE\src\cmd\delta\main.mbt:240: return
+E:\Project\Moonbit Hackson\P1 RE\src\cmd\delta\main.mbt:243: let snapshot = table.snapshot() catch {
+E:\Project\Moonbit Hackson\P1 RE\src\cmd\delta\main.mbt:246: return
+E:\Project\Moonbit Hackson\P1 RE\src\cmd\delta\main.mbt:254: @string.parse_int(rest[i + 1], base=10) catch {
+E:\Project\Moonbit Hackson\P1 RE\src\cmd\delta\main.mbt:257: return
+E:\Project\Moonbit Hackson\P1 RE\src\cmd\delta\main.mbt:266: let result = @delta.read_snapshot(root, snapshot, limit) catch {
+E:\Project\Moonbit Hackson\P1 RE\src\cmd\delta\main.mbt:269: return
+E:\Project\Moonbit Hackson\P1 RE\src\cmd\delta\main.mbt:303: return
+E:\Project\Moonbit Hackson\P1 RE\src\cmd\delta\main.mbt:307: @delta.read_text(schema_arg) catch {
+E:\Project\Moonbit Hackson\P1 RE\src\cmd\delta\main.mbt:310: return
+E:\Project\Moonbit Hackson\P1 RE\src\cmd\delta\main.mbt:328: let version = @delta.create_table(root, schema_json, partitions) catch {
+E:\Project\Moonbit Hackson\P1 RE\src\cmd\delta\main.mbt:331: return
+E:\Project\Moonbit Hackson\P1 RE\src\cmd\delta\main.mbt:344: return
+E:\Project\Moonbit Hackson\P1 RE\src\cmd\delta\main.mbt:349: println("moondelta-core 0.1.0")
+
+## 10) 负向证据：src/ 内完全没有出现的 feature/action 关键字（无输出即不存在）
+pattern 'readerFeatures' => 0 match(es)
+pattern 'writerFeatures' => 0 match(es)
+pattern 'deletionVector' => 0 match(es)
+pattern 'columnMapping' => 0 match(es)
+pattern 'delta.columnMapping' => 0 match(es)
+pattern 'enableChangeDataFeed' => 0 match(es)
+pattern 'domainMetadata' => 0 match(es)
+pattern '"txn"' => 0 match(es)
+pattern '"cdc"' => 0 match(es)
+pattern '"sidecar"' => 0 match(es)
+pattern 'MERGE' => 0 match(es)
+pattern 'UPDATE' => 0 match(es)
+
+## 11) DeltaError 闭集（src/types.mbt:129-144）
+E:\Project\Moonbit Hackson\P1 RE\src\types.mbt:129: pub(all) suberror DeltaError {
+E:\Project\Moonbit Hackson\P1 RE\src\types.mbt:130: IoError(String)
+E:\Project\Moonbit Hackson\P1 RE\src\types.mbt:131: ParseError(String)
+E:\Project\Moonbit Hackson\P1 RE\src\types.mbt:132: Unsupported(String)
+E:\Project\Moonbit Hackson\P1 RE\src\types.mbt:133: NotFound(String)
+E:\Project\Moonbit Hackson\P1 RE\src\types.mbt:137: pub fn describe_error(e : DeltaError) -> String {
+E:\Project\Moonbit Hackson\P1 RE\src\types.mbt:139: IoError(m) => "io error: " + m
+E:\Project\Moonbit Hackson\P1 RE\src\types.mbt:140: ParseError(m) => "parse error: " + m
+E:\Project\Moonbit Hackson\P1 RE\src\types.mbt:141: Unsupported(m) => "unsupported: " + m
+E:\Project\Moonbit Hackson\P1 RE\src\types.mbt:142: NotFound(m) => "not found: " + m
+
+## 12) 14 个测试名（src/delta_wbtest.mbt）
+E:\Project\Moonbit Hackson\P1 RE\src\delta_wbtest.mbt:49: test "schema: parse flat delta schema" {
+E:\Project\Moonbit Hackson\P1 RE\src\delta_wbtest.mbt:67: test "schema: nested type is marked and rejected with a clear error" {
+E:\Project\Moonbit Hackson\P1 RE\src\delta_wbtest.mbt:80: test "actions: parse protocol and metadata from real log line" {
+E:\Project\Moonbit Hackson\P1 RE\src\delta_wbtest.mbt:119: test "log: table_a exposes 13 versions with 20-digit names" {
+E:\Project\Moonbit Hackson\P1 RE\src\delta_wbtest.mbt:138: test "snapshot: replay 13 versions to 120 files and time travel" {
+E:\Project\Moonbit Hackson\P1 RE\src\delta_wbtest.mbt:174: test "scan: stats pruning selects 60 of 120 files for id>=60" {
+E:\Project\Moonbit Hackson\P1 RE\src\delta_wbtest.mbt:200: test "read: real Databricks-written covid table (snappy parquet)" {
+E:\Project\Moonbit Hackson\P1 RE\src\delta_wbtest.mbt:230: test "snapshot: checkpoint-only table is rejected, not silently empty" {
+E:\Project\Moonbit Hackson\P1 RE\src\delta_wbtest.mbt:250: test "read: nested parquet column is rejected with a clear error" {
+E:\Project\Moonbit Hackson\P1 RE\src\delta_wbtest.mbt:299: test "write: create + append + read back (int64/string, nullable)" {
+E:\Project\Moonbit Hackson\P1 RE\src\delta_wbtest.mbt:420: test "write: boolean and double columns roundtrip" {
+E:\Project\Moonbit Hackson\P1 RE\src\delta_wbtest.mbt:471: test "read/scan: partitioned table fills partition values and filters by partition" {
+E:\Project\Moonbit Hackson\P1 RE\src\delta_wbtest.mbt:507: test "scan: files without stats are kept, min==max boundary respected" {
+E:\Project\Moonbit Hackson\P1 RE\src\delta_wbtest.mbt:546: test "read: missing data file raises io error" {
+
+## 13) 测试中名为 checkpoint-only 的用例实际构造的是非 0 起点日志（src/delta_wbtest.mbt:230-247）
+test "snapshot: checkpoint-only table is rejected, not silently empty" {
+  let root = "_build/test-tmp/table-checkpoint-only"
+  reset_dir(root)
+  ensure_dir(root) catch {
+    _ => ()
+  }
+  ensure_dir(root + "/_delta_log") catch {
+    _ => ()
+  }
+  write_text(
+    root + "/_delta_log/00000000000000000003.json",
+    "{\"protocol\":{\"minReaderVersion\":1,\"minWriterVersion\":1}}\n",
+  ) catch {
+    _ => fail("cannot write fixture")
+  }
+  let message = snapshot_error_of(root)
+  assert_true(message.contains("checkpoint-only"))
+}

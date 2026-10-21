@@ -1,0 +1,4 @@
+### delta read artifacts/protocol-audit/fixtures/decimal-schema
+EXIT=0
+error: unsupported: decimal(10,2) column 'price' is not supported (logical type is lost by the reader)
+

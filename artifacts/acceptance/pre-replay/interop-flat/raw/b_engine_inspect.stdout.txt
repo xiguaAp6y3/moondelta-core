@@ -1,0 +1,10 @@
+table            : artifacts/interop-flat/engine-written
+current version  : 1  (log versions: 2)
+files            : 2  rows: 5  bytes: 1949
+protocol         : reader=1 writer=2
+format           : parquet
+partition columns: (none)
+schema:
+  id: long (not null)
+  name: string
+  active: boolean

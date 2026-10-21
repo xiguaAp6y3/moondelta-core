@@ -1,0 +1,34 @@
+### D1 矩阵计数与绝对化措辞核对
+矩阵行总数: 138
+  P: 28 行 => 不得报“列缺失”=1, 5 类各一个 fixture=1, **静默忽略**（字段被丢弃）=1, `Unsupported`/`ParseError`=1, **静默默认** reader=1/writer=1=1, 不得出现 `rows: 0` 冒充=1, 无（不校验）=1, `Unsupported`/`ParseError` 含列名=1, 构造 v0..v9 + checkpoint v10 + `_last_checkpoint`，断言错误含 `checkpoint`/`truncated`=1, **静默默认 1**=2, 正常=2, **静默接受**=4, 错误含文件名/规范说明=1, 不剪枝；不误剪=1, 抛 `Unsupported`/`ParseError`，且不写新版本=1, 至少 3 个错误场景=1, 错误含 `columnMapping`=1, 不覆盖 v0=1, `cdc`/`txn` 至少产生 `Unsupported` 或可观测告警=1, 错误含 `deletionVector` 或 `unsupported`，不得返回行=1, **静默返回空快照**=1, `snapshot_error_of` 含 `unsupported` 且含 `reader`/feature 名=1, 错误/0 文件行为按修正后定=1
+  L: 19 行 => 可能被当作 version 0=1, 正常（ParseError）=3, 正常=8, **静默忽略**=1, **静默丢弃**：`inspect` 行数变 0，`scan` 不剪枝=1, **静默默认 0/0/true**=1, 正常（Unsupported）=1, 中途报错时已应用的 action 不向前传播（`raise`）=1, **宽松发现 + 固定路径读取 → 误导性 NotFound**=1, 正常（NotFound）=1
+  C: 7 行 => **静默返回旧快照**（v9、90 文件），无 error=1, 不识别（后缀匹配严格）=1, 正常=1, 结构化 NotFound，但消息为“has no log entries”=1, 无实现=1, 正常（仅提示）=1, **静默忽略**（返回 None）=1
+  S: 22 行 => 正常（映射 Int32）=1, inspect 显示 `decimal(10,2)`；read 返回 Unsupported=1, 正常但输出原始天数（18262）=1, **静默默认 false**=1, 映射为 `timestamp`，时区语义丢失=1, ParseError=2, 第二层兜底：`error: unsupported: cannot read 'data.parquet': Repeated columns are not supported yet`=1, **静默读成 Binary 字节，按 string 输出乱码**=1, 同上（kind=map）=1, parse/inspect 只识别 kind，read 明确拒绝并含列名+kind=1, 只报顶层字段名 + kind，不含深路径（如 `profile.name`）=1, Unsupported=1, 正常（输出微秒整数）=1, 同上（kind=array）=1, 正常=5, 正常（CellBin）=1, inspect 显示 `unknown(uuid)`；read 返回 Unsupported=1
+  Q: 16 行 => **静默忽略**=1, IoError，但**消息不含文件路径**=1, 正常（int32 天数）=1, `Unsupported parquet codec: 2`=1, **静默转换**：`id: long` 读出 `abc`=1, ParseError，含路径与原因=1, `Unsupported parquet codec: 6`，带文件路径=1, `Repeated columns are not supported yet`=1, 每个文件整读=1, 正常（转 `TimestampMicros`）=1, PLAIN dictionary 之外有明确 Unsupported=1, `Unsupported parquet codec: 4`=1, Unsupported，含列名与文件名=1, 正常=2, `Unsupported parquet codec: 7`=1
+  T: 40 行 => 未识别；读列缺失时报 Unsupported（原因错）=1, **静默成功写日志**，之后 snapshot 才失败=1, **静默返回 0 个文件**=1, **静默覆盖 v0**，schema 漂移，后续读静默丢列=1, 正常（0 file/0 row）=1, **静默忽略，读全量（含已删除行）**=1, 仅本地 `@fs`=1, 正常（只读到满足 limit 的文件）=1, 无=1, **静默忽略**（配置与 action 都不报错）=1, 正常拒绝（ParseError）=1, null 被丢弃 → 读时误报“列缺失”=1, **静默写错**=1, NotFound=2, 恒写 `Optional`，与 schema `nullable=false` 不一致=1, **静默跳过**（历史出现空洞）=1, 无（用 `snapshot.version+1` 直接写）=1, **静默写入 NULL**=1, **静默追加**=1, 不剪枝=1, **打印 error 后继续无过滤扫描，退出 0**=1, 结构化 Unsupported=1, 正常（不剪枝）=1, 无实现=1, 安全地不剪枝（`json_as_double` 得 None）=1, 正常=13, 只写 `numRecords` + 数值列 min/max；无 `nullCount`、无 string/bool min/max=1
+  E: 6 行 => scan 伪分区 0 文件；stats object `rows: 0`；DV 多读行；history 空=1, 121 次运行 0 panic；仅 3 个 `out` 的 stderr 非空且都是 `moon` 的 warning（[probe-library](protocol-audit/out/probe-library.out)、[out/120](protocol-audit/out/120-moon-run-interop-writer.out)、[out/127](protocol-audit/out/127-moon-run-read-covid-example.out)）=1, **恒为 0**：121 次带退出码的运行（含全部 error 场景）全部 `[exit code: 0]`=1, 正常=1, 打印 usage，退出 0=1, 部分（多数场景满足）=1
+结论分布: 正常（0 file/0 row）=1, 部分（多数场景满足）=1, 正常=32, **静默默认 1**=2, 正常（转 `TimestampMicros`）=1, `Unsupported parquet codec: 4`=1, **静默接受**=4, 错误/0 文件行为按修正后定=1, 正常（CellBin）=1, **静默返回空快照**=1, scan 伪分区 0 文件；stats object `rows: 0`；DV 多读行；history 空=1, 错误含 `deletionVector` 或 `unsupported`，不得返回行=1, 无（不校验）=1, 至少 3 个错误场景=1, **静默忽略，读全量（含已删除行）**=1, 不剪枝=1, 正常（ParseError）=3, 不覆盖 v0=1, **静默返回 0 个文件**=1, ParseError=2, 正常（int32 天数）=1, **静默追加**=1, **打印 error 后继续无过滤扫描，退出 0**=1, **静默写错**=1, inspect 显示 `unknown(uuid)`；read 返回 Unsupported=1, 正常拒绝（ParseError）=1, **静默丢弃**：`inspect` 行数变 0，`scan` 不剪枝=1, **恒为 0**：121 次带退出码的运行（含全部 error 场景）全部 `[exit code: 0]`=1, **静默忽略**（返回 None）=1, 只报顶层字段名 + kind，不含深路径（如 `profile.name`）=1, 安全地不剪枝（`json_as_double` 得 None）=1, **静默忽略**=2, **静默写入 NULL**=1, **静默默认** reader=1/writer=1=1, **静默读成 Binary 字节，按 string 输出乱码**=1, 同上（kind=array）=1, 无（用 `snapshot.version+1` 直接写）=1, 仅本地 `@fs`=1, 正常（只读到满足 limit 的文件）=1, `Unsupported parquet codec: 2`=1, `Unsupported`/`ParseError`=1, **静默覆盖 v0**，schema 漂移，后续读静默丢列=1, 不剪枝；不误剪=1, 正常（仅提示）=1, Unsupported=1, 只写 `numRecords` + 数值列 min/max；无 `nullCount`、无 string/bool min/max=1, 结构化 NotFound，但消息为“has no log entries”=1, Unsupported，含列名与文件名=1, **静默返回旧快照**（v9、90 文件），无 error=1, NotFound=2, 121 次运行 0 panic；仅 3 个 `out` 的 stderr 非空且都是 `moon` 的 warning（[probe-library](protocol-audit/out/probe-library.out)、[out/120](protocol-audit/out/120-moon-run-interop-writer.out)、[out/127](protocol-audit/out/127-moon-run-read-covid-example.out)）=1, IoError，但**消息不含文件路径**=1, ParseError，含路径与原因=1, 同上（kind=map）=1, `Repeated columns are not supported yet`=1, 错误含 `columnMapping`=1, `Unsupported`/`ParseError` 含列名=1, 错误含文件名/规范说明=1, 无实现=2, 正常（NotFound）=1, 恒写 `Optional`，与 schema `nullable=false` 不一致=1, **宽松发现 + 固定路径读取 → 误导性 NotFound**=1, 中途报错时已应用的 action 不向前传播（`raise`）=1, 正常（不剪枝）=1, 不得报“列缺失”=1, **静默忽略**（字段被丢弃）=1, 每个文件整读=1, 映射为 `timestamp`，时区语义丢失=1, parse/inspect 只识别 kind，read 明确拒绝并含列名+kind=1, 结构化 Unsupported=1, 正常（映射 Int32）=1, 可能被当作 version 0=1, `snapshot_error_of` 含 `unsupported` 且含 `reader`/feature 名=1, 正常（Unsupported）=1, 不得出现 `rows: 0` 冒充=1, `cdc`/`txn` 至少产生 `Unsupported` 或可观测告警=1, 正常（输出微秒整数）=1, PLAIN dictionary 之外有明确 Unsupported=1, **静默默认 false**=1, 5 类各一个 fixture=1, 构造 v0..v9 + checkpoint v10 + `_last_checkpoint`，断言错误含 `checkpoint`/`truncated`=1, 抛 `Unsupported`/`ParseError`，且不写新版本=1, 无=1, **静默默认 0/0/true**=1, **静默跳过**（历史出现空洞）=1, 未识别；读列缺失时报 Unsupported（原因错）=1, null 被丢弃 → 读时误报“列缺失”=1, 正常但输出原始天数（18262）=1, `Unsupported parquet codec: 7`=1, **静默忽略**（配置与 action 都不报错）=1, 打印 usage，退出 0=1, 不识别（后缀匹配严格）=1, inspect 显示 `decimal(10,2)`；read 返回 Unsupported=1, `Unsupported parquet codec: 6`，带文件路径=1, **静默成功写日志**，之后 snapshot 才失败=1, **静默转换**：`id: long` 读出 `abc`=1, 第二层兜底：`error: unsupported: cannot read 'data.parquet': Repeated columns are not supported yet`=1
+
+### 绝对化/无证据措辞检索（protocol-audit.md）
+  含 '支持所有 Delta' 行数: 0
+  含 '所有 Delta' 行数: 0
+  含 '任意标准 Delta' 行数: 0
+  含 '完整实现 Delta' 行数: 0
+  含 '已完整支持' 行数: 0
+  含 '完全兼容' 行数: 0
+
+### D1 §8.2 声称 122 个 out 文件 vs 实际
+  实际 out 文件数: 123
+  §8.2 未编入的额外文件: check-warnings-summary.out (用于 §5 #5)
+
+### D1 §8.1 声称 47 个 gen fixture 表 vs 实际
+  fixtures 目录数: 62（47 gen + appended-flat/cli-* 6 + probe-* 9 = 62）
+
+### commands.txt 退出码如实统计
+  命令条目: 131（含 probe 块重复记录）; exit 0: 130; exit 非0: 1
+    非0: probe-library : moon run --target native src/probe (cwd=probe-module) => exit 1
+  out/ 中编号 CLI case 数: 112
+
+### comparison.md 是否写明
+  含
+  原文节选: 统计：已完成 1 / 部分完成 0 / 未完成 6。 /  / ## 结论 /  / - 外部引擎（delta-rs、DuckDB）读取 nested fixture 成功，oracle 逐字段一致； / - 本项目 `read` 在 schema 校验阶段结构化拒绝，未读出任何嵌套行； / - 因此这是**能力缺口对照**，不是互操作通过；不要引用为 nested 兼容证据。 / 

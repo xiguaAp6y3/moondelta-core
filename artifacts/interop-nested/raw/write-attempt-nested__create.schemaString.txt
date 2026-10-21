@@ -1,0 +1,1 @@
+{"type":"struct","fields":[{"name":"id","type":"long","nullable":true,"metadata":{}},{"name":"profile","type":{"type":"struct","fields":[{"name":"name","type":"string","nullable":true,"metadata":{}},{"name":"age","type":"integer","nullable":true,"metadata":{}}]},"nullable":true,"metadata":{}}]}

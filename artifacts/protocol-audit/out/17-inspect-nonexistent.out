@@ -1,0 +1,8 @@
+### 17-inspect-nonexistent
+$ delta.exe inspect artifacts/protocol-audit/fixtures/does-not-exist
+[exit code: 0]
+--- stdout ---
+error: not found: 'artifacts/protocol-audit/fixtures/does-not-exist' is not a Delta table (no _delta_log directory)
+--- stderr ---
+
+

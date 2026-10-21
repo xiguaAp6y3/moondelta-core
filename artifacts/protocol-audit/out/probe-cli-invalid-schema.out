@@ -1,0 +1,8 @@
+### probe-cli-invalid-schema
+$ delta.exe inspect artifacts/protocol-audit/fixtures/probe-created-invalid
+[exit code: 0]
+--- stdout ---
+error: parse error: invalid schema JSON
+--- stderr ---
+
+

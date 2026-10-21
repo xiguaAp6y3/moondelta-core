@@ -1,0 +1,29 @@
+{
+  "fixture": {
+    "name": "write-attempt-nested",
+    "path": "artifacts/interop-nested/write-attempt-nested",
+    "purpose": "补充观察：本项目 `delta create` 对 nested schemaString 不做可写性校验，会生成一张 metadata 声称 nested、但写入路径实际无法 append 的空表；该表自身也无法被本项目的 read 读取。这不属于互操作通过。",
+    "schemaString": "{\"type\":\"struct\",\"fields\":[{\"name\":\"id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{}},{\"name\":\"profile\",\"type\":{\"type\":\"struct\",\"fields\":[{\"name\":\"name\",\"type\":\"string\",\"nullable\":true,\"metadata\":{}},{\"name\":\"age\",\"type\":\"integer\",\"nullable\":true,\"metadata\":{}}]},\"nullable\":true,\"metadata\":{}}]}",
+    "create_stdout": "created Delta table at artifacts/interop-nested/write-attempt-nested (version 0)\r\n",
+    "create_stderr": "",
+    "create_exit_code": 0,
+    "create_stdout_file": "raw/write-attempt-nested__create.stdout.txt",
+    "create_stderr_file": "raw/write-attempt-nested__create.stderr.txt",
+    "create_exit_file": "raw/write-attempt-nested__create.exit.txt",
+    "create_schema_arg_file": "raw/write-attempt-nested__create.schemaString.txt",
+    "created": true
+  },
+  "inspect": {
+    "command": "delta.exe inspect artifacts/interop-nested/write-attempt-nested",
+    "exit_code": 0,
+    "stdout_file": "raw/write-attempt-nested__inspect.stdout.txt",
+    "stdout": "table            : artifacts/interop-nested/write-attempt-nested\r\ncurrent version  : 0  (log versions: 1)\r\nfiles            : 0  rows: 0  bytes: 0\r\nprotocol         : reader=1 writer=2\r\nformat           : parquet\r\npartition columns: (none)\r\nschema:\r\n  id: long\r\n  profile: struct\r\n"
+  },
+  "read": {
+    "command": "delta.exe read artifacts/interop-nested/write-attempt-nested",
+    "exit_code": 0,
+    "stdout_file": "raw/write-attempt-nested__read.stdout.txt",
+    "error_text": "unsupported: nested column 'profile' (type=struct) is not supported by the parquet reader; only flat schemas are readable"
+  },
+  "note": "`delta create` 不校验 schema 可写性，会产出 metadata 声称 nested、但 append 无法写出、自身 read 也拒绝的空表。这不等于写入支持。"
+}

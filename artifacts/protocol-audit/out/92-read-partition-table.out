@@ -1,0 +1,12 @@
+### 92-read-partition-table
+$ delta.exe read artifacts/protocol-audit/fixtures/partition-table
+[exit code: 0]
+--- stdout ---
+read 2 file(s), 3 row(s), version 0
+id (long) | dt (string)
+1 | 2026-01-01
+2 | 2026-01-01
+3 | 2026-01-02
+--- stderr ---
+
+

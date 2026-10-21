@@ -1,0 +1,8 @@
+table            : artifacts/interop-flat/engine-written (version 1)
+total files      : 2
+selected files   : 1
+skipped partition: 0
+skipped stats    : 1
+matched rows     : 2
+matched bytes    : 969
+  - part-00000-7bebe2e8-16af-4e7d-a700-c6010ae0e018-c000.snappy.parquet

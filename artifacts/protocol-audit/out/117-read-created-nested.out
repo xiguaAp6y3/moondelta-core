@@ -1,0 +1,8 @@
+### 117-read-created-nested
+$ delta.exe read artifacts/protocol-audit/fixtures/cli-nested
+[exit code: 0]
+--- stdout ---
+error: unsupported: nested column 'tags' (type=array) is not supported by the parquet reader; only flat schemas are readable
+--- stderr ---
+
+

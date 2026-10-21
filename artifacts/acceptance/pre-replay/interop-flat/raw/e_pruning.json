@@ -1,0 +1,20 @@
+{
+  "engine-written": {
+    "exit": 0,
+    "selected": 1,
+    "skipped_stats": 1,
+    "matched_rows": 2,
+    "files": [
+      "part-00000-291b0f4f-41cb-4fea-897e-80f10e4b3835-c000.snappy.parquet"
+    ]
+  },
+  "moondelta-written": {
+    "exit": 0,
+    "selected": 1,
+    "skipped_stats": 1,
+    "matched_rows": 2,
+    "files": [
+      "part-0000-1750000001000-2.parquet"
+    ]
+  }
+}

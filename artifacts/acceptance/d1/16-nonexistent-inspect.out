@@ -1,0 +1,4 @@
+### _build\native\debug\build\cmd\delta\delta.exe inspect artifacts/acceptance/d1/does-not-exist
+EXIT=0
+error: not found: 'artifacts/acceptance/d1/does-not-exist' is not a Delta table (no _delta_log directory)
+

@@ -1,0 +1,13 @@
+table            : artifacts/interop-nested/checkpoint-nested
+current version  : 0  (log versions: 1)
+files            : 1  rows: 5  bytes: 2279
+protocol         : reader=1 writer=2
+format           : parquet
+partition columns: (none)
+schema:
+  id: long
+  profile: struct
+  tags: array
+  attrs: map
+last checkpoint  : version=0
+note             : checkpoint files exist; checkpoint-only tables are not readable by this kernel

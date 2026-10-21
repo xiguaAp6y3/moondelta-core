@@ -1,0 +1,12 @@
+### 49-read-dup-add-remove
+$ delta.exe read artifacts/protocol-audit/fixtures/dup-add-remove
+[exit code: 0]
+--- stdout ---
+read 1 file(s), 3 row(s), version 4
+id (long)
+1
+2
+3
+--- stderr ---
+
+

@@ -1,0 +1,17 @@
+### 95-scan-stats-string-where
+$ delta.exe scan artifacts/protocol-audit/fixtures/stats-string-bool --where name>=b
+[exit code: 0]
+--- stdout ---
+error: invalid number in --where: name>=b
+table            : artifacts/protocol-audit/fixtures/stats-string-bool (version 0)
+total files      : 2
+selected files   : 2
+skipped partition: 0
+skipped stats    : 0
+matched rows     : 4
+matched bytes    : 1772
+  - a.parquet
+  - b.parquet
+--- stderr ---
+
+

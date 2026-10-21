@@ -1,0 +1,12 @@
+### 66-read-uuid-parquet-logical
+$ delta.exe read artifacts/protocol-audit/fixtures/uuid-parquet-logical
+[exit code: 0]
+--- stdout ---
+read 1 file(s), 3 row(s), version 0
+u (string)
+㄰㌲㔴㜶㤸扡摣晥
+㄰㌲㔴㜶㤸扡摣晥
+㄰㌲㔴㜶㤸扡摣晥
+--- stderr ---
+
+

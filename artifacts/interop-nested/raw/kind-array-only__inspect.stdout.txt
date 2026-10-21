@@ -1,0 +1,9 @@
+table            : artifacts/interop-nested/kind-array-only
+current version  : 0  (log versions: 1)
+files            : 1  rows: 4  bytes: 887
+protocol         : reader=1 writer=2
+format           : parquet
+partition columns: (none)
+schema:
+  id: long
+  tags: array

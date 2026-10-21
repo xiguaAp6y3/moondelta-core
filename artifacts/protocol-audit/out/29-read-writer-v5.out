@@ -1,0 +1,12 @@
+### 29-read-writer-v5
+$ delta.exe read artifacts/protocol-audit/fixtures/writer-v5-features
+[exit code: 0]
+--- stdout ---
+read 1 file(s), 3 row(s), version 0
+id (long)
+1
+2
+3
+--- stderr ---
+
+

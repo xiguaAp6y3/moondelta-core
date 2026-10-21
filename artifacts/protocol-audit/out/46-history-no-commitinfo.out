@@ -1,0 +1,9 @@
+### 46-history-no-commitinfo
+$ delta.exe history artifacts/protocol-audit/fixtures/no-commitinfo
+[exit code: 0]
+--- stdout ---
+version | timestamp     | operation
+--------+---------------+----------
+--- stderr ---
+
+

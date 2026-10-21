@@ -1,0 +1,15 @@
+[PASS] artifacts/protocol-audit.md：链接 401 个全部可解析、代码围栏成对
+[PASS] artifacts/interop-flat/README.md：链接 0 个全部可解析、代码围栏成对
+[PASS] artifacts/interop-nested/README.md：链接 0 个全部可解析、代码围栏成对
+[PASS] artifacts/claim-alignment.md：链接 7 个全部可解析、代码围栏成对
+[PASS] docs/协议兼容性与互操作范围.md：链接 0 个全部可解析、代码围栏成对
+[PASS] D3 哈希抽样 00000000000000000000.json :: size=1718
+[PASS] D3 哈希抽样 part-00000-b9863671-bdd7-45b5-83b1-ebe4eba783dc-c000.snappy.parquet :: size=2279
+[PASS] D3 哈希抽样 00000000000000000000.json :: size=1429
+[PASS] D3 哈希抽样 part-00000-c84eeadc-6a6c-4dbb-8600-70a2a2f409cb-c000.snappy.parquet :: size=1139
+[PASS] D3 哈希抽样 00000000000000000000.json :: size=1189
+[PASS] D3 哈希抽样 part-00000-25e1b114-9d7d-452e-b9cf-fd6797f9e5d4-c000.snappy.parquet :: size=887
+[PASS] D3 哈希抽样 list_columns.parquet :: size=2526
+[PASS] D3 哈希抽样 00000000000000000000.json :: size=774
+[PASS] D3 哈希抽样 list_columns.parquet :: size=2526
+[PASS] checks.csv 行数=56 且状态计数与 results.json 一致 :: rows=56 {'PASS': 49, 'DIFF': 2, 'INFO': 5}

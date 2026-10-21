@@ -1,0 +1,11 @@
+### delta inspect artifacts/protocol-audit/fixtures/unknown-actions
+EXIT=0
+table            : artifacts/protocol-audit/fixtures/unknown-actions
+current version  : 1  (log versions: 2)
+files            : 1  rows: 3  bytes: 500
+protocol         : reader=1 writer=1
+format           : parquet
+partition columns: (none)
+schema:
+  id: long
+

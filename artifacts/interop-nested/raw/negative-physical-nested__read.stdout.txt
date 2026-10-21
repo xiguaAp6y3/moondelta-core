@@ -1,0 +1,1 @@
+error: unsupported: cannot read 'data/list_columns.parquet': Repeated columns are not supported yet

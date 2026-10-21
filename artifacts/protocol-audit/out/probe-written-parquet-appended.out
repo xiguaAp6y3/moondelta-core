@@ -1,0 +1,14 @@
+### appended-flat-parquet
+$ .tools\pyenv\Scripts\python.exe artifacts/protocol-audit/inspect_written.py artifacts/protocol-audit/fixtures/appended-flat/*.parquet
+[exit code: 0]
+artifacts/protocol-audit/fixtures/appended-flat\part-0000-1750000000000-1.parquet
+  num_rows=3 num_columns=3
+  column id: physical/logical type=int64 nullable=True
+  column name: physical/logical type=string nullable=True
+  column active: physical/logical type=bool nullable=True
+
+artifacts/protocol-audit/fixtures/appended-flat\part-0000-1750000001000-2.parquet
+  num_rows=2 num_columns=3
+  column id: physical/logical type=int64 nullable=True
+  column name: physical/logical type=string nullable=True
+  column active: physical/logical type=bool nullable=True

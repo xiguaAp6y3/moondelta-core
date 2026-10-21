@@ -1,0 +1,11 @@
+### _build\native\debug\build\cmd\delta\delta.exe scan artifacts/protocol-audit/fixtures/stats-object --where id>=100
+EXIT=0
+table            : artifacts/protocol-audit/fixtures/stats-object (version 0)
+total files      : 1
+selected files   : 1
+skipped partition: 0
+skipped stats    : 0
+matched rows     : 0
+matched bytes    : 500
+  - data.parquet
+

@@ -1,0 +1,1 @@
+error: unsupported: nested column 'tags' (type=array) is not supported by the parquet reader; only flat schemas are readable

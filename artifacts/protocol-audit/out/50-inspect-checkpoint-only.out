@@ -1,0 +1,8 @@
+### 50-inspect-checkpoint-only
+$ delta.exe inspect artifacts/protocol-audit/fixtures/checkpoint-only
+[exit code: 0]
+--- stdout ---
+error: not found: table 'artifacts/protocol-audit/fixtures/checkpoint-only' has no log entries
+--- stderr ---
+
+

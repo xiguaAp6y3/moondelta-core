@@ -1,0 +1,17 @@
+[PASS] results.verdict 与 README 一致 (pass=49) :: {"pass": 49, "fail": 0, "diff": 2, "info": 5, "blocked": 0}
+[PASS] checks 总数=56 且状态计数一致 :: len=56
+[PASS] README 写 49 PASS / 0 FAIL / 2 DIFF / 5 INFO
+[PASS] moondelta-written protocol reader=1 writer=2 :: reader=1 writer=2
+[PASS] moondelta-written version=2 (3 commits) :: version=2
+[PASS] delta-rs 读 moondelta-written 5 行且逐值一致（多重集/按 id 排序比较） :: [(4, 'carol', True), (5, None, None), (1, 'alice', True), (2, None, False), (3, 'bob', None)]
+[PASS] delta-rs 读 moondelta-written schema = id long NOT NULL/name string/active boolean :: [('id', 'PrimitiveType("long")', False), ('name', 'PrimitiveType("string")', True), ('active', 'PrimitiveType("boolean")', True)]
+[PASS] delta-rs 读 engine-written 5 行且逐值一致（多重集/按 id 排序比较） :: [(4, 'carol', True), (5, None, None), (1, 'alice', True), (2, None, False), (3, 'bob', None)]
+[PASS] engine-written protocol reader=1 writer=2
+[PASS] DuckDB delta_scan(engine-written) 5 行逐值一致 :: [(1, 'alice', True), (2, None, False), (3, 'bob', None), (4, 'carol', True), (5, None, None)]
+[PASS] DuckDB delta_scan(moondelta-written) 5 行逐值一致 :: [(1, 'alice', True), (2, None, False), (3, 'bob', None), (4, 'carol', True), (5, None, None)]
+[PASS] DuckDB delta 扩展可用 :: [('6059958',)]
+[PASS] moondelta-written v0 protocol 原文 = {1,2} :: [{'minReaderVersion': 1, 'minWriterVersion': 2}]
+[PASS] moondelta-written v1 add.stats 仅 numRecords+id min/max（与 README E-DIFF 一致） :: [{'numRecords': 3, 'minValues': {'id': 1}, 'maxValues': {'id': 3}}]
+[PASS] engine-written v0 protocol 原文 = {1,2} :: [{'minReaderVersion': 1, 'minWriterVersion': 2}]
+[PASS] hashes.txt 条目数 = 79 :: n=79
+[PASS] hashes.txt 全部 79 项可重算一致 :: []

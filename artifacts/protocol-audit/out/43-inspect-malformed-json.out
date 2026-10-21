@@ -1,0 +1,8 @@
+### 43-inspect-malformed-json
+$ delta.exe inspect artifacts/protocol-audit/fixtures/malformed-json
+[exit code: 0]
+--- stdout ---
+error: parse error: invalid JSON in _delta_log version 0
+--- stderr ---
+
+

@@ -1,0 +1,15 @@
+### probe-cli-writer-v5
+$ delta.exe inspect artifacts/protocol-audit/fixtures/probe-append-writer-v5
+[exit code: 0]
+--- stdout ---
+table            : artifacts/protocol-audit/fixtures/probe-append-writer-v5
+current version  : 1  (log versions: 2)
+files            : 1  rows: 1  bytes: 125
+protocol         : reader=1 writer=5
+format           : parquet
+partition columns: (none)
+schema:
+  id: long
+--- stderr ---
+
+

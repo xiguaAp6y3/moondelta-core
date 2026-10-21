@@ -1,0 +1,15 @@
+### 97-scan-stats-numeric-where
+$ delta.exe scan artifacts/protocol-audit/fixtures/stats-string-bool --where id>=10
+[exit code: 0]
+--- stdout ---
+table            : artifacts/protocol-audit/fixtures/stats-string-bool (version 0)
+total files      : 2
+selected files   : 1
+skipped partition: 0
+skipped stats    : 1
+matched rows     : 2
+matched bytes    : 886
+  - b.parquet
+--- stderr ---
+
+

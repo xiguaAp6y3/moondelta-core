@@ -1,0 +1,15 @@
+### 06-scan-table-a-id-eq-7
+$ delta.exe scan fixtures/delta/table_a --where id=7
+[exit code: 0]
+--- stdout ---
+table            : fixtures/delta/table_a (version 12)
+total files      : 120
+selected files   : 1
+skipped partition: 0
+skipped stats    : 119
+matched rows     : 1
+matched bytes    : 452
+  - part-00009-9ea59fdf-fc26-4650-a282-9c2cc1906c7c-c000.snappy.parquet
+--- stderr ---
+
+

@@ -1,0 +1,1 @@
+error: unsupported: nested column 'profile' (type=struct) is not supported by the parquet reader; only flat schemas are readable

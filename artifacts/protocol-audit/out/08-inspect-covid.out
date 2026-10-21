@@ -1,0 +1,20 @@
+### 08-inspect-covid
+$ delta.exe inspect fixtures/delta/covid
+[exit code: 0]
+--- stdout ---
+table            : fixtures/delta/covid
+current version  : 0  (log versions: 1)
+files            : 8  rows: 1111930  bytes: 6190485
+protocol         : reader=1 writer=2
+format           : parquet
+partition columns: (none)
+schema:
+  date: string
+  county: string
+  state: string
+  fips: int
+  cases: int
+  deaths: int
+--- stderr ---
+
+

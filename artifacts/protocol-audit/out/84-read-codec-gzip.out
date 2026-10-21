@@ -1,0 +1,8 @@
+### 84-read-codec-gzip
+$ delta.exe read artifacts/protocol-audit/fixtures/codec-gzip
+[exit code: 0]
+--- stdout ---
+error: unsupported: cannot read 'data.parquet': Unsupported parquet codec: 2
+--- stderr ---
+
+

@@ -1,0 +1,8 @@
+### 93-read-partition-null-value
+$ delta.exe read artifacts/protocol-audit/fixtures/partition-null-value
+[exit code: 0]
+--- stdout ---
+error: unsupported: column 'dt' is missing from parquet file 'data.parquet'
+--- stderr ---
+
+

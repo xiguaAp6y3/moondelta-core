@@ -1,0 +1,6 @@
+created version 0 at artifacts/interop-flat/moondelta-written
+appended batch1 => version 1
+appended batch2 => version 2
+self-check: version=2 files=2 rows=5
+  file: part-0000-1750000000000-1.parquet size=297 stats={"numRecords":3,"minValues":{"id":1},"maxValues":{"id":3}}
+  file: part-0000-1750000001000-2.parquet size=280 stats={"numRecords":2,"minValues":{"id":4},"maxValues":{"id":5}}

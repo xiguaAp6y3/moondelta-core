@@ -1,0 +1,12 @@
+### 34-read-unknown-actions
+$ delta.exe read artifacts/protocol-audit/fixtures/unknown-actions
+[exit code: 0]
+--- stdout ---
+read 1 file(s), 3 row(s), version 1
+id (long)
+1
+2
+3
+--- stderr ---
+
+

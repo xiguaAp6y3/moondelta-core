@@ -1,0 +1,8 @@
+### 42-inspect-nonstandard-name
+$ delta.exe inspect artifacts/protocol-audit/fixtures/nonstandard-log-name
+[exit code: 0]
+--- stdout ---
+error: not found: log version 0 is missing (checkpoint-only or truncated table?)
+--- stderr ---
+
+

@@ -1,0 +1,8 @@
+### 110-create-flat
+$ delta.exe create artifacts/protocol-audit/fixtures/cli-created "{\"type\":\"struct\",\"fields\":[{\"name\":\"id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{}},{\"name\":\"name\",\"type\":\"string\",\"nullable\":true,\"metadata\":{}}]}"
+[exit code: 0]
+--- stdout ---
+created Delta table at artifacts/protocol-audit/fixtures/cli-created (version 0)
+--- stderr ---
+
+

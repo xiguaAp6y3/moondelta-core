@@ -1,0 +1,8 @@
+### 76-read-nested-parquet-lie
+$ delta.exe read artifacts/protocol-audit/fixtures/nested-parquet-lie
+[exit code: 0]
+--- stdout ---
+error: unsupported: cannot read 'data.parquet': Repeated columns are not supported yet
+--- stderr ---
+
+

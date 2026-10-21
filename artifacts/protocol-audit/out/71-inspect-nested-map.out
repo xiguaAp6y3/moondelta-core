@@ -1,0 +1,16 @@
+### 71-inspect-nested-map
+$ delta.exe inspect artifacts/protocol-audit/fixtures/nested-map
+[exit code: 0]
+--- stdout ---
+table            : artifacts/protocol-audit/fixtures/nested-map
+current version  : 0  (log versions: 1)
+files            : 1  rows: 2  bytes: 1145
+protocol         : reader=1 writer=1
+format           : parquet
+partition columns: (none)
+schema:
+  id: long
+  attrs: map
+--- stderr ---
+
+

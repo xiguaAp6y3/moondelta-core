@@ -1,0 +1,8 @@
+### 31-read-empty-log
+$ delta.exe read artifacts/protocol-audit/fixtures/empty-log
+[exit code: 0]
+--- stdout ---
+read 0 file(s), 0 row(s), version 0
+--- stderr ---
+
+

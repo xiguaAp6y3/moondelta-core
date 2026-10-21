@@ -1,0 +1,17 @@
+### 51-inspect-checkpoint-truncated
+$ delta.exe inspect artifacts/protocol-audit/fixtures/checkpoint-truncated
+[exit code: 0]
+--- stdout ---
+table            : artifacts/protocol-audit/fixtures/checkpoint-truncated
+current version  : 9  (log versions: 10)
+files            : 90  rows: 90  bytes: 40675
+protocol         : reader=1 writer=1
+format           : parquet
+partition columns: (none)
+schema:
+  id: int
+last checkpoint  : version=10
+note             : checkpoint files exist; checkpoint-only tables are not readable by this kernel
+--- stderr ---
+
+

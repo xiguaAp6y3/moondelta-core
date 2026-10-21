@@ -1,0 +1,76 @@
+repo root: E:\Project\Moonbit Hackson\P1 RE
+
+== Step A: delta-rs д�� flat Delta �� ==
+  [PASS] A:protocol = reader v1 / writer v2 - reader=1 writer=2 writerFeatures=None readerFeatures=None
+  [PASS] A:�����ύ => �汾�� 2 - version=1 log_versions=2��version 0 create+add, version 1 append��
+  [PASS] A:�����ļ��� = 2 - files=['part-00000-7bebe2e8-16af-4e7d-a700-c6010ae0e018-c000.snappy.parquet', 'part-00000-38b46616-d4eb-4392-b3b4-649384aa3c5a-c000.snappy.parquet']
+  [PASS] A:schema ����/˳��/����/nullability - ����/˳��/����/nullability ��ȫһ��
+  [PASS] A:������ = 5 - delta-rs read rows=5
+  [PASS] A:delta-rs ���ص�����ֵ���� null�� - 5 ������ֵ�ϸ�һ�£��� null�������ؼ��Ƚϣ�
+  [PASS] A:ÿ�ļ� add.stats.numRecords �ϼ� = 5 - numRecords=[3, 2]
+  [PASS] A:add.stats �� 3 �� min/max/nullCount - delta-rs Ϊ id/name/active ��д�� minValues��maxValues��nullCount
+  [PASS] A:parquet ���� nullability ���գ�delta-rs: id required�� - delta-rs ����: [{'id': False, 'name': True, 'active': True}, {'id': False, 'name': True, 'active': True}]
+
+== Step B: moondelta CLI ��ȡ delta-rs д���ı� ==
+  [PASS] B:inspect/history/scan/read �˳����Ϊ 0 - {'b_engine_inspect': 0, 'b_engine_history': 0, 'b_engine_scan': 0, 'b_engine_scan_where_id_ge_4': 0, 'b_engine_read': 0}
+  [PASS] B:inspect ��ǰ�汾 = 1 - version=1
+  [PASS] B:inspect ��־�汾�� = 2 - log_versions=2
+  [PASS] B:inspect files/rows = 2/5 - files=2 rows=5 bytes=1949
+  [PASS] B:inspect protocol = reader1/writer2 - protocol=reader=1 writer=2
+  [PASS] B:inspect schema ����/˳��/����/nullability - ����/˳��/����/nullability ��ȫһ��
+  [PASS] B:history �汾����� = [0:WRITE, 1:WRITE] - [{'version': 0, 'operation': 'WRITE'}, {'version': 1, 'operation': 'WRITE'}]
+  [PASS] B:scan ȫ���ļ�/���� = 2/5 - total=2 selected=2 matched_rows=5 skipped_stats=0
+  [PASS] B:scan �ļ��嵥 = ��־ add �ļ��嵥 - scan=['part-00000-38b46616-d4eb-4392-b3b4-649384aa3c5a-c000.snappy.parquet', 'part-00000-7bebe2e8-16af-4e7d-a700-c6010ae0e018-c000.snappy.parquet'] log=['part-00000-38b46616-d4eb-4392-b3b4-649384aa3c5a-c000.snappy.parquet', 'part-00000-7bebe2e8-16af-4e7d-a700-c6010ae0e018-c000.snappy.parquet']
+  [PASS] B:read ��ͷ����/����/˳�� - [('id', 'long'), ('name', 'string'), ('active', 'boolean')]
+  [PASS] B:read �����ļ���/����/�汾 = 2/5/1 - files=2 rows=5 version=1
+  [PASS] B:read ����ֵ�� null �� delta-rs oracle һ�� - 5 ������ֵ�ϸ�һ�£��� null�������ؼ��Ƚϣ�
+  [PASS] B:read ��ֵ vs delta-rs ���� oracle��ͬԴ���գ� - 5 ������ֵ�ϸ�һ�£��� null�������ؼ��Ƚϣ�
+  [PASS] B:scan --where id>=4 �� stats ���� 1 ���ļ������� 2 �� - skipped_stats=1 selected=1 matched_rows=2 files=['part-00000-7bebe2e8-16af-4e7d-a700-c6010ae0e018-c000.snappy.parquet'] �����ļ�=['part-00000-7bebe2e8-16af-4e7d-a700-c6010ae0e018-c000.snappy.parquet']
+  [PASS] B:scan matched rows �� add.stats.numRecords һ�� - numRecords=[3, 2]
+  [PASS] B:nullability: Delta schema NOT NULL �� CLI ʶ��Ϊ not null - inspect=[False, True, True] delta_schema=[False, True, True]
+
+== Step C: moondelta-core д�� + delta-rs/DuckDB �ض� ==
+  [PASS] C:writer ʾ���˳��� 0 - exit=0 stderr=
+  [PASS] C:writer ��� created/appended/self-check - created version 0 at artifacts/interop-flat/moondelta-written / appended batch1 => version 1 / appended batch2 => version 2 / self-check: version=2 files=2 rows=5 / file: part-0000-1750000000000-1.parquet size=297 stats={"numRecords":3,"minValues":{"id":1},"maxValues":{"id":3}} / file: part-0000-1750000001000-2.parquet size=280 stats={"numRecords":2,"minValues":{"id":4},"maxValues":{"id":5}}
+  [PASS] C:moondelta д�� protocol = reader1/writer2 - reader=1 writer=2
+  [PASS] C:moondelta д�� commit �汾 = 3��create + 2 append�� - version=2 log_versions=3
+  [PASS] C:moondelta д�������ļ��� = 2 - files=['part-0000-1750000000000-1.parquet', 'part-0000-1750000001000-2.parquet']
+  [PASS] C:Delta schema ����/˳��/����/nullability - ����/˳��/����/nullability ��ȫһ��
+  [PASS] C:delta-rs �ض����� = 5 - rows=5
+  [PASS] C:delta-rs �ض�����ֵ���� null�� - 5 ������ֵ�ϸ�һ�£��� null�������ؼ��Ƚϣ�
+  [PASS] C:delta-rs �ض��� Delta schema ���� NOT NULL ���� - delta-rs arrow schema: [('id', 'int64', False), ('name', 'string', True), ('active', 'bool', True)]
+  [PASS] C:parquet ��������/˳���� Delta schema һ�� - [['id', 'name', 'active'], ['id', 'name', 'active']]
+  [PASS] C:parquet ѹ����Ϊ UNCOMPRESSED����֧�֣� - [['UNCOMPRESSED', 'UNCOMPRESSED', 'UNCOMPRESSED'], ['UNCOMPRESSED', 'UNCOMPRESSED', 'UNCOMPRESSED']]
+  [DIFF] C:parquet �������� nullability �� Delta schema ��һ�£�id NOT NULL -> optional�� - Delta schema ���� id nullable=false��MoonBit writer ����Ϊ optional int64��delta-rs �ض�ʱ�� Delta schema ���� not null���� read_parquet/����������У�鿴���� NOT NULL Լ����Ӱ�죺��ֵ��ȷ�����������޷���ֹ/����Υ�� NOT NULL ��д�룻�ⲿ���������� parquet schema �Ƶ�����Ϊ id ��Ϊ�ա�
+  [PASS] C:moondelta CLI �Զ�д���� inspect/read �˳��� 0 - {'c_self_inspect': 0, 'c_self_read': 0}
+  [PASS] C:moondelta CLI �Զ� schema �� Delta schema һ�� - ����/˳��/����/nullability ��ȫһ��
+  [PASS] C:moondelta CLI �Զ�����ֵһ�� - 5 ������ֵ�ϸ�һ�£��� null�������ؼ��Ƚϣ�
+
+== Step D: DuckDB �ض���delta_scan��ʧ���� read_parquet ���䣩 ==
+  [PASS] D:DuckDB delta ��չ���� - duckdb=1.5.6 delta extension_version=6059958
+  [PASS] D:delta_scan(engine-written) ����ֵһ�� - 5 ������ֵ�ϸ�һ�£��� null�������ؼ��Ƚϣ�
+  [PASS] D:delta_scan(engine-written) ������ BIGINT/VARCHAR/BOOLEAN - {'id': 'BIGINT', 'name': 'VARCHAR', 'active': 'BOOLEAN'}
+  [INFO] D:delta_scan(engine-written) DESCRIBE ����ӳ Delta NOT NULL - DuckDB delta ��չ��ȫ���з��� null=YES����ʹ Delta schema �� id nullable=false�������� DuckDB ��չ���м� nullability չʾ��Ϊ������һ�£���Ӱ��ֵ��ȡ��
+  [PASS] D:read_parquet(engine-written) ����ֵһ�£��� Delta �����䣩 - 5 ������ֵ�ϸ�һ�£��� null�������ؼ��Ƚϣ�
+  [PASS] D:delta_scan(moondelta-written) ����ֵһ�� - 5 ������ֵ�ϸ�һ�£��� null�������ؼ��Ƚϣ�
+  [PASS] D:delta_scan(moondelta-written) ������ BIGINT/VARCHAR/BOOLEAN - {'id': 'BIGINT', 'name': 'VARCHAR', 'active': 'BOOLEAN'}
+  [INFO] D:delta_scan(moondelta-written) DESCRIBE ����ӳ Delta NOT NULL - DuckDB delta ��չ��ȫ���з��� null=YES����ʹ Delta schema �� id nullable=false�������� DuckDB ��չ���м� nullability չʾ��Ϊ������һ�£���Ӱ��ֵ��ȡ��
+  [PASS] D:read_parquet(moondelta-written) ����ֵһ�£��� Delta �����䣩 - 5 ������ֵ�ϸ�һ�£��� null�������ؼ��Ƚϣ�
+
+== Step E: add.stats �Ա����֦Ӱ�� ==
+  [PASS] E:delta-rs add.stats��numRecords + 3 �� min/max/nullCount ��ȫ - [{'path': 'part-00000-38b46616-d4eb-4392-b3b4-649384aa3c5a-c000.snappy.parquet', 'numRecords': 3, 'nullCount_keys': ['active', 'id', 'name']}, {'path': 'part-00000-7bebe2e8-16af-4e7d-a700-c6010ae0e018-c000.snappy.parquet', 'numRecords': 2, 'nullCount_keys': ['active', 'id', 'name']}]
+  [PASS] E:moondelta add.stats��ÿ�ļ����� numRecords - [3, 2]
+  [DIFF] E:moondelta add.stats ���� id �� min/max��ȱ nullCount �� string/boolean ͳ�� - moondelta д�� stats = {numRecords, minValues:{id}, maxValues:{id}}��delta-rs д�� stats �� active/name/id �� min/max �Լ� 3 �� nullCount��Ӱ�죺��ֵ�� id �� min/max ��֦���ã��·� scan ��֤����name/active ν�ʼ�֦��NULL ��ؼ�֦��IS NULL/IS NOT NULL���� moondelta д���ı��ϲ����ã�ֻ���˻�Ϊȫ�ļ�ɨ�� ���� �ټ�֦��������/�ٶ����ݣ���ֵ����֤һ�£���
+  [PASS] E:���� scan --where id>=4 ������ 1 ���ļ������� 2 �� - {'engine-written': {'exit': 0, 'selected': 1, 'skipped_stats': 1, 'matched_rows': 2, 'files': ['part-00000-7bebe2e8-16af-4e7d-a700-c6010ae0e018-c000.snappy.parquet']}, 'moondelta-written': {'exit': 0, 'selected': 1, 'skipped_stats': 1, 'matched_rows': 2, 'files': ['part-0000-1750000001000-2.parquet']}}
+
+-- ����̽�룺д reader v1/writer v2 �������ֶΣ��Լ� reader>1 ���� CLI ��Ϊ --
+  [INFO] E:delta-rs ���� configuration ʱ��Ĭ�� protocol - reader=1 writer=2��������Ĭ�ϼ� 1/2������ʽ�����ǡ�����Э�顱���Ǳ��裩
+  [INFO] E:̽�룺write_deltalake(configuration={delta.minReaderVersion,delta.minWriterVersion}) �ɿ��� protocol - Ĭ�ϼ� reader=1/writer=2����ʽ���� 1/2 �ɹ̶���д�� 2/5 ʱ��־ protocol={'minReaderVersion': 2, 'minWriterVersion': 5}��֤�����ü���ʵ��Ч����
+  [INFO] E:���գ�moondelta ���� reader=2/writer=5 �����Ǿܾ������ĵ��� 1/2 �ڿھ���һ�£� - inspect/read �˳��� 0���ĵ�Ҫ����� reader v1 �ı�����ܾ�����̽�����־ protocol={minReaderVersion:2,minWriterVersion:5} ���� readerFeatures/writerFeatures���� delta-rs �ǳ���������� CLI δ���汾У�顣���齻 D1 Э�����ȷ�ϣ���� raw/f_probe_protocol_config.json��
+
+hashes.txt: 79 ���ļ�
+
+== ���� ==
+PASS=49 FAIL=0 DIFF=2 INFO=5 BLOCKED=0
+�����E:\Project\Moonbit Hackson\P1 RE\artifacts\interop-flat\results.json
+EXIT=0

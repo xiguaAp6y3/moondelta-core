@@ -1,0 +1,15 @@
+### 100-inspect-stats-object
+$ delta.exe inspect artifacts/protocol-audit/fixtures/stats-object
+[exit code: 0]
+--- stdout ---
+table            : artifacts/protocol-audit/fixtures/stats-object
+current version  : 0  (log versions: 1)
+files            : 1  rows: 0  bytes: 500
+protocol         : reader=1 writer=1
+format           : parquet
+partition columns: (none)
+schema:
+  id: long
+--- stderr ---
+
+

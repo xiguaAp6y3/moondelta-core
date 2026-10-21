@@ -1,0 +1,8 @@
+### 38-read-column-mapping
+$ delta.exe read artifacts/protocol-audit/fixtures/column-mapping
+[exit code: 0]
+--- stdout ---
+error: unsupported: column 'id' is missing from parquet file 'data.parquet'
+--- stderr ---
+
+

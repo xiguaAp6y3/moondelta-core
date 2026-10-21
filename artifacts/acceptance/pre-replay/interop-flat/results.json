@@ -1,0 +1,1309 @@
+{
+  "task": "D2：flat 表双向互操作对拍",
+  "repo": "E:\\Project\\Moonbit Hackson\\P1 RE",
+  "environment": {
+    "platform": "Windows-11-10.0.28000-SP0",
+    "python": "3.12.14 (main, Sep  1 2026, 14:17:39) [MSC v.1944 64 bit (AMD64)]",
+    "python_executable": "E:\\Project\\Moonbit Hackson\\P1 RE\\.tools\\pyenv\\Scripts\\python.exe",
+    "cwd": "E:\\Project\\Moonbit Hackson\\P1 RE",
+    "moon": {
+      "exit": 0,
+      "stdout": "moon 0.1.20261012 (748b63c 2026-10-12)\n\nFeature flags enabled: rr_moon_mod,rr_moon_pkg",
+      "stderr": ""
+    },
+    "python_packages": {
+      "deltalake": "1.6.6",
+      "duckdb": "1.5.6",
+      "pyarrow": "26.0.0",
+      "pandas": "3.0.6"
+    },
+    "delta_exe_version": "moondelta-core 0.1.0",
+    "delta_exe": "_build/native/debug/build/cmd/delta/delta.exe"
+  },
+  "engine_written": {
+    "table": "artifacts/interop-flat/engine-written",
+    "engine": "delta-rs (python deltalake)",
+    "protocol": {
+      "min_reader_version": 1,
+      "min_writer_version": 2,
+      "writer_features": null,
+      "reader_features": null
+    },
+    "version": 1,
+    "log_versions": 2,
+    "files": [
+      "part-00000-291b0f4f-41cb-4fea-897e-80f10e4b3835-c000.snappy.parquet",
+      "part-00000-a84180dd-113f-467e-9428-b0b48082ca2c-c000.snappy.parquet"
+    ],
+    "schema_fields": [
+      {
+        "name": "id",
+        "type": "long",
+        "nullable": false,
+        "metadata": {}
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "nullable": true,
+        "metadata": {}
+      },
+      {
+        "name": "active",
+        "type": "boolean",
+        "nullable": true,
+        "metadata": {}
+      }
+    ],
+    "delta_arrow_schema": [
+      {
+        "name": "id",
+        "type": "int64",
+        "nullable": false
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "nullable": true
+      },
+      {
+        "name": "active",
+        "type": "bool",
+        "nullable": true
+      }
+    ],
+    "oracle_rows": [
+      [
+        4,
+        "carol",
+        true
+      ],
+      [
+        5,
+        null,
+        null
+      ],
+      [
+        1,
+        "alice",
+        true
+      ],
+      [
+        2,
+        null,
+        false
+      ],
+      [
+        3,
+        "bob",
+        null
+      ]
+    ],
+    "adds": [
+      {
+        "version": 0,
+        "path": "part-00000-a84180dd-113f-467e-9428-b0b48082ca2c-c000.snappy.parquet",
+        "size": 980,
+        "modificationTime": 1792498848002,
+        "partitionValues": {},
+        "stats_raw": "{\"numRecords\":3,\"minValues\":{\"active\":false,\"id\":1,\"name\":\"alice\"},\"maxValues\":{\"name\":\"bob\",\"active\":true,\"id\":3},\"nullCount\":{\"active\":1,\"id\":0,\"name\":1}}",
+        "stats": {
+          "numRecords": 3,
+          "minValues": {
+            "active": false,
+            "id": 1,
+            "name": "alice"
+          },
+          "maxValues": {
+            "name": "bob",
+            "active": true,
+            "id": 3
+          },
+          "nullCount": {
+            "active": 1,
+            "id": 0,
+            "name": 1
+          }
+        }
+      },
+      {
+        "version": 1,
+        "path": "part-00000-291b0f4f-41cb-4fea-897e-80f10e4b3835-c000.snappy.parquet",
+        "size": 969,
+        "modificationTime": 1792498848019,
+        "partitionValues": {},
+        "stats_raw": "{\"numRecords\":2,\"minValues\":{\"active\":true,\"id\":4,\"name\":\"carol\"},\"maxValues\":{\"name\":\"carol\",\"active\":true,\"id\":5},\"nullCount\":{\"active\":1,\"id\":0,\"name\":1}}",
+        "stats": {
+          "numRecords": 2,
+          "minValues": {
+            "active": true,
+            "id": 4,
+            "name": "carol"
+          },
+          "maxValues": {
+            "name": "carol",
+            "active": true,
+            "id": 5
+          },
+          "nullCount": {
+            "active": 1,
+            "id": 0,
+            "name": 1
+          }
+        }
+      }
+    ],
+    "parquet_physical": [
+      {
+        "path": "part-00000-a84180dd-113f-467e-9428-b0b48082ca2c-c000.snappy.parquet",
+        "num_rows": 3,
+        "compression": [
+          "SNAPPY",
+          "SNAPPY",
+          "SNAPPY"
+        ],
+        "created_by": "delta-rs version py-1.6.6",
+        "arrow_fields": [
+          {
+            "name": "id",
+            "nullable": false,
+            "type": "int64"
+          },
+          {
+            "name": "name",
+            "nullable": true,
+            "type": "string"
+          },
+          {
+            "name": "active",
+            "nullable": true,
+            "type": "bool"
+          }
+        ]
+      },
+      {
+        "path": "part-00000-291b0f4f-41cb-4fea-897e-80f10e4b3835-c000.snappy.parquet",
+        "num_rows": 2,
+        "compression": [
+          "SNAPPY",
+          "SNAPPY",
+          "SNAPPY"
+        ],
+        "created_by": "delta-rs version py-1.6.6",
+        "arrow_fields": [
+          {
+            "name": "id",
+            "nullable": false,
+            "type": "int64"
+          },
+          {
+            "name": "name",
+            "nullable": true,
+            "type": "string"
+          },
+          {
+            "name": "active",
+            "nullable": true,
+            "type": "bool"
+          }
+        ]
+      }
+    ],
+    "write_configuration": {
+      "delta.minReaderVersion": "1",
+      "delta.minWriterVersion": "2"
+    },
+    "ok": true
+  },
+  "moondelta_read_engine": {
+    "runs": {
+      "b_engine_inspect": {
+        "args": [
+          "E:\\Project\\Moonbit Hackson\\P1 RE\\_build\\native\\debug\\build\\cmd\\delta\\delta.exe",
+          "inspect",
+          "artifacts/interop-flat/engine-written"
+        ],
+        "exit": 0
+      },
+      "b_engine_history": {
+        "args": [
+          "E:\\Project\\Moonbit Hackson\\P1 RE\\_build\\native\\debug\\build\\cmd\\delta\\delta.exe",
+          "history",
+          "artifacts/interop-flat/engine-written"
+        ],
+        "exit": 0
+      },
+      "b_engine_scan": {
+        "args": [
+          "E:\\Project\\Moonbit Hackson\\P1 RE\\_build\\native\\debug\\build\\cmd\\delta\\delta.exe",
+          "scan",
+          "artifacts/interop-flat/engine-written"
+        ],
+        "exit": 0
+      },
+      "b_engine_scan_where_id_ge_4": {
+        "args": [
+          "E:\\Project\\Moonbit Hackson\\P1 RE\\_build\\native\\debug\\build\\cmd\\delta\\delta.exe",
+          "scan",
+          "artifacts/interop-flat/engine-written",
+          "--where",
+          "id>=4"
+        ],
+        "exit": 0
+      },
+      "b_engine_read": {
+        "args": [
+          "E:\\Project\\Moonbit Hackson\\P1 RE\\_build\\native\\debug\\build\\cmd\\delta\\delta.exe",
+          "read",
+          "artifacts/interop-flat/engine-written"
+        ],
+        "exit": 0
+      }
+    },
+    "inspect": {
+      "schema": [
+        {
+          "name": "id",
+          "type": "long",
+          "nullable": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "nullable": true
+        },
+        {
+          "name": "active",
+          "type": "boolean",
+          "nullable": true
+        }
+      ],
+      "raw": "table            : artifacts/interop-flat/engine-written\r\ncurrent version  : 1  (log versions: 2)\r\nfiles            : 2  rows: 5  bytes: 1949\r\nprotocol         : reader=1 writer=2\r\nformat           : parquet\r\npartition columns: (none)\r\nschema:\r\n  id: long (not null)\r\n  name: string\r\n  active: boolean\r\n",
+      "table": "artifacts/interop-flat/engine-written",
+      "current version": "1  (log versions: 2)",
+      "files": "2  rows: 5  bytes: 1949",
+      "protocol": "reader=1 writer=2",
+      "format": "parquet",
+      "partition columns": "(none)",
+      "version": 1,
+      "log_versions": 2,
+      "files_count": 2,
+      "rows": 5,
+      "bytes": 1949,
+      "reader_version": 1,
+      "writer_version": 2
+    },
+    "history": [
+      {
+        "version": 0,
+        "timestamp": 1792498848002,
+        "operation": "WRITE"
+      },
+      {
+        "version": 1,
+        "timestamp": 1792498848019,
+        "operation": "WRITE"
+      }
+    ],
+    "scan": {
+      "files": [
+        "part-00000-a84180dd-113f-467e-9428-b0b48082ca2c-c000.snappy.parquet",
+        "part-00000-291b0f4f-41cb-4fea-897e-80f10e4b3835-c000.snappy.parquet"
+      ],
+      "raw": "table            : artifacts/interop-flat/engine-written (version 1)\r\ntotal files      : 2\r\nselected files   : 2\r\nskipped partition: 0\r\nskipped stats    : 0\r\nmatched rows     : 5\r\nmatched bytes    : 1949\r\n  - part-00000-a84180dd-113f-467e-9428-b0b48082ca2c-c000.snappy.parquet\r\n  - part-00000-291b0f4f-41cb-4fea-897e-80f10e4b3835-c000.snappy.parquet\r\n",
+      "total files": 2,
+      "selected files": 2,
+      "skipped partition": 0,
+      "skipped stats": 0,
+      "matched rows": 5,
+      "matched bytes": 1949,
+      "version": 1
+    },
+    "scan_where_id_ge_4": {
+      "files": [
+        "part-00000-291b0f4f-41cb-4fea-897e-80f10e4b3835-c000.snappy.parquet"
+      ],
+      "raw": "table            : artifacts/interop-flat/engine-written (version 1)\r\ntotal files      : 2\r\nselected files   : 1\r\nskipped partition: 0\r\nskipped stats    : 1\r\nmatched rows     : 2\r\nmatched bytes    : 969\r\n  - part-00000-291b0f4f-41cb-4fea-897e-80f10e4b3835-c000.snappy.parquet\r\n",
+      "total files": 2,
+      "selected files": 1,
+      "skipped partition": 0,
+      "skipped stats": 1,
+      "matched rows": 2,
+      "matched bytes": 969,
+      "version": 1
+    },
+    "read": {
+      "columns": [
+        {
+          "name": "id",
+          "type": "long"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "active",
+          "type": "boolean"
+        }
+      ],
+      "rows": [
+        [
+          1,
+          "alice",
+          true
+        ],
+        [
+          2,
+          null,
+          false
+        ],
+        [
+          3,
+          "bob",
+          null
+        ],
+        [
+          4,
+          "carol",
+          true
+        ],
+        [
+          5,
+          null,
+          null
+        ]
+      ],
+      "raw": "read 2 file(s), 5 row(s), version 1\r\nid (long) | name (string) | active (boolean)\r\n1 | alice | true\r\n2 | NULL | false\r\n3 | bob | NULL\r\n4 | carol | true\r\n5 | NULL | NULL\r\n",
+      "files": 2,
+      "rows_reported": 5,
+      "version": 1
+    }
+  },
+  "moondelta_written": {
+    "table": "artifacts/interop-flat/moondelta-written",
+    "protocol": {
+      "min_reader_version": 1,
+      "min_writer_version": 2,
+      "writer_features": null,
+      "reader_features": null
+    },
+    "version": 2,
+    "log_versions": 3,
+    "files": [
+      "part-0000-1750000000000-1.parquet",
+      "part-0000-1750000001000-2.parquet"
+    ],
+    "adds": [
+      {
+        "version": 1,
+        "path": "part-0000-1750000000000-1.parquet",
+        "size": 297,
+        "modificationTime": 1750000000000,
+        "partitionValues": {},
+        "stats_raw": "{\"numRecords\":3,\"minValues\":{\"id\":1},\"maxValues\":{\"id\":3}}",
+        "stats": {
+          "numRecords": 3,
+          "minValues": {
+            "id": 1
+          },
+          "maxValues": {
+            "id": 3
+          }
+        }
+      },
+      {
+        "version": 2,
+        "path": "part-0000-1750000001000-2.parquet",
+        "size": 280,
+        "modificationTime": 1750000001000,
+        "partitionValues": {},
+        "stats_raw": "{\"numRecords\":2,\"minValues\":{\"id\":4},\"maxValues\":{\"id\":5}}",
+        "stats": {
+          "numRecords": 2,
+          "minValues": {
+            "id": 4
+          },
+          "maxValues": {
+            "id": 5
+          }
+        }
+      }
+    ],
+    "schema_fields": [
+      {
+        "name": "id",
+        "type": "long",
+        "nullable": false,
+        "metadata": {}
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "nullable": true,
+        "metadata": {}
+      },
+      {
+        "name": "active",
+        "type": "boolean",
+        "nullable": true,
+        "metadata": {}
+      }
+    ],
+    "delta_arrow_schema": [
+      {
+        "name": "id",
+        "type": "int64",
+        "nullable": false
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "nullable": true
+      },
+      {
+        "name": "active",
+        "type": "bool",
+        "nullable": true
+      }
+    ],
+    "deltars_rows": [
+      [
+        4,
+        "carol",
+        true
+      ],
+      [
+        5,
+        null,
+        null
+      ],
+      [
+        1,
+        "alice",
+        true
+      ],
+      [
+        2,
+        null,
+        false
+      ],
+      [
+        3,
+        "bob",
+        null
+      ]
+    ],
+    "parquet_physical": [
+      {
+        "path": "part-0000-1750000000000-1.parquet",
+        "num_rows": 3,
+        "compression": [
+          "UNCOMPRESSED",
+          "UNCOMPRESSED",
+          "UNCOMPRESSED"
+        ],
+        "created_by": "mizchi/parquet",
+        "arrow_fields": [
+          {
+            "name": "id",
+            "nullable": true,
+            "type": "int64"
+          },
+          {
+            "name": "name",
+            "nullable": true,
+            "type": "string"
+          },
+          {
+            "name": "active",
+            "nullable": true,
+            "type": "bool"
+          }
+        ]
+      },
+      {
+        "path": "part-0000-1750000001000-2.parquet",
+        "num_rows": 2,
+        "compression": [
+          "UNCOMPRESSED",
+          "UNCOMPRESSED",
+          "UNCOMPRESSED"
+        ],
+        "created_by": "mizchi/parquet",
+        "arrow_fields": [
+          {
+            "name": "id",
+            "nullable": true,
+            "type": "int64"
+          },
+          {
+            "name": "name",
+            "nullable": true,
+            "type": "string"
+          },
+          {
+            "name": "active",
+            "nullable": true,
+            "type": "bool"
+          }
+        ]
+      }
+    ],
+    "moondelta_self_read": {
+      "inspect": {
+        "schema": [
+          {
+            "name": "id",
+            "type": "long",
+            "nullable": false
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "nullable": true
+          },
+          {
+            "name": "active",
+            "type": "boolean",
+            "nullable": true
+          }
+        ],
+        "raw": "table            : artifacts/interop-flat/moondelta-written\r\ncurrent version  : 2  (log versions: 3)\r\nfiles            : 2  rows: 5  bytes: 577\r\nprotocol         : reader=1 writer=2\r\nformat           : parquet\r\npartition columns: (none)\r\nschema:\r\n  id: long (not null)\r\n  name: string\r\n  active: boolean\r\n",
+        "table": "artifacts/interop-flat/moondelta-written",
+        "current version": "2  (log versions: 3)",
+        "files": "2  rows: 5  bytes: 577",
+        "protocol": "reader=1 writer=2",
+        "format": "parquet",
+        "partition columns": "(none)",
+        "version": 2,
+        "log_versions": 3,
+        "files_count": 2,
+        "rows": 5,
+        "bytes": 577,
+        "reader_version": 1,
+        "writer_version": 2
+      },
+      "read": {
+        "columns": [
+          {
+            "name": "id",
+            "type": "long"
+          },
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "active",
+            "type": "boolean"
+          }
+        ],
+        "rows": [
+          [
+            1,
+            "alice",
+            true
+          ],
+          [
+            2,
+            null,
+            false
+          ],
+          [
+            3,
+            "bob",
+            null
+          ],
+          [
+            4,
+            "carol",
+            true
+          ],
+          [
+            5,
+            null,
+            null
+          ]
+        ],
+        "raw": "read 2 file(s), 5 row(s), version 2\r\nid (long) | name (string) | active (boolean)\r\n1 | alice | true\r\n2 | NULL | false\r\n3 | bob | NULL\r\n4 | carol | true\r\n5 | NULL | NULL\r\n",
+        "files": 2,
+        "rows_reported": 5,
+        "version": 2
+      }
+    }
+  },
+  "moon_write_run": {
+    "args": [
+      "E:\\Project\\Moonbit Hackson\\P1 RE\\_build\\native\\debug\\build\\examples\\interop_flat_writer\\interop_flat_writer.exe",
+      "artifacts/interop-flat/moondelta-written"
+    ],
+    "exit": 0,
+    "stdout": "created version 0 at artifacts/interop-flat/moondelta-written\r\nappended batch1 => version 1\r\nappended batch2 => version 2\r\nself-check: version=2 files=2 rows=5\r\n  file: part-0000-1750000000000-1.parquet size=297 stats={\"numRecords\":3,\"minValues\":{\"id\":1},\"maxValues\":{\"id\":3}}\r\n  file: part-0000-1750000001000-2.parquet size=280 stats={\"numRecords\":2,\"minValues\":{\"id\":4},\"maxValues\":{\"id\":5}}\r\n",
+    "stderr": ""
+  },
+  "duckdb": {
+    "engine": "duckdb",
+    "version": "1.5.6",
+    "tables": {
+      "engine-written": {
+        "table": "artifacts/interop-flat/engine-written",
+        "delta_scan": {
+          "rows": [
+            [
+              4,
+              "carol",
+              true
+            ],
+            [
+              5,
+              null,
+              null
+            ],
+            [
+              1,
+              "alice",
+              true
+            ],
+            [
+              2,
+              null,
+              false
+            ],
+            [
+              3,
+              "bob",
+              null
+            ]
+          ],
+          "describe": [
+            {
+              "column": "id",
+              "type": "BIGINT",
+              "null": "YES"
+            },
+            {
+              "column": "name",
+              "type": "VARCHAR",
+              "null": "YES"
+            },
+            {
+              "column": "active",
+              "type": "BOOLEAN",
+              "null": "YES"
+            }
+          ]
+        },
+        "read_parquet": {
+          "rows": [
+            [
+              4,
+              "carol",
+              true
+            ],
+            [
+              5,
+              null,
+              null
+            ],
+            [
+              1,
+              "alice",
+              true
+            ],
+            [
+              2,
+              null,
+              false
+            ],
+            [
+              3,
+              "bob",
+              null
+            ]
+          ],
+          "note": "非 Delta 级互操作（parquet 级补充）"
+        }
+      },
+      "moondelta-written": {
+        "table": "artifacts/interop-flat/moondelta-written",
+        "delta_scan": {
+          "rows": [
+            [
+              4,
+              "carol",
+              true
+            ],
+            [
+              5,
+              null,
+              null
+            ],
+            [
+              1,
+              "alice",
+              true
+            ],
+            [
+              2,
+              null,
+              false
+            ],
+            [
+              3,
+              "bob",
+              null
+            ]
+          ],
+          "describe": [
+            {
+              "column": "id",
+              "type": "BIGINT",
+              "null": "YES"
+            },
+            {
+              "column": "name",
+              "type": "VARCHAR",
+              "null": "YES"
+            },
+            {
+              "column": "active",
+              "type": "BOOLEAN",
+              "null": "YES"
+            }
+          ]
+        },
+        "read_parquet": {
+          "rows": [
+            [
+              1,
+              "alice",
+              true
+            ],
+            [
+              2,
+              null,
+              false
+            ],
+            [
+              3,
+              "bob",
+              null
+            ],
+            [
+              4,
+              "carol",
+              true
+            ],
+            [
+              5,
+              null,
+              null
+            ]
+          ],
+          "note": "非 Delta 级互操作（parquet 级补充）"
+        }
+      }
+    },
+    "delta_extension": {
+      "available": true,
+      "version": "6059958"
+    }
+  },
+  "stats": {
+    "engine-written": {
+      "files": [
+        {
+          "path": "part-00000-a84180dd-113f-467e-9428-b0b48082ca2c-c000.snappy.parquet",
+          "version": 0,
+          "numRecords": 3,
+          "minValues_keys": [
+            "active",
+            "id",
+            "name"
+          ],
+          "maxValues_keys": [
+            "active",
+            "id",
+            "name"
+          ],
+          "nullCount_keys": [
+            "active",
+            "id",
+            "name"
+          ],
+          "minValues": {
+            "active": false,
+            "id": 1,
+            "name": "alice"
+          },
+          "maxValues": {
+            "name": "bob",
+            "active": true,
+            "id": 3
+          },
+          "nullCount": {
+            "active": 1,
+            "id": 0,
+            "name": 1
+          },
+          "stats_raw": "{\"numRecords\":3,\"minValues\":{\"active\":false,\"id\":1,\"name\":\"alice\"},\"maxValues\":{\"name\":\"bob\",\"active\":true,\"id\":3},\"nullCount\":{\"active\":1,\"id\":0,\"name\":1}}"
+        },
+        {
+          "path": "part-00000-291b0f4f-41cb-4fea-897e-80f10e4b3835-c000.snappy.parquet",
+          "version": 1,
+          "numRecords": 2,
+          "minValues_keys": [
+            "active",
+            "id",
+            "name"
+          ],
+          "maxValues_keys": [
+            "active",
+            "id",
+            "name"
+          ],
+          "nullCount_keys": [
+            "active",
+            "id",
+            "name"
+          ],
+          "minValues": {
+            "active": true,
+            "id": 4,
+            "name": "carol"
+          },
+          "maxValues": {
+            "name": "carol",
+            "active": true,
+            "id": 5
+          },
+          "nullCount": {
+            "active": 1,
+            "id": 0,
+            "name": 1
+          },
+          "stats_raw": "{\"numRecords\":2,\"minValues\":{\"active\":true,\"id\":4,\"name\":\"carol\"},\"maxValues\":{\"name\":\"carol\",\"active\":true,\"id\":5},\"nullCount\":{\"active\":1,\"id\":0,\"name\":1}}"
+        }
+      ]
+    },
+    "moondelta-written": {
+      "files": [
+        {
+          "path": "part-0000-1750000000000-1.parquet",
+          "version": 1,
+          "numRecords": 3,
+          "minValues_keys": [
+            "id"
+          ],
+          "maxValues_keys": [
+            "id"
+          ],
+          "nullCount_keys": [],
+          "minValues": {
+            "id": 1
+          },
+          "maxValues": {
+            "id": 3
+          },
+          "nullCount": null,
+          "stats_raw": "{\"numRecords\":3,\"minValues\":{\"id\":1},\"maxValues\":{\"id\":3}}"
+        },
+        {
+          "path": "part-0000-1750000001000-2.parquet",
+          "version": 2,
+          "numRecords": 2,
+          "minValues_keys": [
+            "id"
+          ],
+          "maxValues_keys": [
+            "id"
+          ],
+          "nullCount_keys": [],
+          "minValues": {
+            "id": 4
+          },
+          "maxValues": {
+            "id": 5
+          },
+          "nullCount": null,
+          "stats_raw": "{\"numRecords\":2,\"minValues\":{\"id\":4},\"maxValues\":{\"id\":5}}"
+        }
+      ]
+    }
+  },
+  "pruning": {
+    "engine-written": {
+      "exit": 0,
+      "selected": 1,
+      "skipped_stats": 1,
+      "matched_rows": 2,
+      "files": [
+        "part-00000-291b0f4f-41cb-4fea-897e-80f10e4b3835-c000.snappy.parquet"
+      ]
+    },
+    "moondelta-written": {
+      "exit": 0,
+      "selected": 1,
+      "skipped_stats": 1,
+      "matched_rows": 2,
+      "files": [
+        "part-0000-1750000001000-2.parquet"
+      ]
+    }
+  },
+  "checks": [
+    {
+      "group": "A",
+      "name": "protocol = reader v1 / writer v2",
+      "status": "PASS",
+      "detail": "reader=1 writer=2 writerFeatures=None readerFeatures=None"
+    },
+    {
+      "group": "A",
+      "name": "两次提交 => 版本数 2",
+      "status": "PASS",
+      "detail": "version=1 log_versions=2（version 0 create+add, version 1 append）"
+    },
+    {
+      "group": "A",
+      "name": "数据文件数 = 2",
+      "status": "PASS",
+      "detail": "files=['part-00000-291b0f4f-41cb-4fea-897e-80f10e4b3835-c000.snappy.parquet', 'part-00000-a84180dd-113f-467e-9428-b0b48082ca2c-c000.snappy.parquet']"
+    },
+    {
+      "group": "A",
+      "name": "schema 列名/顺序/类型/nullability",
+      "status": "PASS",
+      "detail": "列名/顺序/类型/nullability 完全一致"
+    },
+    {
+      "group": "A",
+      "name": "总行数 = 5",
+      "status": "PASS",
+      "detail": "delta-rs read rows=5"
+    },
+    {
+      "group": "A",
+      "name": "delta-rs 读回的逐列值（含 null）",
+      "status": "PASS",
+      "detail": "5 行逐列值严格一致（含 null，按多重集比较）"
+    },
+    {
+      "group": "A",
+      "name": "每文件 add.stats.numRecords 合计 = 5",
+      "status": "PASS",
+      "detail": "numRecords=[3, 2]"
+    },
+    {
+      "group": "A",
+      "name": "add.stats 含 3 列 min/max/nullCount",
+      "status": "PASS",
+      "detail": "delta-rs 为 id/name/active 都写出 minValues、maxValues、nullCount"
+    },
+    {
+      "group": "A",
+      "name": "parquet 物理 nullability 对照（delta-rs: id required）",
+      "status": "PASS",
+      "detail": "delta-rs 落盘: [{'id': False, 'name': True, 'active': True}, {'id': False, 'name': True, 'active': True}]"
+    },
+    {
+      "group": "B",
+      "name": "inspect/history/scan/read 退出码均为 0",
+      "status": "PASS",
+      "detail": {
+        "b_engine_inspect": 0,
+        "b_engine_history": 0,
+        "b_engine_scan": 0,
+        "b_engine_scan_where_id_ge_4": 0,
+        "b_engine_read": 0
+      }
+    },
+    {
+      "group": "B",
+      "name": "inspect 当前版本 = 1",
+      "status": "PASS",
+      "detail": "version=1"
+    },
+    {
+      "group": "B",
+      "name": "inspect 日志版本数 = 2",
+      "status": "PASS",
+      "detail": "log_versions=2"
+    },
+    {
+      "group": "B",
+      "name": "inspect files/rows = 2/5",
+      "status": "PASS",
+      "detail": "files=2 rows=5 bytes=1949"
+    },
+    {
+      "group": "B",
+      "name": "inspect protocol = reader1/writer2",
+      "status": "PASS",
+      "detail": "protocol=reader=1 writer=2"
+    },
+    {
+      "group": "B",
+      "name": "inspect schema 列名/顺序/类型/nullability",
+      "status": "PASS",
+      "detail": "列名/顺序/类型/nullability 完全一致"
+    },
+    {
+      "group": "B",
+      "name": "history 版本与操作 = [0:WRITE, 1:WRITE]",
+      "status": "PASS",
+      "detail": "[{'version': 0, 'operation': 'WRITE'}, {'version': 1, 'operation': 'WRITE'}]"
+    },
+    {
+      "group": "B",
+      "name": "scan 全量文件/行数 = 2/5",
+      "status": "PASS",
+      "detail": "total=2 selected=2 matched_rows=5 skipped_stats=0"
+    },
+    {
+      "group": "B",
+      "name": "scan 文件清单 = 日志 add 文件清单",
+      "status": "PASS",
+      "detail": "scan=['part-00000-291b0f4f-41cb-4fea-897e-80f10e4b3835-c000.snappy.parquet', 'part-00000-a84180dd-113f-467e-9428-b0b48082ca2c-c000.snappy.parquet'] log=['part-00000-291b0f4f-41cb-4fea-897e-80f10e4b3835-c000.snappy.parquet', 'part-00000-a84180dd-113f-467e-9428-b0b48082ca2c-c000.snappy.parquet']"
+    },
+    {
+      "group": "B",
+      "name": "read 表头列名/类型/顺序",
+      "status": "PASS",
+      "detail": "[('id', 'long'), ('name', 'string'), ('active', 'boolean')]"
+    },
+    {
+      "group": "B",
+      "name": "read 报告文件数/行数/版本 = 2/5/1",
+      "status": "PASS",
+      "detail": "files=2 rows=5 version=1"
+    },
+    {
+      "group": "B",
+      "name": "read 逐列值与 null 和 delta-rs oracle 一致",
+      "status": "PASS",
+      "detail": "5 行逐列值严格一致（含 null，按多重集比较）"
+    },
+    {
+      "group": "B",
+      "name": "read 逐值 vs delta-rs 读回 oracle（同源对照）",
+      "status": "PASS",
+      "detail": "5 行逐列值严格一致（含 null，按多重集比较）"
+    },
+    {
+      "group": "B",
+      "name": "scan --where id>=4 用 stats 剪掉 1 个文件并命中 2 行",
+      "status": "PASS",
+      "detail": "skipped_stats=1 selected=1 matched_rows=2 files=['part-00000-291b0f4f-41cb-4fea-897e-80f10e4b3835-c000.snappy.parquet'] 期望文件=['part-00000-291b0f4f-41cb-4fea-897e-80f10e4b3835-c000.snappy.parquet']"
+    },
+    {
+      "group": "B",
+      "name": "scan matched rows 与 add.stats.numRecords 一致",
+      "status": "PASS",
+      "detail": "numRecords=[3, 2]"
+    },
+    {
+      "group": "B",
+      "name": "nullability: Delta schema NOT NULL 被 CLI 识别为 not null",
+      "status": "PASS",
+      "detail": "inspect=[False, True, True] delta_schema=[False, True, True]"
+    },
+    {
+      "group": "C",
+      "name": "writer 示例退出码 0",
+      "status": "PASS",
+      "detail": "exit=0 stderr="
+    },
+    {
+      "group": "C",
+      "name": "writer 输出 created/appended/self-check",
+      "status": "PASS",
+      "detail": "created version 0 at artifacts/interop-flat/moondelta-written / appended batch1 => version 1 / appended batch2 => version 2 / self-check: version=2 files=2 rows=5 / file: part-0000-1750000000000-1.parquet size=297 stats={\"numRecords\":3,\"minValues\":{\"id\":1},\"maxValues\":{\"id\":3}} / file: part-0000-1750000001000-2.parquet size=280 stats={\"numRecords\":2,\"minValues\":{\"id\":4},\"maxValues\":{\"id\":5}}"
+    },
+    {
+      "group": "C",
+      "name": "moondelta 写出 protocol = reader1/writer2",
+      "status": "PASS",
+      "detail": "reader=1 writer=2"
+    },
+    {
+      "group": "C",
+      "name": "moondelta 写出 commit 版本 = 3（create + 2 append）",
+      "status": "PASS",
+      "detail": "version=2 log_versions=3"
+    },
+    {
+      "group": "C",
+      "name": "moondelta 写出数据文件数 = 2",
+      "status": "PASS",
+      "detail": "files=['part-0000-1750000000000-1.parquet', 'part-0000-1750000001000-2.parquet']"
+    },
+    {
+      "group": "C",
+      "name": "Delta schema 列名/顺序/类型/nullability",
+      "status": "PASS",
+      "detail": "列名/顺序/类型/nullability 完全一致"
+    },
+    {
+      "group": "C",
+      "name": "delta-rs 回读行数 = 5",
+      "status": "PASS",
+      "detail": "rows=5"
+    },
+    {
+      "group": "C",
+      "name": "delta-rs 回读逐列值（含 null）",
+      "status": "PASS",
+      "detail": "5 行逐列值严格一致（含 null，按多重集比较）"
+    },
+    {
+      "group": "C",
+      "name": "delta-rs 回读按 Delta schema 保留 NOT NULL 语义",
+      "status": "PASS",
+      "detail": "delta-rs arrow schema: [('id', 'int64', False), ('name', 'string', True), ('active', 'bool', True)]"
+    },
+    {
+      "group": "C",
+      "name": "parquet 物理列名/顺序与 Delta schema 一致",
+      "status": "PASS",
+      "detail": "[['id', 'name', 'active'], ['id', 'name', 'active']]"
+    },
+    {
+      "group": "C",
+      "name": "parquet 压缩均为 UNCOMPRESSED（受支持）",
+      "status": "PASS",
+      "detail": "[['UNCOMPRESSED', 'UNCOMPRESSED', 'UNCOMPRESSED'], ['UNCOMPRESSED', 'UNCOMPRESSED', 'UNCOMPRESSED']]"
+    },
+    {
+      "group": "C",
+      "name": "parquet 物理物理 nullability 与 Delta schema 不一致（id NOT NULL -> optional）",
+      "status": "DIFF",
+      "detail": "Delta schema 声明 id nullable=false，MoonBit writer 落盘为 optional int64；delta-rs 回读时按 Delta schema 呈现 not null，但 read_parquet/第三方物理校验看不到 NOT NULL 约束。影响：读值正确，但物理层无法阻止/发现违反 NOT NULL 的写入；外部引擎若仅按 parquet schema 推导会认为 id 可为空。"
+    },
+    {
+      "group": "C",
+      "name": "moondelta CLI 自读写出表 inspect/read 退出码 0",
+      "status": "PASS",
+      "detail": {
+        "c_self_inspect": 0,
+        "c_self_read": 0
+      }
+    },
+    {
+      "group": "C",
+      "name": "moondelta CLI 自读 schema 与 Delta schema 一致",
+      "status": "PASS",
+      "detail": "列名/顺序/类型/nullability 完全一致"
+    },
+    {
+      "group": "C",
+      "name": "moondelta CLI 自读逐列值一致",
+      "status": "PASS",
+      "detail": "5 行逐列值严格一致（含 null，按多重集比较）"
+    },
+    {
+      "group": "D",
+      "name": "DuckDB delta 扩展可用",
+      "status": "PASS",
+      "detail": "duckdb=1.5.6 delta extension_version=6059958"
+    },
+    {
+      "group": "D",
+      "name": "delta_scan(engine-written) 逐列值一致",
+      "status": "PASS",
+      "detail": "5 行逐列值严格一致（含 null，按多重集比较）"
+    },
+    {
+      "group": "D",
+      "name": "delta_scan(engine-written) 列类型 BIGINT/VARCHAR/BOOLEAN",
+      "status": "PASS",
+      "detail": "{'id': 'BIGINT', 'name': 'VARCHAR', 'active': 'BOOLEAN'}"
+    },
+    {
+      "group": "D",
+      "name": "delta_scan(engine-written) DESCRIBE 不反映 Delta NOT NULL",
+      "status": "INFO",
+      "detail": "DuckDB delta 扩展对全部列返回 null=YES（即使 Delta schema 中 id nullable=false）；这是 DuckDB 扩展的列级 nullability 展示行为，两侧一致，不影响值读取。"
+    },
+    {
+      "group": "D",
+      "name": "read_parquet(engine-written) 逐列值一致（非 Delta 级补充）",
+      "status": "PASS",
+      "detail": "5 行逐列值严格一致（含 null，按多重集比较）"
+    },
+    {
+      "group": "D",
+      "name": "delta_scan(moondelta-written) 逐列值一致",
+      "status": "PASS",
+      "detail": "5 行逐列值严格一致（含 null，按多重集比较）"
+    },
+    {
+      "group": "D",
+      "name": "delta_scan(moondelta-written) 列类型 BIGINT/VARCHAR/BOOLEAN",
+      "status": "PASS",
+      "detail": "{'id': 'BIGINT', 'name': 'VARCHAR', 'active': 'BOOLEAN'}"
+    },
+    {
+      "group": "D",
+      "name": "delta_scan(moondelta-written) DESCRIBE 不反映 Delta NOT NULL",
+      "status": "INFO",
+      "detail": "DuckDB delta 扩展对全部列返回 null=YES（即使 Delta schema 中 id nullable=false）；这是 DuckDB 扩展的列级 nullability 展示行为，两侧一致，不影响值读取。"
+    },
+    {
+      "group": "D",
+      "name": "read_parquet(moondelta-written) 逐列值一致（非 Delta 级补充）",
+      "status": "PASS",
+      "detail": "5 行逐列值严格一致（含 null，按多重集比较）"
+    },
+    {
+      "group": "E",
+      "name": "delta-rs add.stats：numRecords + 3 列 min/max/nullCount 齐全",
+      "status": "PASS",
+      "detail": "[{'path': 'part-00000-a84180dd-113f-467e-9428-b0b48082ca2c-c000.snappy.parquet', 'numRecords': 3, 'nullCount_keys': ['active', 'id', 'name']}, {'path': 'part-00000-291b0f4f-41cb-4fea-897e-80f10e4b3835-c000.snappy.parquet', 'numRecords': 2, 'nullCount_keys': ['active', 'id', 'name']}]"
+    },
+    {
+      "group": "E",
+      "name": "moondelta add.stats：每文件都有 numRecords",
+      "status": "PASS",
+      "detail": "[3, 2]"
+    },
+    {
+      "group": "E",
+      "name": "moondelta add.stats 仅含 id 的 min/max、缺 nullCount 与 string/boolean 统计",
+      "status": "DIFF",
+      "detail": "moondelta 写出 stats = {numRecords, minValues:{id}, maxValues:{id}}；delta-rs 写出 stats 含 active/name/id 的 min/max 以及 3 列 nullCount。影响：数值列 id 的 min/max 剪枝可用（下方 scan 验证）；name/active 谓词剪枝、NULL 相关剪枝（IS NULL/IS NOT NULL）在 moondelta 写出的表上不可用，只能退化为全文件扫描 —— 少剪枝但不会多读/少读数据（读值已验证一致）。"
+    },
+    {
+      "group": "E",
+      "name": "两侧 scan --where id>=4 都剪掉 1 个文件、命中 2 行",
+      "status": "PASS",
+      "detail": "{'engine-written': {'exit': 0, 'selected': 1, 'skipped_stats': 1, 'matched_rows': 2, 'files': ['part-00000-291b0f4f-41cb-4fea-897e-80f10e4b3835-c000.snappy.parquet']}, 'moondelta-written': {'exit': 0, 'selected': 1, 'skipped_stats': 1, 'matched_rows': 2, 'files': ['part-0000-1750000001000-2.parquet']}}"
+    },
+    {
+      "group": "E",
+      "name": "delta-rs 不传 configuration 时的默认 protocol",
+      "status": "INFO",
+      "detail": "reader=1 writer=2（本环境默认即 1/2，故显式配置是“钉死协议”而非必需）"
+    },
+    {
+      "group": "E",
+      "name": "探针：write_deltalake(configuration={delta.minReaderVersion,delta.minWriterVersion}) 可控制 protocol",
+      "status": "INFO",
+      "detail": "默认即 reader=1/writer=2；显式配置 1/2 可固定；写成 2/5 时日志 protocol={'minReaderVersion': 2, 'minWriterVersion': 5}（证明配置键真实生效）。"
+    },
+    {
+      "group": "E",
+      "name": "风险：moondelta 接受 reader=2/writer=5 表而非拒绝（与文档第 1/2 节口径不一致）",
+      "status": "INFO",
+      "detail": "inspect/read 退出码 0；文档要求高于 reader v1 的表必须拒绝。该探针表日志 protocol={minReaderVersion:2,minWriterVersion:5} 且无 readerFeatures/writerFeatures，属 delta-rs 非常规产出，但 CLI 未做版本校验。建议交 D1 协议审计确认；详见 raw/f_probe_protocol_config.json。"
+    }
+  ],
+  "verdict": {
+    "pass": 49,
+    "fail": 0,
+    "diff": 2,
+    "info": 5,
+    "blocked": 0
+  }
+}

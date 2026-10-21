@@ -1,0 +1,4 @@
+### _build\native\debug\build\cmd\delta\delta.exe version
+EXIT=0
+moondelta-core 0.1.0
+

@@ -1,0 +1,12 @@
+### 36-read-deletion-vector
+$ delta.exe read artifacts/protocol-audit/fixtures/deletion-vector-add
+[exit code: 0]
+--- stdout ---
+read 1 file(s), 3 row(s), version 0
+id (long)
+1
+2
+3
+--- stderr ---
+
+

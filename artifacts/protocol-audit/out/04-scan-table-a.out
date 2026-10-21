@@ -1,0 +1,19 @@
+### 04-scan-table-a
+$ delta.exe scan fixtures/delta/table_a
+[exit code: 0]
+--- stdout ---
+table            : fixtures/delta/table_a (version 12)
+total files      : 120
+selected files   : 120
+skipped partition: 0
+skipped stats    : 0
+matched rows     : 120
+matched bytes    : 54232
+  - part-00001-665397f5-1435-4478-a598-ca226c99ffcf-c000.snappy.parquet
+  - part-00002-fd50becf-074e-4a1f-985b-01529e9f7b03-c000.snappy.parquet
+  - part-00003-4fc1f70f-9daa-46e6-83b5-ea8144d4a96d-c000.snappy.parquet
+  - part-00004-efb0808c-3b7f-4a4d-bc36-daa91c074b5b-c000.snappy.parquet
+  - part-00005-c8664e02-01fe-4c2d-8eba-ae84012d7aad-c000.snappy.parquet
+--- stderr ---
+
+

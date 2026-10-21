@@ -1,0 +1,6 @@
+id,profile,tags,attrs
+1,"{name: alice, age: 30}","[red, green]","{k1: v1, k2: v2}"
+2,NULL,[],{}
+3,"{name: NULL, age: NULL}",NULL,{k: v}
+4,"{name: bob, age: NULL}","[blue, NULL]",{}
+5,"{name: NULL, age: 42}",[],NULL

@@ -1,0 +1,8 @@
+table            : artifacts/interop-flat/moondelta-written (version 2)
+total files      : 2
+selected files   : 1
+skipped partition: 0
+skipped stats    : 1
+matched rows     : 2
+matched bytes    : 280
+  - part-0000-1750000001000-2.parquet

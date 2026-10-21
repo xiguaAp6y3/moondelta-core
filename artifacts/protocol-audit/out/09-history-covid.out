@@ -1,0 +1,10 @@
+### 09-history-covid
+$ delta.exe history fixtures/delta/covid
+[exit code: 0]
+--- stdout ---
+version | timestamp     | operation
+--------+---------------+----------
+0 | 1619121487931 | WRITE
+--- stderr ---
+
+

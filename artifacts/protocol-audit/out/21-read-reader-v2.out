@@ -1,0 +1,12 @@
+### 21-read-reader-v2
+$ delta.exe read artifacts/protocol-audit/fixtures/protocol-reader-v2
+[exit code: 0]
+--- stdout ---
+read 1 file(s), 3 row(s), version 0
+id (long)
+1
+2
+3
+--- stderr ---
+
+

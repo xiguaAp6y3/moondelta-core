@@ -1,0 +1,8 @@
+### 73-read-nested-missing-file
+$ delta.exe read artifacts/protocol-audit/fixtures/nested-missing-file
+[exit code: 0]
+--- stdout ---
+error: unsupported: nested column 'tags' (type=array) is not supported by the parquet reader; only flat schemas are readable
+--- stderr ---
+
+

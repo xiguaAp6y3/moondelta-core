@@ -1,0 +1,57 @@
+group,check,status,detail
+A,protocol = reader v1 / writer v2,PASS,reader=1 writer=2 writerFeatures=None readerFeatures=None
+A,两次提交 => 版本数 2,PASS,"version=1 log_versions=2（version 0 create+add, version 1 append）"
+A,数据文件数 = 2,PASS,"files=['part-00000-7bebe2e8-16af-4e7d-a700-c6010ae0e018-c000.snappy.parquet', 'part-00000-38b46616-d4eb-4392-b3b4-649384aa3c5a-c000.snappy.parquet']"
+A,schema 列名/顺序/类型/nullability,PASS,列名/顺序/类型/nullability 完全一致
+A,总行数 = 5,PASS,delta-rs read rows=5
+A,delta-rs 读回的逐列值（含 null）,PASS,5 行逐列值严格一致（含 null，按多重集比较）
+A,每文件 add.stats.numRecords 合计 = 5,PASS,"numRecords=[3, 2]"
+A,add.stats 含 3 列 min/max/nullCount,PASS,delta-rs 为 id/name/active 都写出 minValues、maxValues、nullCount
+A,parquet 物理 nullability 对照（delta-rs: id required）,PASS,"delta-rs 落盘: [{'id': False, 'name': True, 'active': True}, {'id': False, 'name': True, 'active': True}]"
+B,inspect/history/scan/read 退出码均为 0,PASS,"{'b_engine_inspect': 0, 'b_engine_history': 0, 'b_engine_scan': 0, 'b_engine_scan_where_id_ge_4': 0, 'b_engine_read': 0}"
+B,inspect 当前版本 = 1,PASS,version=1
+B,inspect 日志版本数 = 2,PASS,log_versions=2
+B,inspect files/rows = 2/5,PASS,files=2 rows=5 bytes=1949
+B,inspect protocol = reader1/writer2,PASS,protocol=reader=1 writer=2
+B,inspect schema 列名/顺序/类型/nullability,PASS,列名/顺序/类型/nullability 完全一致
+B,"history 版本与操作 = [0:WRITE, 1:WRITE]",PASS,"[{'version': 0, 'operation': 'WRITE'}, {'version': 1, 'operation': 'WRITE'}]"
+B,scan 全量文件/行数 = 2/5,PASS,total=2 selected=2 matched_rows=5 skipped_stats=0
+B,scan 文件清单 = 日志 add 文件清单,PASS,"scan=['part-00000-38b46616-d4eb-4392-b3b4-649384aa3c5a-c000.snappy.parquet', 'part-00000-7bebe2e8-16af-4e7d-a700-c6010ae0e018-c000.snappy.parquet'] log=['part-00000-38b46616-d4eb-4392-b3b4-649384aa3c5a-c000.snappy.parquet', 'part-00000-7bebe2e8-16af-4e7d-a700-c6010ae0e018-c000.snappy.parquet']"
+B,read 表头列名/类型/顺序,PASS,"[('id', 'long'), ('name', 'string'), ('active', 'boolean')]"
+B,read 报告文件数/行数/版本 = 2/5/1,PASS,files=2 rows=5 version=1
+B,read 逐列值与 null 和 delta-rs oracle 一致,PASS,5 行逐列值严格一致（含 null，按多重集比较）
+B,read 逐值 vs delta-rs 读回 oracle（同源对照）,PASS,5 行逐列值严格一致（含 null，按多重集比较）
+B,scan --where id>=4 用 stats 剪掉 1 个文件并命中 2 行,PASS,skipped_stats=1 selected=1 matched_rows=2 files=['part-00000-7bebe2e8-16af-4e7d-a700-c6010ae0e018-c000.snappy.parquet'] 期望文件=['part-00000-7bebe2e8-16af-4e7d-a700-c6010ae0e018-c000.snappy.parquet']
+B,scan matched rows 与 add.stats.numRecords 一致,PASS,"numRecords=[3, 2]"
+B,nullability: Delta schema NOT NULL 被 CLI 识别为 not null,PASS,"inspect=[False, True, True] delta_schema=[False, True, True]"
+C,writer 示例退出码 0,PASS,exit=0 stderr=
+C,writer 输出 created/appended/self-check,PASS,"created version 0 at artifacts/interop-flat/moondelta-written / appended batch1 => version 1 / appended batch2 => version 2 / self-check: version=2 files=2 rows=5 / file: part-0000-1750000000000-1.parquet size=297 stats={""numRecords"":3,""minValues"":{""id"":1},""maxValues"":{""id"":3}} / file: part-0000-1750000001000-2.parquet size=280 stats={""numRecords"":2,""minValues"":{""id"":4},""maxValues"":{""id"":5}}"
+C,moondelta 写出 protocol = reader1/writer2,PASS,reader=1 writer=2
+C,moondelta 写出 commit 版本 = 3（create + 2 append）,PASS,version=2 log_versions=3
+C,moondelta 写出数据文件数 = 2,PASS,"files=['part-0000-1750000000000-1.parquet', 'part-0000-1750000001000-2.parquet']"
+C,Delta schema 列名/顺序/类型/nullability,PASS,列名/顺序/类型/nullability 完全一致
+C,delta-rs 回读行数 = 5,PASS,rows=5
+C,delta-rs 回读逐列值（含 null）,PASS,5 行逐列值严格一致（含 null，按多重集比较）
+C,delta-rs 回读按 Delta schema 保留 NOT NULL 语义,PASS,"delta-rs arrow schema: [('id', 'int64', False), ('name', 'string', True), ('active', 'bool', True)]"
+C,parquet 物理列名/顺序与 Delta schema 一致,PASS,"[['id', 'name', 'active'], ['id', 'name', 'active']]"
+C,parquet 压缩均为 UNCOMPRESSED（受支持）,PASS,"[['UNCOMPRESSED', 'UNCOMPRESSED', 'UNCOMPRESSED'], ['UNCOMPRESSED', 'UNCOMPRESSED', 'UNCOMPRESSED']]"
+C,parquet 物理物理 nullability 与 Delta schema 不一致（id NOT NULL -> optional）,DIFF,Delta schema 声明 id nullable=false，MoonBit writer 落盘为 optional int64；delta-rs 回读时按 Delta schema 呈现 not null，但 read_parquet/第三方物理校验看不到 NOT NULL 约束。影响：读值正确，但物理层无法阻止/发现违反 NOT NULL 的写入；外部引擎若仅按 parquet schema 推导会认为 id 可为空。
+C,moondelta CLI 自读写出表 inspect/read 退出码 0,PASS,"{'c_self_inspect': 0, 'c_self_read': 0}"
+C,moondelta CLI 自读 schema 与 Delta schema 一致,PASS,列名/顺序/类型/nullability 完全一致
+C,moondelta CLI 自读逐列值一致,PASS,5 行逐列值严格一致（含 null，按多重集比较）
+D,DuckDB delta 扩展可用,PASS,duckdb=1.5.6 delta extension_version=6059958
+D,delta_scan(engine-written) 逐列值一致,PASS,5 行逐列值严格一致（含 null，按多重集比较）
+D,delta_scan(engine-written) 列类型 BIGINT/VARCHAR/BOOLEAN,PASS,"{'id': 'BIGINT', 'name': 'VARCHAR', 'active': 'BOOLEAN'}"
+D,delta_scan(engine-written) DESCRIBE 不反映 Delta NOT NULL,INFO,DuckDB delta 扩展对全部列返回 null=YES（即使 Delta schema 中 id nullable=false）；这是 DuckDB 扩展的列级 nullability 展示行为，两侧一致，不影响值读取。
+D,read_parquet(engine-written) 逐列值一致（非 Delta 级补充）,PASS,5 行逐列值严格一致（含 null，按多重集比较）
+D,delta_scan(moondelta-written) 逐列值一致,PASS,5 行逐列值严格一致（含 null，按多重集比较）
+D,delta_scan(moondelta-written) 列类型 BIGINT/VARCHAR/BOOLEAN,PASS,"{'id': 'BIGINT', 'name': 'VARCHAR', 'active': 'BOOLEAN'}"
+D,delta_scan(moondelta-written) DESCRIBE 不反映 Delta NOT NULL,INFO,DuckDB delta 扩展对全部列返回 null=YES（即使 Delta schema 中 id nullable=false）；这是 DuckDB 扩展的列级 nullability 展示行为，两侧一致，不影响值读取。
+D,read_parquet(moondelta-written) 逐列值一致（非 Delta 级补充）,PASS,5 行逐列值严格一致（含 null，按多重集比较）
+E,delta-rs add.stats：numRecords + 3 列 min/max/nullCount 齐全,PASS,"[{'path': 'part-00000-38b46616-d4eb-4392-b3b4-649384aa3c5a-c000.snappy.parquet', 'numRecords': 3, 'nullCount_keys': ['active', 'id', 'name']}, {'path': 'part-00000-7bebe2e8-16af-4e7d-a700-c6010ae0e018-c000.snappy.parquet', 'numRecords': 2, 'nullCount_keys': ['active', 'id', 'name']}]"
+E,moondelta add.stats：每文件都有 numRecords,PASS,"[3, 2]"
+E,moondelta add.stats 仅含 id 的 min/max、缺 nullCount 与 string/boolean 统计,DIFF,"moondelta 写出 stats = {numRecords, minValues:{id}, maxValues:{id}}；delta-rs 写出 stats 含 active/name/id 的 min/max 以及 3 列 nullCount。影响：数值列 id 的 min/max 剪枝可用（下方 scan 验证）；name/active 谓词剪枝、NULL 相关剪枝（IS NULL/IS NOT NULL）在 moondelta 写出的表上不可用，只能退化为全文件扫描 —— 少剪枝但不会多读/少读数据（读值已验证一致）。"
+E,两侧 scan --where id>=4 都剪掉 1 个文件、命中 2 行,PASS,"{'engine-written': {'exit': 0, 'selected': 1, 'skipped_stats': 1, 'matched_rows': 2, 'files': ['part-00000-7bebe2e8-16af-4e7d-a700-c6010ae0e018-c000.snappy.parquet']}, 'moondelta-written': {'exit': 0, 'selected': 1, 'skipped_stats': 1, 'matched_rows': 2, 'files': ['part-0000-1750000001000-2.parquet']}}"
+E,delta-rs 不传 configuration 时的默认 protocol,INFO,reader=1 writer=2（本环境默认即 1/2，故显式配置是“钉死协议”而非必需）
+E,"探针：write_deltalake(configuration={delta.minReaderVersion,delta.minWriterVersion}) 可控制 protocol",INFO,"默认即 reader=1/writer=2；显式配置 1/2 可固定；写成 2/5 时日志 protocol={'minReaderVersion': 2, 'minWriterVersion': 5}（证明配置键真实生效）。"
+E,风险：moondelta 接受 reader=2/writer=5 表而非拒绝（与文档第 1/2 节口径不一致）,INFO,"inspect/read 退出码 0；文档要求高于 reader v1 的表必须拒绝。该探针表日志 protocol={minReaderVersion:2,minWriterVersion:5} 且无 readerFeatures/writerFeatures，属 delta-rs 非常规产出，但 CLI 未做版本校验。建议交 D1 协议审计确认；详见 raw/f_probe_protocol_config.json。"

@@ -1,0 +1,3 @@
+{"commitInfo":{"timestamp":0,"operation":"CREATE TABLE","operationParameters":{},"isolationLevel":"Serializable","isBlindAppend":true,"engineInfo":"moondelta-core"}}
+{"protocol":{"minReaderVersion":1,"minWriterVersion":2}}
+{"metaData":{"id":"moondelta-../fixtures/probe-created-invalid","format":{"provider":"parquet","options":{}},"schemaString":"{not a schema","partitionColumns":[],"configuration":{},"createdTime":0}}

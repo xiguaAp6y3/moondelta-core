@@ -1,0 +1,74 @@
+{
+  "table": "artifacts/interop-nested/checkpoint-nested",
+  "checkpoint_files": [
+    "00000000000000000000.checkpoint.parquet"
+  ],
+  "last_checkpoint": {
+    "version": 0,
+    "size": 3,
+    "sizeInBytes": 14072,
+    "numOfAddFiles": 1
+  },
+  "checkpoint_columns": [
+    "add",
+    "remove",
+    "metaData",
+    "protocol",
+    "txn",
+    "domainMetadata",
+    "sidecar"
+  ],
+  "checkpoint_schema_arrow": "add: struct<path: string not null, partitionValues: map<string, string ('partitionValues')> not null, siz (... 368 chars omitted)\n  child 0, path: string not null\n  child 1, partitionValues: map<string, string ('partitionValues')> not null\n      child 0, partitionValues: struct<key: string not null, value: string> not null\n          child 0, key: string not null\n          child 1, value: string\n  child 2, size: int64 not null\n  child 3, modificationTime: int64 not null\n  child 4, dataChange: bool not null\n  child 5, stats: string\n  child 6, tags: map<string, string ('tags')>\n      child 0, tags: struct<key: string not null, value: string> not null\n          child 0, key: string not null\n          child 1, value: string\n  child 7, deletionVector: struct<storageType: string not null, pathOrInlineDv: string not null, offset: int32, sizeInBytes: in (... 42 chars omitted)\n      child 0, storageType: string not null\n      child 1, pathOrInlineDv: string not null\n      child 2, offset: int32\n      child 3, sizeInBytes: int32 not null\n      child 4, cardinality: int64 not null\n  child 8, baseRowId: int64\n  child 9, defaultRowCommitVersion: int64\n  child 10, clusteringProvider: string\nremove: struct<path: string not null, deletionTimestamp: int64, dataChange: bool not null, extendedFileMetad (... 342 chars omitted)\n  child 0, path: string not null\n  child 1, deletionTimestamp: int64\n  child 2, dataChange: bool not null\n  child 3, extendedFileMetadata: bool\n  child 4, partitionValues: map<string, string ('partitionValues')>\n      child 0, partitionValues: struct<key: string not null, value: string> not null\n          child 0, key: string not null\n          child 1, value: string\n  child 5, size: int64\n  child 6, stats: string\n  child 7, tags: map<string, string ('tags')>\n      child 0, tags: struct<key: string not null, value: string> not null\n          child 0, key: string not null\n          child 1, value: string\n  child 8, deletionVector: struct<storageType: string not null, pathOrInlineDv: string not null, offset: int32, sizeInBytes: in (... 42 chars omitted)\n      child 0, storageType: string not null\n      child 1, pathOrInlineDv: string not null\n      child 2, offset: int32\n      child 3, sizeInBytes: int32 not null\n      child 4, cardinality: int64 not null\n  child 9, baseRowId: int64\n  child 10, defaultRowCommitVersion: int64\nmetaData: struct<id: string not null, name: string, description: string, format: struct<provider: string not n (... 238 chars omitted)\n  child 0, id: string not null\n  child 1, name: string\n  child 2, description: string\n  child 3, format: struct<provider: string not null, options: map<string, string ('options')> not null> not null\n      child 0, provider: string not null\n      child 1, options: map<string, string ('options')> not null\n          child 0, options: struct<key: string not null, value: string not null> not null\n              child 0, key: string not null\n              child 1, value: string not null\n  child 4, schemaString: string not null\n  child 5, partitionColumns: list<element: string not null> not null\n      child 0, element: string not null\n  child 6, createdTime: int64\n  child 7, configuration: map<string, string ('configuration')> not null\n      child 0, configuration: struct<key: string not null, value: string not null> not null\n          child 0, key: string not null\n          child 1, value: string not null\nprotocol: struct<minReaderVersion: int32 not null, minWriterVersion: int32 not null, readerFeatures: list<elem (... 70 chars omitted)\n  child 0, minReaderVersion: int32 not null\n  child 1, minWriterVersion: int32 not null\n  child 2, readerFeatures: list<element: string not null>\n      child 0, element: string not null\n  child 3, writerFeatures: list<element: string not null>\n      child 0, element: string not null\ntxn: struct<appId: string not null, version: int64 not null, lastUpdated: int64>\n  child 0, appId: string not null\n  child 1, version: int64 not null\n  child 2, lastUpdated: int64\ndomainMetadata: struct<domain: string not null, configuration: string not null, removed: bool not null>\n  child 0, domain: string not null\n  child 1, configuration: string not null\n  child 2, removed: bool not null\nsidecar: struct<path: string not null, sizeInBytes: int64 not null, modificationTime: int64 not null, tags: m (... 28 chars omitted)\n  child 0, path: string not null\n  child 1, sizeInBytes: int64 not null\n  child 2, modificationTime: int64 not null\n  child 3, tags: map<string, string ('tags')>\n      child 0, tags: struct<key: string not null, value: string> not null\n          child 0, key: string not null\n          child 1, value: string",
+  "metaData_schemaString_in_checkpoint": "{\"type\":\"struct\",\"fields\":[{\"name\":\"id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{}},{\"name\":\"profile\",\"type\":{\"type\":\"struct\",\"fields\":[{\"name\":\"name\",\"type\":\"string\",\"nullable\":true,\"metadata\":{}},{\"name\":\"age\",\"type\":\"integer\",\"nullable\":true,\"metadata\":{}}]},\"nullable\":true,\"metadata\":{}},{\"name\":\"tags\",\"type\":{\"type\":\"array\",\"elementType\":\"string\",\"containsNull\":true},\"nullable\":true,\"metadata\":{}},{\"name\":\"attrs\",\"type\":{\"type\":\"map\",\"keyType\":\"string\",\"valueType\":\"string\",\"valueContainsNull\":true},\"nullable\":true,\"metadata\":{}}]}",
+  "add_stats_in_checkpoint": "{\"numRecords\":5,\"minValues\":{\"profile\":{\"age\":30,\"name\":\"alice\"},\"id\":1},\"maxValues\":{\"id\":5,\"profile\":{\"name\":\"bob\",\"age\":42}},\"nullCount\":{\"profile\":{\"name\":3,\"age\":3},\"id\":0}}",
+  "add_stats_in_checkpoint_json": {
+    "numRecords": 5,
+    "minValues": {
+      "profile": {
+        "age": 30,
+        "name": "alice"
+      },
+      "id": 1
+    },
+    "maxValues": {
+      "id": 5,
+      "profile": {
+        "name": "bob",
+        "age": 42
+      }
+    },
+    "nullCount": {
+      "profile": {
+        "name": 3,
+        "age": 3
+      },
+      "id": 0
+    }
+  },
+  "checkpoint_has_nested_action_schema": true,
+  "observations": [
+    "checkpoint 的 add.stats 以 JSON 字符串保存，字符串内部含嵌套 minValues/nullCount；checkpoint 本身是 struct<add, remove, metaData, protocol, ...> 的 action 行式快照。"
+  ],
+  "checkpoint_nested_action_fields": [
+    {
+      "marker": "partitionValues: map",
+      "present": true
+    },
+    {
+      "marker": "tags: map",
+      "present": true
+    },
+    {
+      "marker": "deletionVector: struct",
+      "present": true
+    },
+    {
+      "marker": "metaData: struct",
+      "present": true
+    },
+    {
+      "marker": "protocol: struct",
+      "present": true
+    }
+  ]
+}

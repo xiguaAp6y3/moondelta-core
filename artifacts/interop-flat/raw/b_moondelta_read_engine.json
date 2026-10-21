@@ -1,0 +1,165 @@
+{
+  "runs": {
+    "b_engine_inspect": {
+      "args": [
+        "E:\\Project\\Moonbit Hackson\\P1 RE\\_build\\native\\debug\\build\\cmd\\delta\\delta.exe",
+        "inspect",
+        "artifacts/interop-flat/engine-written"
+      ],
+      "exit": 0
+    },
+    "b_engine_history": {
+      "args": [
+        "E:\\Project\\Moonbit Hackson\\P1 RE\\_build\\native\\debug\\build\\cmd\\delta\\delta.exe",
+        "history",
+        "artifacts/interop-flat/engine-written"
+      ],
+      "exit": 0
+    },
+    "b_engine_scan": {
+      "args": [
+        "E:\\Project\\Moonbit Hackson\\P1 RE\\_build\\native\\debug\\build\\cmd\\delta\\delta.exe",
+        "scan",
+        "artifacts/interop-flat/engine-written"
+      ],
+      "exit": 0
+    },
+    "b_engine_scan_where_id_ge_4": {
+      "args": [
+        "E:\\Project\\Moonbit Hackson\\P1 RE\\_build\\native\\debug\\build\\cmd\\delta\\delta.exe",
+        "scan",
+        "artifacts/interop-flat/engine-written",
+        "--where",
+        "id>=4"
+      ],
+      "exit": 0
+    },
+    "b_engine_read": {
+      "args": [
+        "E:\\Project\\Moonbit Hackson\\P1 RE\\_build\\native\\debug\\build\\cmd\\delta\\delta.exe",
+        "read",
+        "artifacts/interop-flat/engine-written"
+      ],
+      "exit": 0
+    }
+  },
+  "inspect": {
+    "schema": [
+      {
+        "name": "id",
+        "type": "long",
+        "nullable": false
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "nullable": true
+      },
+      {
+        "name": "active",
+        "type": "boolean",
+        "nullable": true
+      }
+    ],
+    "raw": "table            : artifacts/interop-flat/engine-written\r\ncurrent version  : 1  (log versions: 2)\r\nfiles            : 2  rows: 5  bytes: 1949\r\nprotocol         : reader=1 writer=2\r\nformat           : parquet\r\npartition columns: (none)\r\nschema:\r\n  id: long (not null)\r\n  name: string\r\n  active: boolean\r\n",
+    "table": "artifacts/interop-flat/engine-written",
+    "current version": "1  (log versions: 2)",
+    "files": "2  rows: 5  bytes: 1949",
+    "protocol": "reader=1 writer=2",
+    "format": "parquet",
+    "partition columns": "(none)",
+    "version": 1,
+    "log_versions": 2,
+    "files_count": 2,
+    "rows": 5,
+    "bytes": 1949,
+    "reader_version": 1,
+    "writer_version": 2
+  },
+  "history": [
+    {
+      "version": 0,
+      "timestamp": 1792499319838,
+      "operation": "WRITE"
+    },
+    {
+      "version": 1,
+      "timestamp": 1792499319856,
+      "operation": "WRITE"
+    }
+  ],
+  "scan": {
+    "files": [
+      "part-00000-38b46616-d4eb-4392-b3b4-649384aa3c5a-c000.snappy.parquet",
+      "part-00000-7bebe2e8-16af-4e7d-a700-c6010ae0e018-c000.snappy.parquet"
+    ],
+    "raw": "table            : artifacts/interop-flat/engine-written (version 1)\r\ntotal files      : 2\r\nselected files   : 2\r\nskipped partition: 0\r\nskipped stats    : 0\r\nmatched rows     : 5\r\nmatched bytes    : 1949\r\n  - part-00000-38b46616-d4eb-4392-b3b4-649384aa3c5a-c000.snappy.parquet\r\n  - part-00000-7bebe2e8-16af-4e7d-a700-c6010ae0e018-c000.snappy.parquet\r\n",
+    "total files": 2,
+    "selected files": 2,
+    "skipped partition": 0,
+    "skipped stats": 0,
+    "matched rows": 5,
+    "matched bytes": 1949,
+    "version": 1
+  },
+  "scan_where_id_ge_4": {
+    "files": [
+      "part-00000-7bebe2e8-16af-4e7d-a700-c6010ae0e018-c000.snappy.parquet"
+    ],
+    "raw": "table            : artifacts/interop-flat/engine-written (version 1)\r\ntotal files      : 2\r\nselected files   : 1\r\nskipped partition: 0\r\nskipped stats    : 1\r\nmatched rows     : 2\r\nmatched bytes    : 969\r\n  - part-00000-7bebe2e8-16af-4e7d-a700-c6010ae0e018-c000.snappy.parquet\r\n",
+    "total files": 2,
+    "selected files": 1,
+    "skipped partition": 0,
+    "skipped stats": 1,
+    "matched rows": 2,
+    "matched bytes": 969,
+    "version": 1
+  },
+  "read": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "long"
+      },
+      {
+        "name": "name",
+        "type": "string"
+      },
+      {
+        "name": "active",
+        "type": "boolean"
+      }
+    ],
+    "rows": [
+      [
+        1,
+        "alice",
+        true
+      ],
+      [
+        2,
+        null,
+        false
+      ],
+      [
+        3,
+        "bob",
+        null
+      ],
+      [
+        4,
+        "carol",
+        true
+      ],
+      [
+        5,
+        null,
+        null
+      ]
+    ],
+    "raw": "read 2 file(s), 5 row(s), version 1\r\nid (long) | name (string) | active (boolean)\r\n1 | alice | true\r\n2 | NULL | false\r\n3 | bob | NULL\r\n4 | carol | true\r\n5 | NULL | NULL\r\n",
+    "files": 2,
+    "rows_reported": 5,
+    "version": 1
+  }
+}
