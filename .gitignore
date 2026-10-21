@@ -11,3 +11,10 @@ target/
 .idea/
 .vscode/
 .DS_Store
+
+# 本地互操作测试环境（Python venv）
+.tools/
+
+
+# 本机安全扫描缓存
+.mimosa/
