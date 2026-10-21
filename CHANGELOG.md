@@ -2,6 +2,35 @@
 
 本项目遵循语义化版本；格式参考 Keep a Changelog。
 
+## [0.2.0] - 2026-10-22
+
+路线图 M1（协议与工程基线）：协议越界从"静默接受"转为"拒绝并说明原因"，全部有负向测试；测试数 14 → 31。
+
+### Added
+
+- **协议校验**：`minReaderVersion != 1` 拒绝并说明（v2/v3 门控 column mapping、
+  删除向量、v2 checkpoint）；`add.deletionVector` 存在即拒绝；`readerFeatures`
+  在 reader v1 上拒绝；`writerFeatures` 解析入库
+- **日志完整性**：`_delta_log` 文件名严格按 20 位零填充版本号校验（`0.json`
+  之类的名字此前会伪造 version 0 绕过 checkpoint-only 防护）
+- **Actions 闭集**：`txn` 识别；`cdc` / `domainMetadata` 显式忽略并在 `inspect`
+  输出与 `Snapshot.ignored_actions` 中提示；未知 action 结构化拒绝（不再静默跳过）
+- **读取**：`byte` / `short` 类型映射与读取（delta-rs 写出的真实表回读，
+  fixture `fixtures/delta/byte-short/`）；`add.path` percent-decoding（规范要求，
+  此前含空格/非 ASCII 文件名的表不可读）；parquet I/O 错误带上文件路径
+- **写入防护**：`create_table` 拒绝已存在的表；`append_rows` 校验列名/类型/
+  NOT NULL 与 `metaData.schema` 一致；writer protocol > 2 拒绝 append；
+  数据文件与 commit 文件均为 put-if-absent
+- **CLI**：错误输出到 stderr、失败以退出码 1 结束；未知参数 / 缺值 / 非法
+  `--where` 显式报错
+
+### Changed
+
+- `add.stats` 解析失败从"静默按 0 行计"改为结构化 `ParseError`
+- 截断日志的报错信息不再误导为 "checkpoint-only or truncated table?"
+- 测试数 14 → 31；README / 申报书能力矩阵同步到 0.2.0 现状
+  （唯一残留静默缺口：截断日志 + checkpoint 读旧快照，路线图 M3）
+
 ## [0.1.1] - 2026-10-19
 
 ### Added

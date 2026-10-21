@@ -35,6 +35,7 @@ fixtures/
 | `fixtures/delta/table_a/_delta_log/`（13 个 `000…json` + `000…10.checkpoint.parquet` + `_last_checkpoint`） | [`delta-io/delta-rs`](https://github.com/delta-io/delta-rs) 测试数据（`table_a` 表） | 上游测试数据目录下的 `table_a`（本仓库未 pin 上游 commit，见 §5） | Apache-2.0 | **多版本回放**：日志解析、快照构建、时间旅行、扫描规划的统计剪枝 |
 | `fixtures/delta/covid/log0.json` + `fixtures/delta/covid/part-00000-…-c000.snappy.parquet` | [`delta-io/delta-rs`](https://github.com/delta-io/delta-rs) 测试数据（`COVID-19_NYT` 表，由 Databricks 写出） | 上游测试数据目录下的 `covid/`（同上，未 pin commit） | Apache-2.0 | **真实 Spark/Databricks 数据读取**：验证把 Delta `add` 指向的真实 snappy Parquet 文件读成行/列 |
 | `fixtures/parquet/list_columns.parquet` | [`apache/parquet-testing`](https://github.com/apache/parquet-testing) | `data/list_columns.parquet` | Apache-2.0 | **负向用例**：嵌套 `LIST` 列在依赖库不支持时的报错行为（必须"明确报错"，不得 panic 或静默错读） |
+| `fixtures/delta/byte-short/`（1 个 `000…json` + 1 个 snappy parquet） | 本项目用 `deltalake`（delta-rs）Python 包生成（2026-10-22，M1） | 本地生成（`write_deltalake`，无上游） | Apache-2.0（随本项目） | **byte/short 类型读取**（M1-D4）：`b: byte`（含 null）、`s: short`（含 null）、`id: long`，3 行；验证 schema 映射与 Parquet 物理读取 |
 
 两份上游仓库均为 **Apache License 2.0**，与本项目 `LICENSE` 一致；数据文件随原仓库以 Apache-2.0 分发，本目录仅做原样复制（字节级一致，校验见 §4）。
 

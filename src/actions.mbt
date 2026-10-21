@@ -12,7 +12,26 @@ fn require_string(
 }
 
 ///|
-fn parse_protocol(j : Json) -> Protocol {
+fn parse_feature_names(j : Json, key : String) -> Array[String] raise DeltaError {
+  let out : Array[String] = []
+  match json_field_array(j, key) {
+    Some(arr) =>
+      for item in arr {
+        match json_as_string(item) {
+          Some(s) => out.push(s)
+          None =>
+            raise DeltaError::ParseError(
+              "protocol.\{key} contains a non-string feature name",
+            )
+        }
+      }
+    None => ()
+  }
+  out
+}
+
+///|
+fn parse_protocol(j : Json) -> Protocol raise DeltaError {
   let min_reader = match json_field_int(j, "minReaderVersion") {
     Some(v) => v
     None => 1
@@ -21,7 +40,9 @@ fn parse_protocol(j : Json) -> Protocol {
     Some(v) => v
     None => 1
   }
-  { min_reader_version: min_reader, min_writer_version: min_writer, }
+  let reader_features = parse_feature_names(j, "readerFeatures")
+  let writer_features = parse_feature_names(j, "writerFeatures")
+  { min_reader_version: min_reader, min_writer_version: min_writer, reader_features, writer_features, }
 }
 
 ///|
@@ -69,8 +90,20 @@ pub fn parse_metadata(j : Json) -> TableInfo raise DeltaError {
 }
 
 ///|
+/// Delta 规范：add.path 是 percent-encoded 的 URI 路径成分，读取文件系统前必须解码。
+pub fn decode_add_path(encoded : String) -> String raise DeltaError {
+  let bytes = @percent.decode(encoded)
+  @utf8.decode(bytes[:]) catch {
+    Malformed(_) =>
+      raise DeltaError::ParseError(
+        "add.path is not valid percent-encoded UTF-8: '\{encoded}'",
+      )
+  }
+}
+
+///|
 pub fn parse_add(j : Json) -> AddFile raise DeltaError {
-  let path = require_string(j, "path", "add")
+  let path = decode_add_path(require_string(j, "path", "add"))
   let partition_values = match json_field(j, "partitionValues") {
     Some(pv) => json_object_pairs_string(pv)
     None => []
@@ -88,7 +121,8 @@ pub fn parse_add(j : Json) -> AddFile raise DeltaError {
     None => true
   }
   let stats = json_field_string(j, "stats")
-  { path, partition_values, size, modification_time, data_change, stats, }
+  let has_deletion_vector = json_field(j, "deletionVector") is Some(_)
+  { path, partition_values, size, modification_time, data_change, stats, has_deletion_vector, }
 }
 
 ///|
@@ -114,7 +148,20 @@ pub fn parse_commit_info(j : Json, version : Int32) -> CommitInfo {
 }
 
 ///|
-/// 解析一行 Delta 日志（一行一个 action）
+fn parse_txn(j : Json) -> Txn raise DeltaError {
+  let app_id = require_string(j, "appId", "txn")
+  let version = match json_field_int64(j, "version") {
+    Some(v) => v
+    None =>
+      raise DeltaError::ParseError("txn: missing int64 field 'version'")
+  }
+  { app_id, version, }
+}
+
+///|
+/// 解析一行 Delta 日志（一行一个 action）。
+/// 已知但与快照无关的 action（cdc / domainMetadata）显式忽略并记录名字；
+/// 未识别的 action 直接报错——不静默跳过。
 pub fn parse_action(
   line : StringView,
   version : Int32,
@@ -145,5 +192,23 @@ pub fn parse_action(
     Some(c) => return CommitInfoAction(parse_commit_info(c, version))
     None => ()
   }
-  UnknownAction("unrecognized action")
+  match json_field(j, "txn") {
+    Some(t) => return TxnAction(parse_txn(t))
+    None => ()
+  }
+  for known in ["cdc", "domainMetadata"] {
+    if json_field(j, known) is Some(_) {
+      return IgnoredAction(known)
+    }
+  }
+  let mut unknown = "<non-object action>"
+  if json_as_object(j) is Some(obj) {
+    for k, _ in obj {
+      unknown = k
+      break
+    }
+  }
+  raise DeltaError::Unsupported(
+    "unknown action '\{unknown}' in _delta_log version \{version} (this kernel implements the action closed set: protocol/metaData/add/remove/commitInfo/txn, with cdc/domainMetadata explicitly ignored)",
+  )
 }

@@ -14,14 +14,14 @@ MoonBit 原生的 **Delta Lake 表格式内核**：回放 `_delta_log` 事务日
 
 MVP（README/CLI 仍标 0.1.0，`moon.mod` 已为 0.1.1，版本文案待统一，见 `artifacts/protocol-audit.md` §5 第 9 条）：
 
--  日志解析与回放：`protocol` / `metaData` / `add` / `remove` / `commitInfo`，`_last_checkpoint` 识别
--  协议范围：读取 Delta protocol reader v1 的表、写出 `minReaderVersion = 1, minWriterVersion = 2` 的表；日志从非 0 起点/缺版本明确拒绝；checkpoint-only 返回结构化 NotFound；日志被截断但存在 checkpoint 的表当前未检测（会读旧快照，已知缺口）；reader v2/v3 与未知必需 feature 当前不校验
+-  日志解析与回放：`protocol` / `metaData` / `add` / `remove` / `commitInfo`，`txn` 识别，`cdc` / `domainMetadata` 显式忽略并在输出中提示，未知 action 结构化拒绝，`_last_checkpoint` 识别
+-  协议范围（0.2.0 起强制）：只读 `minReaderVersion = 1` 的表——reader v2/v3 与 `readerFeatures` 拒绝并说明原因（column mapping / 删除向量 / v2 checkpoint 为高版本特性）；`add.deletionVector` 拒绝；日志文件名严格按 20 位校验；`add.path` percent-decoding；写出到 `minReaderVersion = 1, minWriterVersion = 2`（writer > 2 的表拒绝 append）；日志从非 0 起点/缺版本明确拒绝；checkpoint-only 返回结构化 NotFound；**日志被截断但存在 checkpoint 的表仍会读旧快照（唯一残留缺口，checkpoint 恢复在路线图 M3）**
 -  快照、版本历史、时间旅行（`snapshot_at`）
--  扫描规划：分区等值过滤 + 文件级 min/max 统计剪枝
--  读取：flat schema + UNCOMPRESSED/SNAPPY 的 Delta 数据文件
--  写入：`create_table` + `append_rows`（Int32/Int64/String/Binary/Boolean/Double）；append 只校验列数/行长，不校验列名/类型/NOT NULL，写出列恒为 Parquet Optional（已知缺口，见 `artifacts/protocol-audit.md` §5）；分区列读取时按 `partitionValues` 补齐
--  CLI：`inspect / history / scan / read / create / version`
--  14 个单元测试（含分区读/过滤、统计剪枝边界、缺失数据文件、嵌套列拒绝等负向用例；其中名为 checkpoint-only 的用例实际构造的是非 0 起点日志，真实 checkpoint-only / 删除向量 / reader≥2 拒绝无测试）+ 真实 Delta 表 fixture（delta-rs、apache/parquet-testing）
+-  扫描规划：分区等值过滤 + 文件级 min/max 统计剪枝（stats 损坏显式报错，不再静默返 0）
+-  读取：flat schema（含 byte/short）+ UNCOMPRESSED/SNAPPY 的 Delta 数据文件
+-  写入：`create_table`（已存在的表拒绝）+ `append_rows`（Int32/Int64/String/Binary/Boolean/Double；校验列名/类型/NOT NULL；数据文件与 commit 均为 put-if-absent）；分区列读取时按 `partitionValues` 补齐
+-  CLI：`inspect / history / scan / read / create / version`；错误输出到 stderr、非 0 退出码、未知参数/缺值报错
+-  31 个单元测试（含分区读/过滤、统计剪枝边界、缺失数据文件、嵌套列拒绝、协议版本/feature 拒绝、删除向量拒绝、未知 action 拒绝、日志名校验、路径解码、写防护等负向用例）+ 真实 Delta 表 fixture（delta-rs、apache/parquet-testing）；真实 checkpoint-only / 截断恢复的读取属 M3
 
 已用真实数据验证（均为仓库 fixture 读取，D1 已复核）：delta-rs `table_a`（13 个版本回放 → 120 个文件，仓库只含日志、不含数据文件）、Databricks 写出的 COVID-19_NYT 表的 1 个数据文件（157,865 行 6 列，snappy；该表共 8 个数据文件，其余 7 个未入库）。
 
@@ -96,18 +96,18 @@ let columns : Array[@delta.ReadColumn] = [
 
 | 维度 | 支持 | 不支持 |
 |---|---|---|
-| protocol | reader v1 读取；writer v2 写出 | 高于 reader v1 的 protocol、`readerFeatures` / `writerFeatures`、未知必需 feature 当前不校验、不拒绝（已知缺口） |
-| 日志 | version 0 起的连续 JSON commit；非 0 起点/缺版本拒绝 | checkpoint-only 返回结构化 NotFound；日志被截断但存在 checkpoint 的表未检测（会读旧快照，已知缺口） |
+| protocol | reader v1 读取；writer v2 写出 | 高于 reader v1 的 protocol、`readerFeatures` 拒绝并说明原因（0.2.0 起，含测试）；`writerFeatures` 列表随协议解析 |
+| 日志 | version 0 起的连续 JSON commit；20 位文件名严格校验；非 0 起点/缺版本拒绝 | checkpoint-only 返回结构化 NotFound；日志被截断但存在 checkpoint 的表仍读旧快照（残留缺口，M3 做 checkpoint 恢复） |
 | schema | flat 原始类型 | 嵌套 struct / list / map（明确拒绝）；decimal/uuid（明确拒绝） |
 | 压缩 | UNCOMPRESSED、SNAPPY | ZSTD、GZIP、BROTLI、LZ4（明确拒绝） |
 | 逻辑类型 | string、int、long、float、double、boolean、date、timestamp(INT96) | decimal、uuid 等（会丢语义） |
-| 表 | 日志完整、可从头回放的本地表 | checkpoint-only / 截断日志（后者未检测，见上） |
+| 表 | 日志完整、可从头回放的本地表 | checkpoint-only / 截断日志（后者等待 M3 checkpoint 恢复，当前读旧快照并标注） |
 | 写入类型 | Int32 / Int64 / String / Binary / Boolean / Double | Float / Timestamp / Repeated |
 | 写入表 | 非分区表 | 分区表 append（MVP 明确拒绝）；append 不校验列名/类型/NOT NULL，列恒为 Parquet Optional |
 | 存储 | 本地文件系统 | 对象存储（S3/R2） |
-| 闭集外 feature | — | 删除向量、column mapping、CDF 当前未检测；删除向量被静默忽略并读全量（已知缺口） |
+| 闭集外 feature | 删除向量：`add.deletionVector` 存在即拒绝（0.2.0 起，含测试） | column mapping、v2 checkpoint、CDF：随 reader>1 协议拒绝或显式忽略并提示 |
 
-其中嵌套列、缺失数据文件、非 0 起点/缺版本日志、四种不支持压缩、decimal/未知类型已实测为结构化错误（部分有测试）；但**闭集外并非全部拒绝**：删除向量被静默忽略并读全量、截断日志 + checkpoint 读旧快照、reader v2/v3 接受、stats 非 string 时 `rows: 0`、append 不校验列名/类型/NOT NULL、CLI 错误退出码恒 0（见 `artifacts/protocol-audit.md` §5）。这些是已知缺口/待修复项，不能当成“不静默降级”的证据。
+其中嵌套列、缺失数据文件、非 0 起点/缺版本日志、非 20 位日志文件名、删除向量、reader v2/v3、未知 action、未知参数、四种不支持压缩、decimal/未知类型均已实测为结构化错误（各有测试，CLI 非 0 退出）；**仍有的缺口**：截断日志 + checkpoint 读旧快照（M3 做 checkpoint 恢复）、写出列恒为 Parquet Optional（不写 Required）、nested 读写（M2/M4）、CLI 版本文案 0.1.0 待与 moon.mod 统一。
 
 ## 依赖说明：vendored parquet
 

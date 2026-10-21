@@ -40,6 +40,10 @@ fn parse_type_node(j : Json) -> DeltaType {
         Int32Type
       } else if s == "long" {
         Int64Type
+      } else if s == "byte" {
+        ByteType
+      } else if s == "short" {
+        ShortType
       } else if s == "float" {
         FloatType
       } else if s == "double" {

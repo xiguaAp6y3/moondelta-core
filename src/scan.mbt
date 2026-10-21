@@ -96,7 +96,11 @@ fn stats_prunes(f : AddFile, pred : ColumnPredicate) -> Bool {
 ///|
 /// 文件级扫描规划：分区过滤 + min/max 统计剪枝。
 /// 不读取数据文件，因此可离线测试、也可用于"改动了多少行"这类审计场景。
-pub fn scan(snapshot : Snapshot, filter : ScanFilter) -> ScanReport {
+/// stats 损坏时显式报错（不静默失真）。
+pub fn scan(
+  snapshot : Snapshot,
+  filter : ScanFilter,
+) -> ScanReport raise DeltaError {
   let files : Array[AddFile] = []
   let mut skipped_partition = 0
   let mut skipped_stats = 0

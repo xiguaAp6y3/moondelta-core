@@ -146,7 +146,8 @@ pub fn read_snapshot(
         raise DeltaError::Unsupported("cannot read '\{file.path}': \{msg}")
       @parquet.InvalidData(msg) =>
         raise DeltaError::ParseError("corrupt parquet '\{file.path}': \{msg}")
-      @parquet.Io(msg) => raise DeltaError::IoError(msg)
+      @parquet.Io(msg) =>
+        raise DeltaError::IoError("cannot read '\{file.path}': \{msg}")
     }
     files_read = files_read + 1
     let rows = pf.rows()

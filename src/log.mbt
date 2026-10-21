@@ -18,18 +18,25 @@ pub fn version_file_name(version : Int32) -> String {
 }
 
 ///|
-/// 从文件名解析版本号（"00000000000000000012.json" → 12）
-fn version_from_name(name : String) -> Int32 {
-  let mut v = 0
-  for c in name {
-    let d = c.to_int() - 48
-    if d >= 0 && d <= 9 {
-      v = v * 10 + d
-    } else {
-      break
-    }
+/// 从日志文件名解析版本号。严格按 Delta 规范：恰好 20 位数字 + ".json"，
+/// 其余文件名返回 None（调用方决定如何处置）。
+fn parse_log_name(name : String) -> Int32? {
+  if name.char_length() != 25 || !name.has_suffix(".json") {
+    return None
   }
-  v
+  let mut v = 0
+  let mut i = 0
+  for c in name {
+    if i < 20 {
+      let d = c.to_int() - 48
+      if d < 0 || d > 9 {
+        return None
+      }
+      v = v * 10 + d
+    }
+    i = i + 1
+  }
+  Some(v)
 }
 
 ///|
@@ -49,7 +56,21 @@ pub fn write_text(path : String, content : String) -> Unit raise DeltaError {
 }
 
 ///|
-/// 列出所有日志版本（升序、去重）
+/// 写入文本文件（put-if-absent 语义）：目标已存在时直接失败。
+/// 这是 commit 原子性的进程内保证——MoonBit fs 层没有 O_EXCL 原语，
+/// 并发写方之间的真原子性由调用方自行仲裁（当前内核为单进程模型）。
+pub fn write_text_new(path : String, content : String) -> Unit raise DeltaError {
+  if @fs.path_exists(path) {
+    raise DeltaError::IoError(
+      "refusing to overwrite existing file '\{path}' (commit must be put-if-absent)",
+    )
+  }
+  write_text(path, content)
+}
+
+///|
+/// 列出所有日志版本（升序、去重）。
+/// `.json` 文件名必须严格符合 20 位零填充版本号，其余视为表目录损坏并报错。
 pub fn list_versions(root : String) -> Array[Int32] raise DeltaError {
   let dir = log_dir(root)
   if !@fs.path_exists(dir) {
@@ -61,9 +82,15 @@ pub fn list_versions(root : String) -> Array[Int32] raise DeltaError {
   let out : Array[Int32] = []
   for name in names {
     if name.has_suffix(".json") && !name.has_prefix(".") {
-      let v = version_from_name(name)
-      if !out.contains(v) {
-        out.push(v)
+      match parse_log_name(name) {
+        Some(v) =>
+          if !out.contains(v) {
+            out.push(v)
+          }
+        None =>
+          raise DeltaError::ParseError(
+            "invalid _delta_log file name '\{name}' under '\{root}' (expected 20-digit zero-padded '<version>.json')",
+          )
       }
     }
   }
@@ -80,7 +107,7 @@ pub fn read_actions(
   let path = log_dir(root) + "/" + version_file_name(version)
   if !@fs.path_exists(path) {
     raise DeltaError::NotFound(
-      "log version \{version} is missing (checkpoint-only or truncated table?)",
+      "log version \{version} is missing (log gap or truncated log; this kernel replays the full JSON log and does not fall back to checkpoint state)",
     )
   }
   let text = read_text(path).replace_all(old="\r", new="")

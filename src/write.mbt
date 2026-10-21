@@ -162,13 +162,26 @@ pub fn ensure_dir(path : String) -> Unit raise DeltaError {
 
 ///|
 /// 创建一张新的 Delta 表（写入 version 0：commitInfo + protocol + metaData）。
+/// 表已存在时拒绝——绝不覆盖既有日志。
 pub fn create_table(
   root : String,
   schema_json : String,
   partition_columns : Array[String],
 ) -> Int32 raise DeltaError {
-  ensure_dir(root)
   let log = log_dir(root)
+  if @fs.path_exists(log) {
+    let names = @fs.read_dir(log) catch {
+      @fs.IOError(msg) => raise DeltaError::IoError(msg)
+    }
+    for name in names {
+      if parse_log_name(name) is Some(_) {
+        raise DeltaError::Unsupported(
+          "cannot create table at '\{root}': a Delta log already exists (version file '\{name}')",
+        )
+      }
+    }
+  }
+  ensure_dir(root)
   ensure_dir(log)
   let commit_info = "{\"commitInfo\":{\"timestamp\":0,\"operation\":\"CREATE TABLE\",\"operationParameters\":{},\"isolationLevel\":\"Serializable\",\"isBlindAppend\":true,\"engineInfo\":\"moondelta-core\"}}"
   let protocol = "{\"protocol\":{\"minReaderVersion\":1,\"minWriterVersion\":2}}"
@@ -186,7 +199,7 @@ pub fn create_table(
 
 ///|
 /// 追加一批行（列式输入），写 parquet 数据文件并提交新版本。
-/// 只支持非分区表 + int/long/string/binary 列。
+/// 只支持非分区表；列必须与表 schema 逐列同名同型，NOT NULL 列不得含 null。
 pub fn append_rows(
   root : String,
   columns : Array[ReadColumn],
@@ -194,6 +207,11 @@ pub fn append_rows(
 ) -> Int32 raise DeltaError {
   let table = DeltaTable::open(root)
   let snapshot = table.snapshot()
+  if snapshot.protocol.min_writer_version > 2 {
+    raise DeltaError::Unsupported(
+      "table requires writer protocol version \{snapshot.protocol.min_writer_version}; the writer implements writer version 2 only",
+    )
+  }
   if snapshot.metadata.partition_columns.length() > 0 {
     raise DeltaError::Unsupported(
       "append to partitioned tables is not supported yet (MVP writes only unpartitioned tables)",
@@ -219,6 +237,32 @@ pub fn append_rows(
     columns[0].cells.length()
   } else {
     0
+  }
+  // 列名与类型必须与 metaData.schema 一致；NOT NULL 列不得含 null
+  i = 0
+  while i < columns.length() {
+    let field = schema_fields[i]
+    let col = columns[i]
+    if col.name != field.name {
+      raise DeltaError::ParseError(
+        "append: column \{i} is named '\{col.name}' but table schema declares '\{field.name}'",
+      )
+    }
+    if col.type_ != field.type_ {
+      raise DeltaError::ParseError(
+        "append: column '\{col.name}' has type \{delta_type_name(col.type_)} but table schema declares \{delta_type_name(field.type_)}",
+      )
+    }
+    if !field.nullable {
+      for cell in col.cells {
+        if cell is CellNull {
+          raise DeltaError::ParseError(
+            "append: column '\{col.name}' is NOT NULL but input contains null",
+          )
+        }
+      }
+    }
+    i = i + 1
   }
   // 构造 parquet 列
   let pcols : Array[@parquet.Column] = []
@@ -247,6 +291,11 @@ pub fn append_rows(
   let next_version = snapshot.version + 1
   let file_name = "part-0000-\{timestamp}-\{next_version}.parquet"
   let file_path = root + "/" + file_name
+  if @fs.path_exists(file_path) {
+    raise DeltaError::IoError(
+      "data file already exists: '\{file_path}' (refusing to overwrite)",
+    )
+  }
   @fs.write_bytes_to_file(file_path, data) catch {
     @fs.IOError(msg) => raise DeltaError::IoError(msg)
   }
@@ -254,8 +303,9 @@ pub fn append_rows(
   let commit_info = "{\"commitInfo\":{\"timestamp\":" +
     timestamp.to_string() +
     ",\"operation\":\"WRITE\",\"operationParameters\":{\"mode\":\"Append\",\"partitionBy\":\"[]\"},\"isolationLevel\":\"Serializable\",\"isBlindAppend\":true,\"engineInfo\":\"moondelta-core\"}}"
+  // add.path 按规范 percent-encode（当前文件名字符集为 unreserved，编码为恒等）
   let add = "{\"add\":{\"path\":" +
-    json_string(file_name) +
+    json_string(@percent.encode(file_name)) +
     ",\"partitionValues\":" +
     json_object_empty() +
     ",\"size\":" +
@@ -266,6 +316,7 @@ pub fn append_rows(
     json_string(stats) +
     "}}"
   let content = commit_info + "\n" + add + "\n"
-  write_text(log_dir(root) + "/" + version_file_name(next_version), content)
+  // commit put-if-absent：目标版本已存在即失败，不覆盖既有提交
+  write_text_new(log_dir(root) + "/" + version_file_name(next_version), content)
   next_version
 }

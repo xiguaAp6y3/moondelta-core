@@ -46,6 +46,24 @@ fn read_error_of(root : String, snapshot : Snapshot) -> String {
 }
 
 ///|
+fn append_error_of(root : String, columns : Array[ReadColumn]) -> String {
+  let result = append_rows(root, columns, 1000L) catch {
+    err => return "\{err}"
+  }
+  ignore(result)
+  "unexpectedly appended to " + root
+}
+
+///|
+fn write_new_error_of(path : String, content : String) -> String {
+  let done = write_text_new(path, content) catch {
+    err => return "\{err}"
+  }
+  ignore(done)
+  "unexpectedly overwrote"
+}
+
+///|
 test "schema: parse flat delta schema" {
   let raw = "{\"type\":\"struct\",\"fields\":[{\"name\":\"id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{}},{\"name\":\"name\",\"type\":\"string\",\"nullable\":false,\"metadata\":{}}]}"
   let schema = parse_schema(raw) catch {
@@ -567,4 +585,324 @@ test "read: missing data file raises io error" {
   }
   let message = read_error_of(root, snapshot)
   assert_true(message.contains("io error"))
+}
+
+///|
+test "protocol: reader v2 is rejected with a reason" {
+  let message = snapshot_error_of("artifacts/protocol-audit/fixtures/protocol-reader-v2")
+  assert_true(message.contains("reader protocol version 2"))
+  assert_true(message.contains("reader version 1"))
+}
+
+///|
+test "protocol: reader v3 with readerFeatures is rejected" {
+  let message = snapshot_error_of("artifacts/protocol-audit/fixtures/protocol-reader-v3-features")
+  assert_true(message.contains("reader protocol version 3"))
+}
+
+///|
+test "protocol: readerFeatures on a v1 protocol are rejected at snapshot level" {
+  let root = "_build/test-tmp/table-v1-features"
+  reset_dir(root)
+  ensure_dir(root + "/_delta_log") catch {
+    _ => ()
+  }
+  write_text(
+    root + "/_delta_log/00000000000000000000.json",
+    "{\"protocol\":{\"minReaderVersion\":1,\"minWriterVersion\":2,\"readerFeatures\":[\"deletionVectors\"]}}\n",
+  ) catch {
+    _ => ()
+  }
+  let message = snapshot_error_of(root)
+  assert_true(message.contains("readerFeatures"))
+}
+
+///|
+test "protocol: deletion vector is rejected, not silently ignored" {
+  let message = snapshot_error_of("artifacts/protocol-audit/fixtures/deletion-vector-add")
+  assert_true(message.contains("deletionVector"))
+  assert_true(message.contains("reader protocol version 3"))
+}
+
+///|
+test "actions: unknown action is a structured error" {
+  let root = "_build/test-tmp/table-unknown-action"
+  reset_dir(root)
+  ensure_dir(root + "/_delta_log") catch {
+    _ => ()
+  }
+  write_text(
+    root + "/_delta_log/00000000000000000000.json",
+    "{\"protocol\":{\"minReaderVersion\":1,\"minWriterVersion\":1}}\n{\"futureAction\":{\"x\":1}}\n",
+  ) catch {
+    _ => ()
+  }
+  let message = snapshot_error_of(root)
+  assert_true(message.contains("unknown action 'futureAction'"))
+}
+
+///|
+test "actions: unknown 'sidecar' action is a structured error" {
+  let message = snapshot_error_of("artifacts/protocol-audit/fixtures/unknown-actions")
+  assert_true(message.contains("unknown action 'sidecar'"))
+}
+
+///|
+test "actions: cdc is explicitly ignored and surfaced, txn is recognized" {
+  let root = "_build/test-tmp/table-cdc-txn"
+  reset_dir(root)
+  ensure_dir(root + "/_delta_log") catch {
+    _ => ()
+  }
+  write_text(
+    root + "/_delta_log/00000000000000000000.json",
+    "{\"protocol\":{\"minReaderVersion\":1,\"minWriterVersion\":1}}\n{\"metaData\":{\"id\":\"cdc\",\"format\":{\"provider\":\"parquet\",\"options\":{}},\"schemaString\":\"{\\\"type\\\":\\\"struct\\\",\\\"fields\\\":[{\\\"name\\\":\\\"id\\\",\\\"type\\\":\\\"long\\\",\\\"nullable\\\":true,\\\"metadata\\\":{}}]}\",\"partitionColumns\":[],\"configuration\":{}}}\n{\"cdc\":{\"path\":\"cdc-1.parquet\",\"partitionValues\":{},\"size\":1,\"dataChange\":false}}\n{\"txn\":{\"appId\":\"app-1\",\"version\":3}}\n",
+  ) catch {
+    _ => ()
+  }
+  let message = snapshot_error_of(root)
+  assert_true(message == "", msg="unexpected error: " + message)
+  let snapshot = DeltaTable::open(root).snapshot() catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_true(snapshot.ignored_actions.contains("cdc"))
+  let txn = parse_action("{\"txn\":{\"appId\":\"app-1\",\"version\":3}}", 0) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  match txn {
+    TxnAction(t) => {
+      assert_eq(t.app_id, "app-1")
+      assert_eq(t.version, 3L)
+    }
+    _ => fail("expected txn action")
+  }
+}
+
+///|
+test "log: non-20-digit log file names are rejected" {
+  let message = snapshot_error_of("artifacts/protocol-audit/fixtures/nonstandard-log-name")
+  assert_true(message.contains("invalid _delta_log file name '0.json'"))
+}
+
+///|
+test "log: version_file_name round-trips through parse_log_name" {
+  for v in [0, 1, 12, 999999] {
+    assert_true(parse_log_name(version_file_name(v)) == Some(v))
+  }
+  assert_true(parse_log_name("0.json") is None)
+  assert_true(parse_log_name("0000000000000000000x.json") is None)
+  assert_true(parse_log_name("000000000000000000012.json") is None)
+}
+
+///|
+test "read: percent-encoded add.path is decoded before file access" {
+  let root = "_build/test-tmp/table-percent-path"
+  reset_dir(root)
+  let schema = "{\"type\":\"struct\",\"fields\":[{\"name\":\"id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{}}]}"
+  let created = create_table(root, schema, []) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_eq(created, 0)
+  let pcols : Array[@parquet.Column] = [
+    @parquet.new_column("id", @parquet.Int64, @parquet.Optional),
+  ]
+  let rows : Array[Array[@parquet.Value]] = [[@parquet.Int64(42L)]]
+  @parquet.write_file(root + "/my file.parquet", @parquet.new_parquet_file(pcols, rows, None)) catch {
+    _ => fail("cannot write parquet")
+  }
+  let add = "{\"add\":{\"path\":\"my%20file.parquet\",\"partitionValues\":{},\"size\":0,\"modificationTime\":0,\"dataChange\":true,\"stats\":\"{\\\"numRecords\\\":1}\"}}"
+  write_text(
+    root + "/_delta_log/00000000000000000001.json",
+    add + "\n",
+  ) catch {
+    _ => ()
+  }
+  let snapshot = DeltaTable::open(root).snapshot() catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  let result = read_snapshot(root, snapshot, None) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_eq(result.row_count, 1)
+  assert_eq(cell_to_display(result.columns[0].cells[0]), "42")
+}
+
+///|
+test "schema: byte and short map to readable types" {
+  let raw = "{\"type\":\"struct\",\"fields\":[{\"name\":\"b\",\"type\":\"byte\",\"nullable\":true,\"metadata\":{}},{\"name\":\"s\",\"type\":\"short\",\"nullable\":true,\"metadata\":{}}]}"
+  let schema = parse_schema(raw) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_eq(schema.fields[0].type_, ByteType)
+  assert_eq(schema.fields[1].type_, ShortType)
+  assert_true(schema_is_readable(schema))
+  assert_eq(delta_type_name(schema.fields[0].type_), "byte")
+}
+
+///|
+test "write: create refuses to overwrite an existing table" {
+  let root = "_build/test-tmp/table-create-guard"
+  reset_dir(root)
+  let schema = "{\"type\":\"struct\",\"fields\":[{\"name\":\"id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{}}]}"
+  let created = create_table(root, schema, []) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_eq(created, 0)
+  let second = create_table(root, schema, []) catch {
+    err => {
+      assert_true("\{err}".contains("already exists"))
+      return
+    }
+  }
+  ignore(second)
+  fail("unexpectedly recreated table")
+}
+
+///|
+test "write: append validates column names, types and NOT NULL" {
+  let root = "_build/test-tmp/table-append-guard"
+  reset_dir(root)
+  let schema = "{\"type\":\"struct\",\"fields\":[{\"name\":\"id\",\"type\":\"long\",\"nullable\":false,\"metadata\":{}},{\"name\":\"name\",\"type\":\"string\",\"nullable\":true,\"metadata\":{}}]}"
+  let _ = create_table(root, schema, []) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  let name_mismatch : Array[ReadColumn] = [
+    { name: "num", type_: Int64Type, cells: [CellI64(1L)] },
+    { name: "name", type_: StringType, cells: [CellStr("a")] },
+  ]
+  assert_true(append_error_of(root, name_mismatch).contains("is named 'num'"))
+  let type_mismatch : Array[ReadColumn] = [
+    { name: "id", type_: StringType, cells: [CellStr("1")] },
+    { name: "name", type_: StringType, cells: [CellStr("a")] },
+  ]
+  assert_true(append_error_of(root, type_mismatch).contains("has type string"))
+  let null_violation : Array[ReadColumn] = [
+    { name: "id", type_: Int64Type, cells: [CellNull] },
+    { name: "name", type_: StringType, cells: [CellStr("a")] },
+  ]
+  assert_true(append_error_of(root, null_violation).contains("NOT NULL"))
+}
+
+///|
+test "write: commit is put-if-absent (write_text_new refuses existing files)" {
+  let root = "_build/test-tmp/table-commit-guard"
+  reset_dir(root)
+  let schema = "{\"type\":\"struct\",\"fields\":[{\"name\":\"id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{}}]}"
+  let _ = create_table(root, schema, []) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  let commit_path = root + "/_delta_log/00000000000000000001.json"
+  write_text(commit_path, "{\"commitInfo\":{\"timestamp\":0}}\n") catch {
+    _ => ()
+  }
+  let message = write_new_error_of(commit_path, "{\"commitInfo\":{}}\n")
+  assert_true(message.contains("put-if-absent"))
+  // append 的数据文件同样不覆盖：预创建同名数据文件后 append 必须失败
+  let columns : Array[ReadColumn] = [
+    { name: "id", type_: Int64Type, cells: [CellI64(1L)] },
+  ]
+  let pcols : Array[@parquet.Column] = [
+    @parquet.new_column("id", @parquet.Int64, @parquet.Optional),
+  ]
+  @parquet.write_file(
+    root + "/part-0000-1000-2.parquet",
+    @parquet.new_parquet_file(pcols, [[@parquet.Int64(9L)]], None),
+  ) catch {
+    _ => ()
+  }
+  assert_true(append_error_of(root, columns).contains("data file already exists"))
+}
+
+///|
+test "write: tables with writer protocol > 2 refuse appends" {
+  let root = "_build/test-tmp/table-writer-gate"
+  reset_dir(root)
+  ensure_dir(root + "/_delta_log") catch {
+    _ => ()
+  }
+  write_text(
+    root + "/_delta_log/00000000000000000000.json",
+    "{\"protocol\":{\"minReaderVersion\":1,\"minWriterVersion\":3}}\n{\"metaData\":{\"id\":\"w3\",\"format\":{\"provider\":\"parquet\",\"options\":{}},\"schemaString\":\"{\\\"type\\\":\\\"struct\\\",\\\"fields\\\":[{\\\"name\\\":\\\"id\\\",\\\"type\\\":\\\"long\\\",\\\"nullable\\\":true,\\\"metadata\\\":{}}]}\",\"partitionColumns\":[],\"configuration\":{}}}\n",
+  ) catch {
+    _ => ()
+  }
+  let columns : Array[ReadColumn] = [
+    { name: "id", type_: Int64Type, cells: [CellI64(1L)] },
+  ]
+  assert_true(append_error_of(root, columns).contains("writer protocol version 3"))
+}
+
+///|
+test "stats: malformed add.stats is a structured error, not silent zero" {
+  let root = "_build/test-tmp/table-bad-stats"
+  reset_dir(root)
+  ensure_dir(root + "/_delta_log") catch {
+    _ => ()
+  }
+  write_text(
+    root + "/_delta_log/00000000000000000000.json",
+    "{\"protocol\":{\"minReaderVersion\":1,\"minWriterVersion\":1}}\n{\"metaData\":{\"id\":\"bad\",\"format\":{\"provider\":\"parquet\",\"options\":{}},\"schemaString\":\"{\\\"type\\\":\\\"struct\\\",\\\"fields\\\":[{\\\"name\\\":\\\"id\\\",\\\"type\\\":\\\"long\\\",\\\"nullable\\\":true,\\\"metadata\\\":{}}]}\",\"partitionColumns\":[],\"configuration\":{}}}\n{\"add\":{\"path\":\"data.parquet\",\"partitionValues\":{},\"size\":0,\"modificationTime\":0,\"dataChange\":true,\"stats\":\"{oops\"}}\n",
+  ) catch {
+    _ => ()
+  }
+  let message = snapshot_error_of(root)
+  assert_true(message.contains("add.stats"))
+}
+
+///|
+test "read: byte and short columns round-trip from a delta-rs-written table" {
+  let table = DeltaTable::open("fixtures/delta/byte-short") catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  let snapshot = table.snapshot() catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_eq(snapshot.metadata.schema.fields[0].type_, ByteType)
+  assert_eq(snapshot.metadata.schema.fields[1].type_, ShortType)
+  let result = read_snapshot("fixtures/delta/byte-short", snapshot, None) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_eq(result.row_count, 3)
+  assert_eq(cell_to_display(result.columns[0].cells[0]), "1")
+  assert_eq(cell_to_display(result.columns[0].cells[1]), "NULL")
+  assert_eq(cell_to_display(result.columns[0].cells[2]), "3")
+  assert_eq(cell_to_display(result.columns[1].cells[0]), "100")
+  assert_eq(cell_to_display(result.columns[1].cells[1]), "200")
+  assert_eq(cell_to_display(result.columns[1].cells[2]), "NULL")
 }

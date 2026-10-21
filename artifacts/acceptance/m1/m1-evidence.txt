@@ -1,0 +1,44 @@
+# M1 取证（2026-10-22）— moon build 98ebb2d
+
+## moon check / moon test
+Finished. moon: ran 5 tasks, now up to date (46 warnings, 0 errors)
+Total tests: 31, passed: 31, failed: 0.
+
+## 负向 fixture 复验（错误信息 + 退出码）
+--- inspect deletion-vector-add ---
+error: unsupported: file 'data.parquet' carries a deletionVector (deletion vectors require reader protocol version 3; this kernel implements reader version 1)
+exit=1
+--- inspect protocol-reader-v2 ---
+error: unsupported: table requires reader protocol version 2; this kernel implements reader version 1 only (higher reader versions gate column mapping, deletion vectors and v2 checkpoints)
+exit=1
+--- inspect protocol-reader-v3-features ---
+error: unsupported: table requires reader protocol version 3; this kernel implements reader version 1 only (higher reader versions gate column mapping, deletion vectors and v2 checkpoints)
+exit=1
+--- inspect nonstandard-log-name ---
+error: parse error: invalid _delta_log file name '0.json' under 'artifacts/protocol-audit/fixtures/nonstandard-log-name' (expected 20-digit zero-padded '<version>.json')
+exit=1
+--- inspect unknown-actions ---
+error: unsupported: unknown action 'sidecar' in _delta_log version 1 (this kernel implements the action closed set: protocol/metaData/add/remove/commitInfo/txn, with cdc/domainMetadata explicitly ignored)
+exit=1
+--- inspect log-gap ---
+error: not found: log version 1 is missing (log gap or truncated log; this kernel replays the full JSON log and does not fall back to checkpoint state)
+exit=1
+--- inspect log-start-v1 ---
+error: unsupported: log starts at version 1; checkpoint-only or truncated tables are not supported (replay requires the initial log entries)
+exit=1
+
+## H3 CLI 行为
+table            : artifacts/protocol-audit/fixtures/checkpoint-truncated
+current version  : 9  (log versions: 10)
+files            : 90  rows: 90  bytes: 40675
+checkpoint-truncated exit=0 (M3 前维持)
+unknown-flag exit=1
+missing-value exit=1
+happy-path exit=0
+
+## 正向回归（happy path 未受影响）
+error: unsupported: file 'data.parquet' carries a deletionVector (deletion vectors require reader protocol version 3; this kernel implements reader version 1)
+read 1 file(s), 2 row(s), version 0
+date (string) | county (string) | state (string) | fips (int) | cases (int) | deaths (int)
+2020-01-21 | Snohomish | Washington | 53061 | 1 | 0
+2020-01-22 | Snohomish | Washington | 53061 | 1 | 0

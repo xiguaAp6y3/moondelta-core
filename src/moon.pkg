@@ -3,4 +3,6 @@ import {
   "moonbitlang/core/json",
   "moonbitlang/core/string",
   "moonbitlang/x/fs",
+  "moonbitlang/x/encoding/percent" @percent,
+  "moonbitlang/core/encoding/utf8" @utf8,
 }

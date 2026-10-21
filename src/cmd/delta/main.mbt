@@ -41,29 +41,30 @@ fn join(items : Array[String], sep : String) -> String {
 }
 
 ///|
+/// 错误输出到 stderr；配合各 cmd_* 返回 false → main 以非 0 退出码结束
 fn fail(message : String) -> Unit {
-  println("error: " + message)
+  eprintln("error: " + message)
 }
 
 ///|
-fn cmd_inspect(root : String) -> Unit {
+fn cmd_inspect(root : String) -> Bool {
   let table = @delta.DeltaTable::open(root) catch {
     err => {
       fail("\{err}")
-      return
+      return false
     }
   }
   let inspected = table.inspect() catch {
     err => {
       fail("\{err}")
-      return
+      return false
     }
   }
   let (snapshot, checkpoint, has_checkpoint_file) = inspected
   let versions = table.versions() catch {
     err => {
       fail("\{err}")
-      return
+      return false
     }
   }
   println("table            : " + root)
@@ -109,20 +110,27 @@ fn cmd_inspect(root : String) -> Unit {
       "note             : checkpoint files exist; checkpoint-only tables are not readable by this kernel",
     )
   }
+  if snapshot.ignored_actions.length() > 0 {
+    println(
+      "note             : ignored (snapshot-irrelevant) actions in log: " +
+      join(snapshot.ignored_actions, ", "),
+    )
+  }
+  true
 }
 
 ///|
-fn cmd_history(root : String) -> Unit {
+fn cmd_history(root : String) -> Bool {
   let table = @delta.DeltaTable::open(root) catch {
     err => {
       fail("\{err}")
-      return
+      return false
     }
   }
   let history = table.history() catch {
     err => {
       fail("\{err}")
-      return
+      return false
     }
   }
   println("version | timestamp     | operation")
@@ -138,6 +146,7 @@ fn cmd_history(root : String) -> Unit {
     }
     println(h.version.to_string() + " | " + ts + " | " + op)
   }
+  true
 }
 
 ///|
@@ -161,6 +170,10 @@ fn parse_where(text : String) -> @delta.ColumnPredicate? {
             return None
           }
         }
+        if left.char_length() == 0 {
+          fail("invalid --where expression, missing column: " + text)
+          return None
+        }
         return Some({ column: left.to_owned(), op, value, })
       }
       None => ()
@@ -171,24 +184,17 @@ fn parse_where(text : String) -> @delta.ColumnPredicate? {
 }
 
 ///|
-fn cmd_scan(root : String, rest : Array[String]) -> Unit {
-  let table = @delta.DeltaTable::open(root) catch {
-    err => {
-      fail("\{err}")
-      return
-    }
-  }
-  let snapshot = table.snapshot() catch {
-    err => {
-      fail("\{err}")
-      return
-    }
-  }
+/// 解析 scan 的选项。返回 None 表示参数错误（已输出错误信息）。
+fn parse_scan_options(rest : Array[String]) -> (@delta.ScanFilter)? {
   let partitions : Array[(String, String)] = []
   let mut predicate : @delta.ColumnPredicate? = None
   let mut i = 0
   while i < rest.length() {
-    if rest[i] == "--partition" && i + 1 < rest.length() {
+    if rest[i] == "--partition" {
+      if i + 1 >= rest.length() {
+        fail("--partition requires a k=v value")
+        return None
+      }
       match rest[i + 1].split_once("=") {
         Some(split) => {
           let (k, v) = split
@@ -196,19 +202,52 @@ fn cmd_scan(root : String, rest : Array[String]) -> Unit {
         }
         None => {
           fail("invalid --partition, expected k=v")
-          return
+          return None
         }
       }
       i = i + 2
-    } else if rest[i] == "--where" && i + 1 < rest.length() {
-      let parsed = parse_where(rest[i + 1])
-      predicate = parsed
+    } else if rest[i] == "--where" {
+      if i + 1 >= rest.length() {
+        fail("--where requires an expression")
+        return None
+      }
+      match parse_where(rest[i + 1]) {
+        Some(pred) => predicate = Some(pred)
+        None => return None
+      }
       i = i + 2
     } else {
-      i = i + 1
+      fail("unknown argument '\{rest[i]}'")
+      return None
     }
   }
-  let report = @delta.scan(snapshot, { partitions, predicate, })
+  Some({ partitions, predicate, })
+}
+
+///|
+fn cmd_scan(root : String, rest : Array[String]) -> Bool {
+  let table = @delta.DeltaTable::open(root) catch {
+    err => {
+      fail("\{err}")
+      return false
+    }
+  }
+  let snapshot = table.snapshot() catch {
+    err => {
+      fail("\{err}")
+      return false
+    }
+  }
+  let filter = match parse_scan_options(rest) {
+    Some(f) => f
+    None => return false
+  }
+  let report = @delta.scan(snapshot, filter) catch {
+    err => {
+      fail("\{err}")
+      return false
+    }
+  }
   println(
     "table            : " +
     root +
@@ -230,43 +269,49 @@ fn cmd_scan(root : String, rest : Array[String]) -> Unit {
     println("  - " + f.path)
     printed = printed + 1
   }
+  true
 }
 
 ///|
-fn cmd_read(root : String, rest : Array[String]) -> Unit {
+fn cmd_read(root : String, rest : Array[String]) -> Bool {
   let table = @delta.DeltaTable::open(root) catch {
     err => {
       fail("\{err}")
-      return
+      return false
     }
   }
   let snapshot = table.snapshot() catch {
     err => {
       fail("\{err}")
-      return
+      return false
     }
   }
   let mut limit : Int32? = Some(10)
   let mut i = 0
   while i < rest.length() {
-    if rest[i] == "--limit" && i + 1 < rest.length() {
+    if rest[i] == "--limit" {
+      if i + 1 >= rest.length() {
+        fail("--limit requires a number")
+        return false
+      }
       limit = Some(
         @string.parse_int(rest[i + 1], base=10) catch {
           _ => {
             fail("invalid --limit")
-            return
+            return false
           }
         },
       )
       i = i + 2
     } else {
-      i = i + 1
+      fail("unknown argument '\{rest[i]}'")
+      return false
     }
   }
   let result = @delta.read_snapshot(root, snapshot, limit) catch {
     err => {
       fail("\{err}")
-      return
+      return false
     }
   }
   println(
@@ -294,20 +339,21 @@ fn cmd_read(root : String, rest : Array[String]) -> Unit {
   if result.row_count > 10 {
     println("... (" + (result.row_count - 10).to_string() + " more rows)")
   }
+  true
 }
 
 ///|
-fn cmd_create(root : String, rest : Array[String]) -> Unit {
+fn cmd_create(root : String, rest : Array[String]) -> Bool {
   if rest.length() < 1 {
     usage()
-    return
+    return false
   }
   let schema_arg = rest[0]
   let schema_json = if @fs.path_exists(schema_arg) {
     @delta.read_text(schema_arg) catch {
       err => {
         fail("\{err}")
-        return
+        return false
       }
     }
   } else {
@@ -316,24 +362,30 @@ fn cmd_create(root : String, rest : Array[String]) -> Unit {
   let partitions : Array[String] = []
   let mut i = 1
   while i < rest.length() {
-    if rest[i] == "--partition" && i + 1 < rest.length() {
+    if rest[i] == "--partition" {
+      if i + 1 >= rest.length() {
+        fail("--partition requires a comma-separated list")
+        return false
+      }
       for p in rest[i + 1].split(",") {
         partitions.push(p.to_owned())
       }
       i = i + 2
     } else {
-      i = i + 1
+      fail("unknown argument '\{rest[i]}'")
+      return false
     }
   }
   let version = @delta.create_table(root, schema_json, partitions) catch {
     err => {
       fail("\{err}")
-      return
+      return false
     }
   }
   println(
     "created Delta table at " + root + " (version " + version.to_string() + ")",
   )
+  true
 }
 
 ///|
@@ -341,43 +393,54 @@ fn main {
   let args = @env.args()
   if args.length() < 2 {
     usage()
+    @sys.exit(1)
     return
   }
   let cmd = args[1]
   let rest = tail(args, 2)
-  if cmd == "version" {
+  let ok = if cmd == "version" {
     println("moondelta-core 0.1.0")
+    true
   } else if cmd == "inspect" {
     if rest.length() < 1 {
       usage()
+      false
     } else {
       cmd_inspect(rest[0])
     }
   } else if cmd == "history" {
     if rest.length() < 1 {
       usage()
+      false
     } else {
       cmd_history(rest[0])
     }
   } else if cmd == "scan" {
     if rest.length() < 1 {
       usage()
+      false
     } else {
       cmd_scan(rest[0], tail(rest, 1))
     }
   } else if cmd == "read" {
     if rest.length() < 1 {
       usage()
+      false
     } else {
       cmd_read(rest[0], tail(rest, 1))
     }
   } else if cmd == "create" {
     if rest.length() < 2 {
       usage()
+      false
     } else {
       cmd_create(rest[0], tail(rest, 1))
     }
   } else {
     usage()
+    false
+  }
+  if not(ok) {
+    @sys.exit(1)
   }
 }

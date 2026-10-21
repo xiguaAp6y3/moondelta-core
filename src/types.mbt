@@ -12,6 +12,8 @@ pub(all) enum DeltaType {
   BooleanType
   StringType
   BinaryType
+  ByteType
+  ShortType
   DateType
   TimestampType
   DecimalType(precision~ : Int32, scale~ : Int32)
@@ -36,6 +38,8 @@ pub(all) struct DeltaSchema {
 pub(all) struct Protocol {
   min_reader_version : Int32
   min_writer_version : Int32
+  reader_features : Array[String]
+  writer_features : Array[String]
 } derive(Eq, Debug)
 
 ///|
@@ -56,6 +60,7 @@ pub(all) struct AddFile {
   modification_time : Int64
   data_change : Bool
   stats : String?
+  has_deletion_vector : Bool
 } derive(Eq, Debug)
 
 ///|
@@ -74,13 +79,23 @@ pub(all) struct CommitInfo {
 } derive(Eq, Debug)
 
 ///|
+pub(all) struct Txn {
+  app_id : String
+  version : Int64
+} derive(Eq, Debug)
+
+///|
+/// Action 闭集：已实现语义的 5 类 + txn（识别）+ 显式忽略的快照无关 action。
+/// 不存在"未知 action 静默忽略"——未识别的 action 在解析期直接报错。
 pub(all) enum Action {
   ProtocolAction(Protocol)
   MetaDataAction(TableInfo)
   AddAction(AddFile)
   RemoveAction(RemoveFile)
   CommitInfoAction(CommitInfo)
-  UnknownAction(String)
+  TxnAction(Txn)
+  /// 已知的快照无关 action（cdc / domainMetadata）：解析并显式跳过，名字记入 Snapshot.ignored_actions
+  IgnoredAction(String)
 } derive(Eq, Debug)
 
 ///|
@@ -91,6 +106,8 @@ pub(all) struct Snapshot {
   files : Array[AddFile]
   total_rows : Int64
   total_bytes : Int64
+  /// 回放中遇到的快照无关 action 名（去重、按首次出现排序）；显式记录而非静默
+  ignored_actions : Array[String]
 } derive(Eq, Debug)
 
 ///|
@@ -117,6 +134,8 @@ pub fn delta_type_name(ty : DeltaType) -> String {
     BooleanType => "boolean"
     StringType => "string"
     BinaryType => "binary"
+    ByteType => "byte"
+    ShortType => "short"
     DateType => "date"
     TimestampType => "timestamp"
     DecimalType(precision~, scale~) => "decimal(\{precision},\{scale})"

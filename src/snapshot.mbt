@@ -1,6 +1,6 @@
 ///|
 fn default_protocol() -> Protocol {
-  { min_reader_version: 1, min_writer_version: 1, }
+  { min_reader_version: 1, min_writer_version: 1, reader_features: [], writer_features: [], }
 }
 
 ///|
@@ -56,16 +56,57 @@ fn drop_file(files : Array[AddFile], path : String) -> Unit {
 }
 
 ///|
-fn stats_num_records(stats : String?) -> Int64 {
+/// add.stats 的 numRecords。stats 损坏时显式报错——行数统计不允许静默失真。
+fn stats_num_records(stats : String?) -> Int64 raise DeltaError {
   match stats {
     Some(s) => {
-      let j = @json.parse(s) catch { _ => return 0L }
+      let j = @json.parse(s) catch {
+        _ =>
+          raise DeltaError::ParseError(
+            "add.stats is not valid JSON: '\{s}'",
+          )
+      }
       match json_field_int64(j, "numRecords") {
         Some(v) => v
-        None => 0L
+        None =>
+          raise DeltaError::ParseError(
+            "add.stats is missing integer field 'numRecords': '\{s}'",
+          )
       }
     }
     None => 0L
+  }
+}
+
+fn feature_list_text(names : Array[String]) -> String {
+  let sb = StringBuilder()
+  let mut i = 0
+  while i < names.length() {
+    if i > 0 {
+      sb.write_char(',')
+    }
+    sb.write_string(names[i])
+    i = i + 1
+  }
+  sb.to_string()
+}
+
+///|
+/// 协议版本与 feature 校验（读取端）：
+/// - 只支持 reader protocol version 1；更高的 reader 版本门控 column mapping、
+///   删除向量与 v2 checkpoint，必须拒绝并说明原因（Delta 规范行为）。
+/// - reader=1 时不得携带 readerFeatures；writer=7 以下不得携带 writerFeatures
+///   （解析期已拦截，这里兜底）。
+fn validate_protocol(p : Protocol) -> Unit raise DeltaError {
+  if p.min_reader_version != 1 {
+    raise DeltaError::Unsupported(
+      "table requires reader protocol version \{p.min_reader_version}; this kernel implements reader version 1 only (higher reader versions gate column mapping, deletion vectors and v2 checkpoints)",
+    )
+  }
+  if p.reader_features.length() > 0 {
+    raise DeltaError::Unsupported(
+      "table declares readerFeatures [\{feature_list_text(p.reader_features)}]; reader version 1 has no feature list",
+    )
   }
 }
 
@@ -93,6 +134,11 @@ pub fn DeltaTable::versions(self : DeltaTable) -> Array[Int32] raise DeltaError 
 pub fn DeltaTable::current_version(self : DeltaTable) -> Int32 raise DeltaError {
   let versions = list_versions(self.root)
   if versions.length() == 0 {
+    if has_checkpoint_file(self.root) {
+      raise DeltaError::NotFound(
+        "table '\{self.root}' has no JSON log entries (checkpoint-only table; loading snapshots from checkpoint parquet is not implemented)",
+      )
+    }
     raise DeltaError::NotFound("table '\{self.root}' has no log entries")
   }
   versions[versions.length() - 1]
@@ -106,6 +152,11 @@ fn replay_until(
 ) -> (Snapshot, Array[HistoryEntry]) raise DeltaError {
   let versions = list_versions(root)
   if versions.length() == 0 {
+    if has_checkpoint_file(root) {
+      raise DeltaError::NotFound(
+        "table '\{root}' has no JSON log entries (checkpoint-only table; loading snapshots from checkpoint parquet is not implemented)",
+      )
+    }
     raise DeltaError::NotFound("table '\{root}' has no log entries")
   }
   if versions[0] != 0 {
@@ -130,6 +181,7 @@ fn replay_until(
   let mut metadata = empty_metadata()
   let files : Array[AddFile] = []
   let history : Array[HistoryEntry] = []
+  let ignored : Array[String] = []
   let mut v = 0
   while v <= target_version {
     let actions = read_actions(root, v)
@@ -137,7 +189,14 @@ fn replay_until(
       match action {
         ProtocolAction(p) => protocol = p
         MetaDataAction(m) => metadata = m
-        AddAction(f) => upsert_file(files, f)
+        AddAction(f) => {
+          if f.has_deletion_vector {
+            raise DeltaError::Unsupported(
+              "file '\{f.path}' carries a deletionVector (deletion vectors require reader protocol version 3; this kernel implements reader version 1)",
+            )
+          }
+          upsert_file(files, f)
+        }
         RemoveAction(r) => drop_file(files, r.path)
         CommitInfoAction(c) =>
           history.push({
@@ -145,11 +204,16 @@ fn replay_until(
             timestamp: c.timestamp,
             operation: c.operation,
           })
-        UnknownAction(_) => ()
+        TxnAction(_) => ()
+        IgnoredAction(name) =>
+          if !ignored.contains(name) {
+            ignored.push(name)
+          }
       }
     }
     v = v + 1
   }
+  validate_protocol(protocol)
   let mut total_rows = 0L
   let mut total_bytes = 0L
   for f in files {
@@ -163,6 +227,7 @@ fn replay_until(
     files,
     total_rows,
     total_bytes,
+    ignored_actions: ignored,
   }
   (snapshot, history)
 }
