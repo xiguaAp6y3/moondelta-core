@@ -4,6 +4,17 @@
 
 ## [Unreleased]
 
+路线图 M3（checkpoint 恢复，2026-10-22 完成，较排期提前）：测试数 32 → 36。
+
+### Added
+
+- **checkpoint 恢复**：单文件经典 checkpoint parquet 解析（按 shredded 叶列的
+  def/rep levels 逐记录解析，兼容 Spark 经典与 delta-rs 两种可空性标注）；
+  日志不完整（顶端截断 / checkpoint-only）时从最新 checkpoint 恢复基底并叠加
+  其后 JSON commit——不再静默读旧版本；`current_version` = max(JSON 最新,
+  checkpoint 最新)；多部分 checkpoint 显式拒绝
+- 完整 JSON 日志仍走从头回放（历史/时间旅行语义与 0.1.x 一致）
+
 路线图 M2（Parquet 嵌套读取层，2026-10-22 完成，较排期提前）：测试数 31 → 32。
 
 ### Added

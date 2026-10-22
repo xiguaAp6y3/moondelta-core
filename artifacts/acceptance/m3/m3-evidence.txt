@@ -1,0 +1,35 @@
+# M3 取证（2026-10-22）— checkpoint 恢复
+
+## moon check / moon test
+Finished. moon: ran 10 tasks, now up to date (55 warnings, 0 errors)
+Total tests: 36, passed: 36, failed: 0.
+
+## checkpoint-truncated（此前静默读 v9/90 —— 现为 v10/100/100，来自 checkpoint）
+table            : artifacts/protocol-audit/fixtures/checkpoint-truncated
+current version  : 10  (log versions: 10)
+files            : 100  rows: 100  bytes: 45194
+protocol         : reader=1 writer=1
+exit=0
+
+## checkpoint-only（flat，无 JSON 日志）
+table            : artifacts/protocol-audit/fixtures/checkpoint-only
+current version  : 10  (log versions: 0)
+files            : 100  rows: 100  bytes: 45194
+exit=0
+
+## checkpoint-only-nested（delta-rs 写出，嵌套值逐一对齐 oracle）
+read 1 file(s), 5 row(s), version 0
+id (long) | profile (struct) | tags (array) | attrs (map)
+1 | {"name": alice, "age": 30} | [red, green] | {k1: v1, k2: v2}
+2 | NULL | [] | {}
+3 | {"name": NULL, "age": NULL} | NULL | {k: v}
+4 | {"name": bob, "age": NULL} | [blue, NULL] | {}
+5 | {"name": NULL, "age": 42} | [] | NULL
+
+## 完整日志回归：table_a（0..12 + checkpoint@10 仍走 JSON 全回放，120 文件）
+table            : fixtures/delta/table_a
+current version  : 12  (log versions: 13)
+files            : 120  rows: 120  bytes: 54232
+
+## 与 checkpoint 互证：snapshot_at(10) 经 JSON 回放 = 100 文件（wbtest 断言）
+（见 delta_wbtest.mbt checkpoint 用例，36/36）

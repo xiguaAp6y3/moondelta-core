@@ -139,13 +139,14 @@ for kind, sample in (("struct", '{"name": carol, "age": NULL}'),
     rc, so, se = run(["read", "artifacts/interop-nested/kind-%s-only" % kind, "--limit", "6"])
     check("单 kind fixture %s 正向读取且边界值一致" % kind, rc == 0 and sample in so, so.strip()[:150])
 
-print("== 4. checkpoint-only-nested：外部引擎可读、本项目拒绝（M3 将恢复） ==")
+print("== 4. checkpoint-only-nested：M3 起本项目从 checkpoint 恢复，读取与 oracle 一致 ==")
 cp = DeltaTable(os.path.join(NEST, "checkpoint-only-nested"))
 check("delta-rs 从 checkpoint-only-nested 读回 5 行（证明 checkpoint 完整）", cp.to_pyarrow_table().num_rows == 5, "rows=%d" % cp.to_pyarrow_table().num_rows)
-rc, so, se = run(["inspect", "artifacts/interop-nested/checkpoint-only-nested"])
-raw_cp = open(os.path.join(NEST, "raw", "checkpoint-only-nested__inspect.stdout.txt"), encoding="utf-8").read()
-check("重建 CLI inspect 对 checkpoint-only 报 not found 且非 0 退出（raw 为 0.1.x 历史记录）",
-      "error: not found" in se and "checkpoint-only table" in se and "has no log entries" in raw_cp, se.strip()[:160])
+rc, so, se = run(["read", "artifacts/interop-nested/checkpoint-only-nested", "--limit", "10"])
+check("本项目从 checkpoint-only-nested 恢复并读回 5 行（M3；历史 raw/ 记录的拒绝为 0.1.x 行为）",
+      rc == 0 and "read 1 file(s), 5 row(s)" in so, so.strip()[:120])
+check("checkpoint 恢复的嵌套值与 oracle 一致（边界行）",
+      '{"name": alice, "age": 30}' in so and "[] | {}" in so, so.strip()[:200])
 
 print("== 5. 负向 fixture：Delta schema 谎报 flat、物理 repeated 的坏文件仍被拒绝 ==")
 rc, so, se = run(["read", "artifacts/interop-nested/negative-physical-nested"])

@@ -45,7 +45,14 @@ id (long) | attrs (map)
 3 | NULL
 4 | {k2: NULL}
 [PASS] delta-rs 从 checkpoint-only-nested 读回 5 行（证明 checkpoint 完整） :: rows=5
-[PASS] 重建 CLI inspect 对 checkpoint-only 报 not found 且非 0 退出（raw 为 0.1.x 历史记录） :: error: not found: table 'artifacts/interop-nested/checkpoint-only-nested' has no JSON log entries (checkpoint-only table; loading snapshots from checkpoint parq
+[PASS] 本项目从 checkpoint-only-nested 恢复并读回 5 行（M3；历史 raw/ 记录的拒绝为 0.1.x 行为） :: read 1 file(s), 5 row(s), version 0
+id (long) | profile (struct) | tags (array) | attrs (map)
+1 | {"name": alice, "age
+[PASS] checkpoint 恢复的嵌套值与 oracle 一致（边界行） :: read 1 file(s), 5 row(s), version 0
+id (long) | profile (struct) | tags (array) | attrs (map)
+1 | {"name": alice, "age": 30} | [red, green] | {k1: v1, k2: v2}
+2 | NULL | [] | {}
+3 | {"name": NULL,
 [PASS] negative-physical-nested 仍被结构化拒绝且非 0 退出（外部引擎同样失败，不作为互操作基线） :: error: unsupported: cannot read 'data/list_columns.parquet': Repeated columns are not supported yet
 [PASS] negative fixture 记录外部引擎同样失败（不作为互操作基线）
 [PASS] comparison.json gate_counts = {done:1,partial:0,missing:6} :: {'done': 1, 'partial': 0, 'missing': 6}

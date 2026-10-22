@@ -131,105 +131,192 @@ pub fn DeltaTable::versions(self : DeltaTable) -> Array[Int32] raise DeltaError 
 }
 
 ///|
+/// 当前版本 = max(最新 JSON commit, 最新 checkpoint)。checkpoint-only 表
+/// 返回 checkpoint 版本。
 pub fn DeltaTable::current_version(self : DeltaTable) -> Int32 raise DeltaError {
   let versions = list_versions(self.root)
-  if versions.length() == 0 {
-    if has_checkpoint_file(self.root) {
-      raise DeltaError::NotFound(
-        "table '\{self.root}' has no JSON log entries (checkpoint-only table; loading snapshots from checkpoint parquet is not implemented)",
-      )
-    }
+  let cps = list_checkpoint_versions(self.root)
+  if versions.length() == 0 && cps.length() == 0 {
     raise DeltaError::NotFound("table '\{self.root}' has no log entries")
   }
-  versions[versions.length() - 1]
+  let latest_json = if versions.length() > 0 {
+    versions[versions.length() - 1]
+  } else {
+    -1
+  }
+  let latest_cp = if cps.length() > 0 { cps[cps.length() - 1] } else { -1 }
+  if latest_json > latest_cp {
+    latest_json
+  } else {
+    latest_cp
+  }
 }
 
 ///|
-/// 回放日志到指定版本（None = 最新），返回 snapshot 与历史
+struct ReplayState {
+  mut protocol : Protocol
+  mut metadata : TableInfo
+  files : Array[AddFile]
+  history : Array[HistoryEntry]
+  ignored : Array[String]
+}
+
+///|
+fn apply_action(st : ReplayState, action : Action) -> Unit raise DeltaError {
+  match action {
+    ProtocolAction(p) => st.protocol = p
+    MetaDataAction(m) => st.metadata = m
+    AddAction(f) => {
+      if f.has_deletion_vector {
+        raise DeltaError::Unsupported(
+          "file '\{f.path}' carries a deletionVector (deletion vectors require reader protocol version 3; this kernel implements reader version 1)",
+        )
+      }
+      upsert_file(st.files, f)
+    }
+    RemoveAction(r) => drop_file(st.files, r.path)
+    CommitInfoAction(c) =>
+      st.history.push({
+        version: c.version,
+        timestamp: c.timestamp,
+        operation: c.operation,
+      })
+    TxnAction(_) => ()
+    IgnoredAction(name) =>
+      if !st.ignored.contains(name) {
+        st.ignored.push(name)
+      }
+  }
+}
+
+///|
+fn finalize_snapshot(
+  st : ReplayState,
+  target_version : Int32,
+) -> Snapshot raise DeltaError {
+  validate_protocol(st.protocol)
+  let mut total_rows = 0L
+  let mut total_bytes = 0L
+  for f in st.files {
+    total_rows = total_rows + stats_num_records(f.stats)
+    total_bytes = total_bytes + f.size
+  }
+  {
+    version: target_version,
+    protocol: st.protocol,
+    metadata: st.metadata,
+    files: st.files,
+    total_rows,
+    total_bytes,
+    ignored_actions: st.ignored,
+  }
+}
+
+///|
+/// 回放日志到指定版本（None = 最新），返回 snapshot 与历史。
+/// 日志从 0 完整时从头回放；否则从最新的单文件 checkpoint 恢复基底，
+/// 再叠加其后的 JSON commit——截断日志与 checkpoint-only 表不再静默读旧版本。
 fn replay_until(
   root : String,
   target : Int32?,
 ) -> (Snapshot, Array[HistoryEntry]) raise DeltaError {
   let versions = list_versions(root)
-  if versions.length() == 0 {
-    if has_checkpoint_file(root) {
-      raise DeltaError::NotFound(
-        "table '\{root}' has no JSON log entries (checkpoint-only table; loading snapshots from checkpoint parquet is not implemented)",
-      )
-    }
+  let cp_versions = list_checkpoint_versions(root)
+  let latest_json = if versions.length() > 0 {
+    versions[versions.length() - 1]
+  } else {
+    -1
+  }
+  let cp_v = if cp_versions.length() > 0 {
+    cp_versions[cp_versions.length() - 1]
+  } else {
+    -1
+  }
+  let effective_latest = if latest_json > cp_v { latest_json } else { cp_v }
+  if effective_latest < 0 {
     raise DeltaError::NotFound("table '\{root}' has no log entries")
   }
-  if versions[0] != 0 {
-    raise DeltaError::Unsupported(
-      "log starts at version \{versions[0]}; checkpoint-only or truncated tables are not supported (replay requires the initial log entries)",
-    )
-  }
-  let latest = versions[versions.length() - 1]
+  let full_log = versions.length() > 0 && versions[0] == 0
   let target_version = match target {
     Some(v) => v
-    None => latest
+    None => effective_latest
   }
-  if target_version < 0 || target_version > latest {
+  if target_version < 0 || target_version > effective_latest {
     raise DeltaError::NotFound(
-      "requested version \{target_version} is out of range (latest = \{latest})",
+      "requested version \{target_version} is out of range (latest = \{effective_latest})",
     )
   }
-  if !versions.contains(target_version) {
-    raise DeltaError::NotFound("log version \{target_version} does not exist")
+  let st : ReplayState = {
+    protocol: default_protocol(),
+    metadata: empty_metadata(),
+    files: [],
+    history: [],
+    ignored: [],
   }
-  let mut protocol = default_protocol()
-  let mut metadata = empty_metadata()
-  let files : Array[AddFile] = []
-  let history : Array[HistoryEntry] = []
-  let ignored : Array[String] = []
-  let mut v = 0
-  while v <= target_version {
-    let actions = read_actions(root, v)
-    for action in actions {
-      match action {
-        ProtocolAction(p) => protocol = p
-        MetaDataAction(m) => metadata = m
-        AddAction(f) => {
-          if f.has_deletion_vector {
-            raise DeltaError::Unsupported(
-              "file '\{f.path}' carries a deletionVector (deletion vectors require reader protocol version 3; this kernel implements reader version 1)",
+  // 路径一：JSON 从 0 起连续且目标版本被日志覆盖 → 从头回放（历史完整）。
+  // 目标超出日志末端（顶端截断，checkpoint 在更前方）时走 checkpoint 恢复。
+  if full_log && target_version <= latest_json {
+    if !versions.contains(target_version) {
+      raise DeltaError::NotFound("log version \{target_version} does not exist")
+    }
+    let mut v = 0
+    while v <= target_version {
+      let actions = read_actions(root, v)
+      for action in actions {
+        apply_action(st, action)
+      }
+      v = v + 1
+    }
+    let snapshot = finalize_snapshot(st, target_version)
+    (snapshot, st.history)
+  } else {
+    // 路径二：checkpoint 恢复
+    match cp_versions.last() {
+      Some(c) => {
+        if target_version < c {
+          raise DeltaError::NotFound(
+            "requested version \{target_version} predates the earliest available checkpoint \{c} and the JSON log no longer starts at version 0",
+          )
+        }
+        let mut v = c + 1
+        while v <= target_version {
+          if !versions.contains(v) {
+            raise DeltaError::NotFound(
+              "log version \{v} is missing (gap after checkpoint \{c}; the full JSON log is required to replay past the checkpoint)",
             )
           }
-          upsert_file(files, f)
+          v = v + 1
         }
-        RemoveAction(r) => drop_file(files, r.path)
-        CommitInfoAction(c) =>
-          history.push({
-            version: c.version,
-            timestamp: c.timestamp,
-            operation: c.operation,
-          })
-        TxnAction(_) => ()
-        IgnoredAction(name) =>
-          if !ignored.contains(name) {
-            ignored.push(name)
+        let path = log_dir(root) + "/" + checkpoint_file_name(c)
+        let (p_opt, m_opt, files) = parse_checkpoint(path)
+        match p_opt {
+          Some(p) => st.protocol = p
+          None => ()
+        }
+        match m_opt {
+          Some(m) => st.metadata = m
+          None => ()
+        }
+        for f in files {
+          apply_action(st, AddAction(f))
+        }
+        let mut v = c + 1
+        while v <= target_version {
+          let actions = read_actions(root, v)
+          for action in actions {
+            apply_action(st, action)
           }
+          v = v + 1
+        }
+        let snapshot = finalize_snapshot(st, target_version)
+        (snapshot, st.history)
       }
+      None =>
+        raise DeltaError::Unsupported(
+          "log starts at version \{versions[0]}; checkpoint-only or truncated tables are not supported (replay requires the initial log entries)",
+        )
     }
-    v = v + 1
   }
-  validate_protocol(protocol)
-  let mut total_rows = 0L
-  let mut total_bytes = 0L
-  for f in files {
-    total_rows = total_rows + stats_num_records(f.stats)
-    total_bytes = total_bytes + f.size
-  }
-  let snapshot = {
-    version: target_version,
-    protocol,
-    metadata,
-    files,
-    total_rows,
-    total_bytes,
-    ignored_actions: ignored,
-  }
-  (snapshot, history)
 }
 
 ///|

@@ -107,7 +107,7 @@ fn cmd_inspect(root : String) -> Bool {
   }
   if has_checkpoint_file {
     println(
-      "note             : checkpoint files exist; checkpoint-only tables are not readable by this kernel",
+      "note             : checkpoint present; truncated / checkpoint-only tables are recovered from the latest single-file checkpoint",
     )
   }
   if snapshot.ignored_actions.length() > 0 {

@@ -15,7 +15,7 @@ MoonBit 原生的 **Delta Lake 表格式内核**：回放 `_delta_log` 事务日
 MVP（README/CLI 仍标 0.1.0，`moon.mod` 已为 0.1.1，版本文案待统一，见 `artifacts/protocol-audit.md` §5 第 9 条）：
 
 -  日志解析与回放：`protocol` / `metaData` / `add` / `remove` / `commitInfo`，`txn` 识别，`cdc` / `domainMetadata` 显式忽略并在输出中提示，未知 action 结构化拒绝，`_last_checkpoint` 识别
--  协议范围（0.2.0 起强制）：只读 `minReaderVersion = 1` 的表——reader v2/v3 与 `readerFeatures` 拒绝并说明原因（column mapping / 删除向量 / v2 checkpoint 为高版本特性）；`add.deletionVector` 拒绝；日志文件名严格按 20 位校验；`add.path` percent-decoding；写出到 `minReaderVersion = 1, minWriterVersion = 2`（writer > 2 的表拒绝 append）；日志从非 0 起点/缺版本明确拒绝；checkpoint-only 返回结构化 NotFound；**日志被截断但存在 checkpoint 的表仍会读旧快照（唯一残留缺口，checkpoint 恢复在路线图 M3）**
+-  协议范围（0.2.0 起强制）：只读 `minReaderVersion = 1` 的表——reader v2/v3 与 `readerFeatures` 拒绝并说明原因（column mapping / 删除向量 / v2 checkpoint 为高版本特性）；`add.deletionVector` 拒绝；日志文件名严格按 20 位校验；`add.path` percent-decoding；写出到 `minReaderVersion = 1, minWriterVersion = 2`（writer > 2 的表拒绝 append）；日志从非 0 起点/缺版本明确拒绝；checkpoint-only 返回结构化 NotFound；**M3 起日志被截断 / checkpoint-only 的表从最新单文件 checkpoint 恢复基底并叠加其后 JSON commit（不再静默读旧快照；多部分 checkpoint 显式拒绝）**
 -  快照、版本历史、时间旅行（`snapshot_at`）
 -  扫描规划：分区等值过滤 + 文件级 min/max 统计剪枝（stats 损坏显式报错，不再静默返 0）
 -  读取：flat schema（含 byte/short）+ UNCOMPRESSED/SNAPPY；**M2 起支持嵌套读取**——`struct` / 标准 3-level `list` / `map`（含 NULL、空集合、null 元素/子字段），与 delta-rs 逐值对拍一致；nested 写入在路线图 M4
@@ -97,11 +97,11 @@ let columns : Array[@delta.ReadColumn] = [
 | 维度 | 支持 | 不支持 |
 |---|---|---|
 | protocol | reader v1 读取；writer v2 写出 | 高于 reader v1 的 protocol、`readerFeatures` 拒绝并说明原因（0.2.0 起，含测试）；`writerFeatures` 列表随协议解析 |
-| 日志 | version 0 起的连续 JSON commit；20 位文件名严格校验；非 0 起点/缺版本拒绝 | checkpoint-only 返回结构化 NotFound；日志被截断但存在 checkpoint 的表仍读旧快照（残留缺口，M3 做 checkpoint 恢复） |
+| 日志 | version 0 起的连续 JSON commit；20 位文件名严格校验；非 0 起点/缺版本拒绝；M3 起截断 / checkpoint-only 表从 checkpoint 恢复 | 多部分 checkpoint（显式拒绝）；checkpoint 之前的版本在日志截断后不可达（结构化错误） |
 | schema | flat 原始类型 + 嵌套 struct / list / map 读取（M2，与 delta-rs 逐值对拍） | nested 写入（M4）；decimal/uuid（明确拒绝） |
 | 压缩 | UNCOMPRESSED、SNAPPY | ZSTD、GZIP、BROTLI、LZ4（明确拒绝） |
 | 逻辑类型 | string、int、long、float、double、boolean、date、timestamp(INT96) | decimal、uuid 等（会丢语义） |
-| 表 | 日志完整、可从头回放的本地表 | checkpoint-only / 截断日志（后者等待 M3 checkpoint 恢复，当前读旧快照并标注） |
+| 表 | 日志完整、可从头回放的本地表；截断 / checkpoint-only 表从 checkpoint 恢复（M3） | 多部分 checkpoint |
 | 写入类型 | Int32 / Int64 / String / Binary / Boolean / Double | Float / Timestamp / Repeated |
 | 写入表 | 非分区表 | 分区表 append（MVP 明确拒绝）；append 不校验列名/类型/NOT NULL，列恒为 Parquet Optional |
 | 存储 | 本地文件系统 | 对象存储（S3/R2） |

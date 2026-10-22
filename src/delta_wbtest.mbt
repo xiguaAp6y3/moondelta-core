@@ -334,6 +334,95 @@ test "read: nested parquet list column is read (list_columns.parquet)" {
 ///|
 /// D3 案例 B（engine-written，delta-rs 写出）与 oracle 逐值一致：
 /// struct / 3-level list / map，覆盖 NULL、空集合、null 元素/子字段。
+test "checkpoint: truncated log is recovered from checkpoint (not stale replay)" {
+  let root = "artifacts/protocol-audit/fixtures/checkpoint-truncated"
+  let table = DeltaTable::open(root) catch {
+    err => {
+      fail("open failed")
+      return
+    }
+  }
+  // _last_checkpoint / checkpoint 在 v10；JSON 只到 v9 —— 当前版本必须是 10
+  let cv = table.current_version() catch {
+    err => {
+      fail("current_version failed")
+      return
+    }
+  }
+  assert_eq(cv, 10)
+  let snapshot = table.snapshot() catch {
+    err => {
+      fail("snapshot failed")
+      return
+    }
+  }
+  assert_eq(snapshot.version, 10)
+  assert_eq(snapshot.files.length(), 100)
+  assert_eq(snapshot.total_rows, 100L)
+  // 目标版本 9 仍被 JSON 日志覆盖（0..9 连续）→ 完整回放 90 个文件
+  let older = table.snapshot_at(9) catch {
+    err => {
+      fail("snapshot_at(9) failed")
+      return
+    }
+  }
+  assert_eq(older.version, 9)
+  assert_eq(older.files.length(), 90)
+}
+
+///|
+test "checkpoint: checkpoint-only flat table is readable (100 files)" {
+  let snapshot = DeltaTable::open("artifacts/protocol-audit/fixtures/checkpoint-only").snapshot() catch {
+    err => {
+      fail("snapshot failed")
+      return
+    }
+  }
+  assert_eq(snapshot.version, 10)
+  assert_eq(snapshot.files.length(), 100)
+}
+
+///|
+test "checkpoint: checkpoint state agrees with JSON replay (table_a v10)" {
+  let table = DeltaTable::open("fixtures/delta/table_a") catch {
+    err => {
+      fail("open failed")
+      return
+    }
+  }
+  let replayed = table.snapshot_at(10) catch {
+    err => {
+      fail("snapshot_at failed")
+      return
+    }
+  }
+  // checkpoint 覆盖 v1..v10 共 100 个 add 文件；与 JSON 回放互证
+  assert_eq(replayed.files.length(), 100)
+  assert_eq(replayed.total_rows, 100L)
+}
+
+///|
+test "checkpoint: checkpoint-only-nested reads 5 rows with nested values" {
+  let root = "artifacts/interop-nested/checkpoint-only-nested"
+  let snapshot = DeltaTable::open(root).snapshot() catch {
+    err => {
+      fail("snapshot failed")
+      return
+    }
+  }
+  let result = read_snapshot(root, snapshot, None) catch {
+    err => {
+      fail("read failed")
+      return
+    }
+  }
+  assert_eq(result.row_count, 5)
+  assert_eq(cell_to_display(result.columns[1].cells[0]), "{\"name\": alice, \"age\": 30}")
+  assert_eq(cell_to_display(result.columns[2].cells[1]), "[]")
+  assert_eq(cell_to_display(result.columns[3].cells[2]), "{k: v}")
+}
+
+
 test "read: D3 nested fixture matches delta-rs oracle field by field" {
   let root = "artifacts/interop-nested/engine-written"
   let table = DeltaTable::open(root) catch {
