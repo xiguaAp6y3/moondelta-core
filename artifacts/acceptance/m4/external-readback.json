@@ -1,0 +1,60 @@
+{
+ "checks": [
+  {
+   "name": "delta-rs 读回 5 行",
+   "ok": true,
+   "detail": "5"
+  },
+  {
+   "name": "delta-rs 行 1 逐字段一致",
+   "ok": true,
+   "detail": "({'id': 1, 'profile': {'name': 'alice', 'age': 30}, 'tags': ['red', 'green'], 'attrs': {'k1': 'v1', 'k2': 'v2'}}, {'id': 1, 'profile': {'name': 'alice', 'age': 30}, 'tags': ['red', 'green'], 'attrs': "
+  },
+  {
+   "name": "delta-rs 行 2 逐字段一致",
+   "ok": true,
+   "detail": "({'id': 2, 'profile': None, 'tags': [], 'attrs': {}}, {'id': 2, 'profile': None, 'tags': [], 'attrs': {}})"
+  },
+  {
+   "name": "delta-rs 行 3 逐字段一致",
+   "ok": true,
+   "detail": "({'id': 3, 'profile': {'name': None, 'age': None}, 'tags': None, 'attrs': {'k': 'v'}}, {'id': 3, 'profile': {'name': None, 'age': None}, 'tags': None, 'attrs': {'k': 'v'}})"
+  },
+  {
+   "name": "delta-rs 行 4 逐字段一致",
+   "ok": true,
+   "detail": "({'id': 4, 'profile': {'name': 'bob', 'age': None}, 'tags': ['blue', None], 'attrs': {}}, {'id': 4, 'profile': {'name': 'bob', 'age': None}, 'tags': ['blue', None], 'attrs': {}})"
+  },
+  {
+   "name": "delta-rs 行 5 逐字段一致",
+   "ok": true,
+   "detail": "({'id': 5, 'profile': {'name': None, 'age': 42}, 'tags': [], 'attrs': None}, {'id': 5, 'profile': {'name': None, 'age': 42}, 'tags': [], 'attrs': None})"
+  },
+  {
+   "name": "delta-rs schema：profile=struct / tags=array / attrs=map",
+   "ok": true,
+   "detail": "{'id': 'long', 'profile': {'type': 'struct', 'fields': [{'name': 'name', 'type': 'string', 'nullable': True, 'metadata': {}}, {'name': 'age', 'type': 'integer', 'nullable': True, 'metadata': {}}]}, 't"
+  },
+  {
+   "name": "DuckDB delta_scan 读回 5 行",
+   "ok": true,
+   "detail": "(5,)"
+  },
+  {
+   "name": "DuckDB 嵌套取值（行1：id/name/tags）",
+   "ok": true,
+   "detail": "[(1, 'alice', ['red', 'green']), (2, None, [])]"
+  },
+  {
+   "name": "DuckDB 嵌套取值（行5 profile.age=42）",
+   "ok": true,
+   "detail": "[(42,)]"
+  }
+ ],
+ "pass": 10,
+ "fail": 0,
+ "engines": {
+  "delta-rs": "1.6.6",
+  "duckdb": "1.5.6"
+ }
+}

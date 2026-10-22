@@ -264,29 +264,34 @@ pub fn append_rows(
     }
     i = i + 1
   }
-  // 构造 parquet 列
-  let pcols : Array[@parquet.Column] = []
-  for c in columns {
-    pcols.push(
-      @parquet.new_column(c.name, parquet_type_of(c.type_), @parquet.Optional),
-    )
-  }
-  // 构造行
-  let rows : Array[Array[@parquet.Value]] = []
-  let mut r = 0
-  while r < row_count {
-    let row : Array[@parquet.Value] = []
+  // 构造 parquet：嵌套 schema 走 shredded 写入（M4），扁平走原路径
+  let data = if schema_has_nested(snapshot.metadata.schema) {
+    write_nested_parquet_bytes(snapshot.metadata.schema, columns, row_count)
+  } else {
+    // 构造 parquet 列
+    let pcols : Array[@parquet.Column] = []
     for c in columns {
-      row.push(parquet_value_of(c.cells[r]))
+      pcols.push(
+        @parquet.new_column(c.name, parquet_type_of(c.type_), @parquet.Optional),
+      )
     }
-    rows.push(row)
-    r = r + 1
-  }
-  let pf = @parquet.new_parquet_file(pcols, rows, None)
-  let data = @parquet.write_bytes(pf) catch {
-    @parquet.Unsupported(msg) => raise DeltaError::Unsupported(msg)
-    @parquet.InvalidData(msg) => raise DeltaError::ParseError(msg)
-    @parquet.Io(msg) => raise DeltaError::IoError(msg)
+    // 构造行
+    let rows : Array[Array[@parquet.Value]] = []
+    let mut r = 0
+    while r < row_count {
+      let row : Array[@parquet.Value] = []
+      for c in columns {
+        row.push(parquet_value_of(c.cells[r]))
+      }
+      rows.push(row)
+      r = r + 1
+    }
+    let pf = @parquet.new_parquet_file(pcols, rows, None)
+    @parquet.write_bytes(pf) catch {
+      @parquet.Unsupported(msg) => raise DeltaError::Unsupported(msg)
+      @parquet.InvalidData(msg) => raise DeltaError::ParseError(msg)
+      @parquet.Io(msg) => raise DeltaError::IoError(msg)
+    }
   }
   let next_version = snapshot.version + 1
   let file_name = "part-0000-\{timestamp}-\{next_version}.parquet"

@@ -18,14 +18,14 @@ MVP（README/CLI 仍标 0.1.0，`moon.mod` 已为 0.1.1，版本文案待统一�
 -  协议范围（0.2.0 起强制）：只读 `minReaderVersion = 1` 的表——reader v2/v3 与 `readerFeatures` 拒绝并说明原因（column mapping / 删除向量 / v2 checkpoint 为高版本特性）；`add.deletionVector` 拒绝；日志文件名严格按 20 位校验；`add.path` percent-decoding；写出到 `minReaderVersion = 1, minWriterVersion = 2`（writer > 2 的表拒绝 append）；日志从非 0 起点/缺版本明确拒绝；checkpoint-only 返回结构化 NotFound；**M3 起日志被截断 / checkpoint-only 的表从最新单文件 checkpoint 恢复基底并叠加其后 JSON commit（不再静默读旧快照；多部分 checkpoint 显式拒绝）**
 -  快照、版本历史、时间旅行（`snapshot_at`）
 -  扫描规划：分区等值过滤 + 文件级 min/max 统计剪枝（stats 损坏显式报错，不再静默返 0）
--  读取：flat schema（含 byte/short）+ UNCOMPRESSED/SNAPPY；**M2 起支持嵌套读取**——`struct` / 标准 3-level `list` / `map`（含 NULL、空集合、null 元素/子字段），与 delta-rs 逐值对拍一致；nested 写入在路线图 M4
+-  读取：flat schema（含 byte/short）+ UNCOMPRESSED/SNAPPY；**M2 起支持嵌套读取**、**M4 起支持嵌套写入**——`struct` / 标准 3-level `list` / `map`（含 NULL、空集合、null 元素/子字段），读写均与 delta-rs/DuckDB 逐值对拍一致（`artifacts/acceptance/m2|m4/`）
 -  写入：`create_table`（已存在的表拒绝）+ `append_rows`（Int32/Int64/String/Binary/Boolean/Double；校验列名/类型/NOT NULL；数据文件与 commit 均为 put-if-absent）；分区列读取时按 `partitionValues` 补齐
 -  CLI：`inspect / history / scan / read / create / version`；错误输出到 stderr、非 0 退出码、未知参数/缺值报错
 -  31 个单元测试（含分区读/过滤、统计剪枝边界、缺失数据文件、嵌套列拒绝、协议版本/feature 拒绝、删除向量拒绝、未知 action 拒绝、日志名校验、路径解码、写防护等负向用例）+ 真实 Delta 表 fixture（delta-rs、apache/parquet-testing）；真实 checkpoint-only / 截断恢复的读取属 M3
 
 已用真实数据验证（均为仓库 fixture 读取，D1 已复核）：delta-rs `table_a`（13 个版本回放 → 120 个文件，仓库只含日志、不含数据文件）、Databricks 写出的 COVID-19_NYT 表的 1 个数据文件（157,865 行 6 列，snappy；该表共 8 个数据文件，其余 7 个未入库）。
 
-外部引擎互操作（D2/M2）：已与 delta-rs 1.6.6、DuckDB 1.5.6 完成 flat 表双向对拍（49 PASS / 0 FAIL / 2 项已记录差异，见 [artifacts/interop-flat/README.md](artifacts/interop-flat/README.md)）；Spark / Databricks 未验证。M2 起 nested schema 的**读取**已完成（engine-written 等 5 个 fixture 与 delta-rs oracle 逐值一致，见 [artifacts/acceptance/m2/](artifacts/acceptance/m2/README.md)），nested 写入在 M4；七项门槛进度以路线图为准，口径见 [docs/协议兼容性与互操作范围.md](docs/协议兼容性与互操作范围.md)。
+外部引擎互操作（D2/M2）：已与 delta-rs 1.6.6、DuckDB 1.5.6 完成 flat 表双向对拍（49 PASS / 0 FAIL / 2 项已记录差异，见 [artifacts/interop-flat/README.md](artifacts/interop-flat/README.md)）；Spark / Databricks 未验证。M2 起嵌套读取完成（engine-written 等 5 个 fixture 与 delta-rs oracle 逐值一致，[artifacts/acceptance/m2/](artifacts/acceptance/m2/README.md)）；M4 起嵌套写入完成（本项目写出的嵌套表被 delta-rs 与 DuckDB 回读逐字段一致，[artifacts/acceptance/m4/](artifacts/acceptance/m4/README.md)）——范围文档第 3 节七项门槛达成；口径见，口径见 [docs/协议兼容性与互操作范围.md](docs/协议兼容性与互操作范围.md)。
 
 ## 快速开始
 
@@ -98,7 +98,7 @@ let columns : Array[@delta.ReadColumn] = [
 |---|---|---|
 | protocol | reader v1 读取；writer v2 写出 | 高于 reader v1 的 protocol、`readerFeatures` 拒绝并说明原因（0.2.0 起，含测试）；`writerFeatures` 列表随协议解析 |
 | 日志 | version 0 起的连续 JSON commit；20 位文件名严格校验；非 0 起点/缺版本拒绝；M3 起截断 / checkpoint-only 表从 checkpoint 恢复 | 多部分 checkpoint（显式拒绝）；checkpoint 之前的版本在日志截断后不可达（结构化错误） |
-| schema | flat 原始类型 + 嵌套 struct / list / map 读取（M2，与 delta-rs 逐值对拍） | nested 写入（M4）；decimal/uuid（明确拒绝） |
+| schema | flat 原始类型 + 嵌套 struct / list / map 读写（M2/M4，双引擎逐值对拍） | decimal/uuid（明确拒绝） |
 | 压缩 | UNCOMPRESSED、SNAPPY | ZSTD、GZIP、BROTLI、LZ4（明确拒绝） |
 | 逻辑类型 | string、int、long、float、double、boolean、date、timestamp(INT96) | decimal、uuid 等（会丢语义） |
 | 表 | 日志完整、可从头回放的本地表；截断 / checkpoint-only 表从 checkpoint 恢复（M3） | 多部分 checkpoint |

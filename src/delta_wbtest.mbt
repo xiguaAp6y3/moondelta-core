@@ -423,6 +423,114 @@ test "checkpoint: checkpoint-only-nested reads 5 rows with nested values" {
 }
 
 
+///|
+test "write: nested struct/list/map roundtrip (write -> read)" {
+  let root = "_build/test-tmp/table-nested-write"
+  reset_dir(root)
+  let schema = "{\"type\":\"struct\",\"fields\":[" +
+    "{\"name\":\"id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{}}," +
+    "{\"name\":\"profile\",\"type\":{\"type\":\"struct\",\"fields\":[{\"name\":\"name\",\"type\":\"string\",\"nullable\":true,\"metadata\":{}},{\"name\":\"age\",\"type\":\"integer\",\"nullable\":true,\"metadata\":{}}]},\"nullable\":true,\"metadata\":{}}," +
+    "{\"name\":\"tags\",\"type\":{\"type\":\"array\",\"elementType\":\"string\",\"containsNull\":true},\"nullable\":true,\"metadata\":{}}," +
+    "{\"name\":\"attrs\",\"type\":{\"type\":\"map\",\"keyType\":\"string\",\"valueType\":\"string\",\"valueContainsNull\":true},\"nullable\":true,\"metadata\":{}}" +
+    "]}"
+  let created = create_table(root, schema, []) catch {
+    err => {
+      fail("create failed: \{err}")
+      return
+    }
+  }
+  assert_eq(created, 0)
+  let columns : Array[ReadColumn] = [
+    {
+      name: "id",
+      type_: Int64Type,
+      cells: [CellI64(1L), CellI64(2L), CellI64(3L), CellI64(4L), CellI64(5L)],
+    },
+    {
+      name: "profile",
+      type_: NestedType(
+        kind="struct",
+        fields=[
+          { name: "name", type_: StringType, nullable: true },
+          { name: "age", type_: Int32Type, nullable: true },
+        ],
+      ),
+      cells: [
+        CellStruct([
+          ("name", CellStr("alice")),
+          ("age", CellI32(30)),
+        ]),
+        CellNull,
+        CellStruct([("name", CellNull), ("age", CellNull)]),
+        CellStruct([("name", CellStr("bob")), ("age", CellNull)]),
+        CellStruct([("name", CellNull), ("age", CellI32(42))]),
+      ],
+    },
+    {
+      name: "tags",
+      type_: NestedType(
+        kind="array",
+        fields=[{ name: "element", type_: StringType, nullable: true }],
+      ),
+      cells: [
+        CellList([CellStr("red"), CellStr("green")]),
+        CellList([]),
+        CellNull,
+        CellList([CellStr("blue"), CellNull]),
+        CellList([]),
+      ],
+    },
+    {
+      name: "attrs",
+      type_: NestedType(
+        kind="map",
+        fields=[
+          { name: "key", type_: StringType, nullable: false },
+          { name: "value", type_: StringType, nullable: true },
+        ],
+      ),
+      cells: [
+        CellMap([(CellStr("k1"), CellStr("v1")), (CellStr("k2"), CellStr("v2"))]),
+        CellMap([]),
+        CellMap([(CellStr("k"), CellStr("v"))]),
+        CellMap([]),
+        CellNull,
+      ],
+    },
+  ]
+  let version = append_rows(root, columns, 1000L) catch {
+    err => {
+      fail("append failed: \{err}")
+      return
+    }
+  }
+  assert_eq(version, 1)
+  let snapshot = DeltaTable::open(root).snapshot() catch {
+    err => {
+      fail("snapshot failed: \{err}")
+      return
+    }
+  }
+  let result = read_snapshot(root, snapshot, None) catch {
+    err => {
+      fail("read failed: \{err}")
+      return
+    }
+  }
+  assert_eq(result.row_count, 5)
+  // 与 delta-rs oracle 相同的期望值（D3 案例 B 数据形态）
+  assert_eq(cell_to_display(result.columns[1].cells[0]), "{\"name\": alice, \"age\": 30}")
+  assert_eq(cell_to_display(result.columns[1].cells[1]), "NULL")
+  assert_eq(cell_to_display(result.columns[1].cells[2]), "{\"name\": NULL, \"age\": NULL}")
+  assert_eq(cell_to_display(result.columns[2].cells[0]), "[red, green]")
+  assert_eq(cell_to_display(result.columns[2].cells[1]), "[]")
+  assert_eq(cell_to_display(result.columns[2].cells[3]), "[blue, NULL]")
+  assert_eq(cell_to_display(result.columns[3].cells[0]), "{k1: v1, k2: v2}")
+  assert_eq(cell_to_display(result.columns[3].cells[1]), "{}")
+  assert_eq(cell_to_display(result.columns[3].cells[4]), "NULL")
+}
+
+///|
 test "read: D3 nested fixture matches delta-rs oracle field by field" {
   let root = "artifacts/interop-nested/engine-written"
   let table = DeltaTable::open(root) catch {

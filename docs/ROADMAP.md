@@ -61,7 +61,7 @@
 | **M1 协议与工程基线** | 10-23 | A1/A2/C1/C2/B3/H3/D4（byte/short 补齐）+ 写路径 G1 + F2/E2 | 每项至少一个负向 fixture 测试；`deletion-vector-add`、`protocol-reader-v3-features`、`unknown-actions`、`nonstandard-log-name` 由"静默接受"变为"非 0 退出 + 明确原因" |
 | **M2 Parquet 嵌套读取层**（✅ 2026-10-22 完成，提前） | 10-25 | E1（def/rep level，vendored reader 已有 `decode_levels_v1` 骨架）+ D2 + D1 timestamp_ntz 评估 | 案例 B fixture 本项目读回 5 行，与双 oracle 逐字段一致；D3 七项门槛中读取侧 3 项转绿 |
 | **M3 checkpoint 恢复**（✅ 2026-10-22 完成，提前） | 10-27 | B2（checkpoint Parquet 解析依赖 M2 的 repeated group 读取） | `checkpoint-truncated` fixture 经 checkpoint 重建快照并与 JSON 回放逐字段一致；`checkpoint-only` 由拒绝变为可读 |
-| **M4 嵌套写入 + 统计** | 10-29 | D3（nested Parquet 编码）+ F1（nested stats 放弃剪枝策略） | 本项目写出的 nested 表被 delta-rs 与 DuckDB 读回逐字段一致（门槛 7）；外部引擎写出的 nested 表本项目可读（双向闭环） |
+| **M4 嵌套写入 + 统计**（✅ 2026-10-22 完成，提前） | 10-29 | D3（nested Parquet 编码）+ F1（nested stats 放弃剪枝策略） | 本项目写出的 nested 表被 delta-rs 与 DuckDB 读回逐字段一致（门槛 7）；外部引擎写出的 nested 表本项目可读（双向闭环） |
 | **M5 全量复验与重提** | 10-31 | 按第 2 节闭集全量复验收，出正式报告；更新申报表格、README、CHANGELOG | 闭集 100% PASS（或按第 5 节降级表述）；案例 A/B 双向通过；申报材料与实现零差距 |
 
 排序依据：M1 无依赖且直接关闭审核指出的"必须拒绝而未拒绝"类行为；M2 是 M3/M4 的公共依赖（checkpoint 与 nested 写入都需要 repeated group 编解码）；M5 留整日复验。

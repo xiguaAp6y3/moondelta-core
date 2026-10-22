@@ -4,6 +4,23 @@
 
 ## [Unreleased]
 
+路线图 M4（嵌套写入 + 统计，2026-10-22 完成，较排期提前）：测试数 36 → 37；
+七项门槛 7/7 全部达成（嵌套读、嵌写、双外部引擎双向对拍、checkpoint 嵌套解析）。
+
+### Added
+
+- **嵌套写入**：`append_rows` 支持 `struct` / 标准 3-level `list` / `map`
+  （LIST/MAP 注解；NULL、空集合、null 元素/值边界），写出表经 delta-rs 1.6.6
+  与 DuckDB 回读逐行逐字段一致（`artifacts/acceptance/m4/`）；新增示例
+  `src/examples/write_nested`
+- vendored parquet 新增 shredded 写入口（叶级槽位流 + schema 树 → parquet）
+- 嵌套字段不写 min/max 统计（放弃剪枝、保证正确读取）
+
+### Fixed
+
+- MAP 注解 converted_type 应为 1（误用 4=ENUM 导致 pyarrow 拒读）；
+  map 的 repeated 中间组名用 `entries`（pyarrow/delta-rs 兼容的实际形态）
+
 路线图 M3（checkpoint 恢复，2026-10-22 完成，较排期提前）：测试数 32 → 36。
 
 ### Added
