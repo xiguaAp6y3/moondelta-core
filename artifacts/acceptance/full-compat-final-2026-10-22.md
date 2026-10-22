@@ -44,7 +44,7 @@
 - **协议**：reader ≥ 2 的全部特性（column mapping、deletion vectors、v2 checkpoint）——按协议拒绝并说明原因；多部分 checkpoint（`<v>.checkpoint.<p>.parquet`）显式拒绝
 - **写入**：分区表 append、MERGE/UPDATE/DELETE、并发写仲裁、对象存储
 - **已知风格债**：约 50 条 `implicit_impl_as_method` 等 warning（非 error，清理不阻塞发布）
-- **流程项**：mooncakes.io 0.3.0 发布与 GitHub Actions 运行链接需在可联网发布时补齐（moon.mod/CLI/文档版本已统一为 0.3.0）
+- **流程项**：mooncakes.io 0.3.0 已发布（`moon publish` 200 OK，页面标记 latest）并完成空工程安装验证（`artifacts/acceptance/mooncakes-0.3.0/`）；GitHub Actions 运行链接待发布环境补齐
 
 ## 4. 复验命令
 

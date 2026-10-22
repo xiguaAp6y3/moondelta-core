@@ -32,7 +32,7 @@ MoonBit 原生的 **Delta Lake 表格式内核**：回放 `_delta_log` 事务日
 要求：MoonBit 工具链（`moon` / `moonc`，建议 2026-10 之后的版本）。
 
 ```bash
-# 从 mooncakes.io 安装（0.3.0 发布待推送 mooncakes 后复核留存安装日志）
+# 从 mooncakes.io 安装（0.3.0 已发布；空工程安装验证见 artifacts/acceptance/mooncakes-0.3.0/）
 moon add xiguaAp6y3/moondelta-core
 
 # 或从源码构建

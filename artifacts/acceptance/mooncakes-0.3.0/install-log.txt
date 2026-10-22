@@ -1,0 +1,11 @@
+$ moon add xiguaAp6y3/moondelta-core
+Downloading xiguaAp6y3/moondelta-core@0.3.0
+Using cached moonbitlang/x@0.5.5
+
+$ moon run --target native src/main.mbt
+ok: v0->v1 rows=1 id=7
+
+（工程：name = "verify/install-0.3.0"，src/moon.pkg 仅 import
+ xiguaAp6y3/moondelta-core @delta；验证 create_table/append_rows/
+ DeltaTable::open/snapshot/read_snapshot/cell_to_display 均来自
+ mooncakes 下载的 0.3.0 包）
