@@ -20,15 +20,33 @@
 [PASS] delta-rs schema 与日志 schemaString 等价（独立重算）
 [PASS] 边界覆盖：profile=NULL(2) / tags=[](2,5) / tags=NULL(3) / tags 含 null(4) / attrs={}(2,4) / attrs=NULL(5) :: {1: {'id': 1, 'profile': {'name': 'alice', 'age': 30}, 'tags': ['red', 'green'], 'attrs': {'k1': 'v1', 'k2': 'v2'}}, 2: {'id': 2, 'profile': None, 'tags': [], 'attrs': {}}, 3: {'id': 3, 'profile': {'name': None, 'age': None}, 'tags': None, 'attrs': {'k': 'v'}}, 4: {'id': 4, 'profile': {'name': 'bob', 'age': None}, 'tags': ['blue', None], 'attrs': {}}, 5: {'id': 5, 'profile': {'name': None, 'age': 42}, 'tags': [], 'attrs': None}}
 [PASS] 边界覆盖与 README 表格一致
-[PASS] 重建 CLI 的 read 错误文本 = README 引用 = raw 原文（0.2.0 起错误走 stderr） :: error: unsupported: nested column 'profile' (type=struct) is not supported by the parquet reader; only flat schemas are readable
-[PASS] 重建 CLI read 退出码 = 1（0.2.0 起；raw 记录的 0 为 0.1.x 历史行为） :: rc=1 raw_exit=0
-[PASS] 错误写 stderr（0.2.0 起；raw 时代的 stdout 原文仍保存为历史证据）
-[PASS] 单 kind fixture struct 被结构化拒绝（含字段名+kind，非 0 退出） :: error: unsupported: nested column 'profile' (type=struct) is not supported by the parquet reader; only flat schemas are readable
-[PASS] 单 kind fixture array 被结构化拒绝（含字段名+kind，非 0 退出） :: error: unsupported: nested column 'tags' (type=array) is not supported by the parquet reader; only flat schemas are readable
-[PASS] 单 kind fixture map 被结构化拒绝（含字段名+kind，非 0 退出） :: error: unsupported: nested column 'attrs' (type=map) is not supported by the parquet reader; only flat schemas are readable
+[PASS] 重建 CLI 正向读取 engine-written（M2 前这里是结构化拒绝） :: read 1 file(s), 5 row(s), version 0
+id (long) | profile (struct) | tags (array) | attrs (map)
+1 | {"name": alice, "age
+[PASS] CLI 输出路由：成功时 stderr 为空（0.2.0 起错误走 stderr）
+[PASS] engine-written 5 行逐值 = oracle（struct/list/map + NULL/empty 边界） :: ['1 | {"name": alice, "age": 30} | [red, green] | {k1: v1, k2: v2}', '2 | NULL | [] | {}', '3 | {"name": NULL, "age": NULL} | NULL | {k: v}', '4 | {"name": bob, "age": NULL} | [blue, NULL] | {}', '5 | {"name": NULL, "age": 42} | [] | NULL']
+[PASS] oracle（delta-rs）边界行不变（fixture 未被改动）
+[PASS] 单 kind fixture struct 正向读取且边界值一致 :: read 1 file(s), 4 row(s), version 0
+id (long) | profile (struct)
+1 | {"name": alice, "age": 30}
+2 | NULL
+3 | {"name": NULL, "age": NULL}
+4 | {"na
+[PASS] 单 kind fixture array 正向读取且边界值一致 :: read 1 file(s), 4 row(s), version 0
+id (long) | tags (array)
+1 | [a, b]
+2 | []
+3 | NULL
+4 | [c, NULL]
+[PASS] 单 kind fixture map 正向读取且边界值一致 :: read 1 file(s), 4 row(s), version 0
+id (long) | attrs (map)
+1 | {k1: v1}
+2 | {}
+3 | NULL
+4 | {k2: NULL}
 [PASS] delta-rs 从 checkpoint-only-nested 读回 5 行（证明 checkpoint 完整） :: rows=5
 [PASS] 重建 CLI inspect 对 checkpoint-only 报 not found 且非 0 退出（raw 为 0.1.x 历史记录） :: error: not found: table 'artifacts/interop-nested/checkpoint-only-nested' has no JSON log entries (checkpoint-only table; loading snapshots from checkpoint parq
-[PASS] negative-physical-nested 报 Repeated columns are not supported yet 且非 0 退出 :: error: unsupported: cannot read 'data/list_columns.parquet': Repeated columns are not supported yet
+[PASS] negative-physical-nested 仍被结构化拒绝且非 0 退出（外部引擎同样失败，不作为互操作基线） :: error: unsupported: cannot read 'data/list_columns.parquet': Repeated columns are not supported yet
 [PASS] negative fixture 记录外部引擎同样失败（不作为互操作基线）
 [PASS] comparison.json gate_counts = {done:1,partial:0,missing:6} :: {'done': 1, 'partial': 0, 'missing': 6}
 [PASS] gates 数组 7 项状态 = 1 完成 / 0 部分 / 6 未完成 :: ['未完成', '未完成', '未完成', '未完成', '未完成', '已完成', '未完成']

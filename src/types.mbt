@@ -17,7 +17,9 @@ pub(all) enum DeltaType {
   DateType
   TimestampType
   DecimalType(precision~ : Int32, scale~ : Int32)
-  NestedType(kind~ : String)
+  /// 嵌套类型：kind 为 "struct" / "array" / "map"；fields 保留子树
+  /// （struct 为子字段；array 为单个合成字段 "element"；map 为 "key"/"value"）
+  NestedType(kind~ : String, fields~ : Array[DeltaField])
   UnknownType(raw~ : String)
 } derive(Eq, Debug)
 
@@ -139,7 +141,7 @@ pub fn delta_type_name(ty : DeltaType) -> String {
     DateType => "date"
     TimestampType => "timestamp"
     DecimalType(precision~, scale~) => "decimal(\{precision},\{scale})"
-    NestedType(kind~) => kind
+    NestedType(kind~, ..) => kind
     UnknownType(raw~) => "unknown(\{raw})"
   }
 }

@@ -82,7 +82,7 @@ test "schema: parse flat delta schema" {
 }
 
 ///|
-test "schema: nested type is marked and rejected with a clear error" {
+test "schema: array type preserves the element subtree" {
   let raw = "{\"type\":\"struct\",\"fields\":[{\"name\":\"tags\",\"type\":{\"type\":\"array\",\"elementType\":\"string\",\"containsNull\":true},\"nullable\":true,\"metadata\":{}}]}"
   let schema = parse_schema(raw) catch {
     err => {
@@ -90,8 +90,17 @@ test "schema: nested type is marked and rejected with a clear error" {
       return
     }
   }
-  assert_eq(schema.fields[0].type_, NestedType(kind="array"))
-  assert_false(schema_is_readable(schema))
+  match schema.fields[0].type_ {
+    NestedType(kind~, fields~) => {
+      assert_eq(kind, "array")
+      assert_eq(fields.length(), 1)
+      assert_eq(fields[0].name, "element")
+      assert_eq(fields[0].type_, StringType)
+      assert_eq(fields[0].nullable, true)
+    }
+    _ => fail("expected nested type")
+  }
+  assert_true(schema_is_readable(schema))
 }
 
 ///|
@@ -265,7 +274,7 @@ test "snapshot: checkpoint-only table is rejected, not silently empty" {
 }
 
 ///|
-test "read: nested parquet column is rejected with a clear error" {
+test "read: nested parquet list column is read (list_columns.parquet)" {
   let root = "_build/test-tmp/table-nested"
   reset_dir(root)
   ensure_dir(root) catch {
@@ -309,8 +318,79 @@ test "read: nested parquet column is rejected with a clear error" {
       return
     }
   }
-  let message = read_error_of(root, snapshot)
-  assert_true(message.contains("nested column"))
+  let result = read_snapshot(root, snapshot, None) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  // parquet-testing list_columns.parquet: 3 行 [[1,2,3], [NULL,1], [4]]
+  assert_eq(result.row_count, 3)
+  assert_eq(cell_to_display(result.columns[0].cells[0]), "[1, 2, 3]")
+  assert_eq(cell_to_display(result.columns[0].cells[1]), "[NULL, 1]")
+  assert_eq(cell_to_display(result.columns[0].cells[2]), "[4]")
+}
+
+///|
+/// D3 案例 B（engine-written，delta-rs 写出）与 oracle 逐值一致：
+/// struct / 3-level list / map，覆盖 NULL、空集合、null 元素/子字段。
+test "read: D3 nested fixture matches delta-rs oracle field by field" {
+  let root = "artifacts/interop-nested/engine-written"
+  let table = DeltaTable::open(root) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  let snapshot = table.snapshot() catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_eq(snapshot.version, 0)
+  let result = read_snapshot(root, snapshot, None) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_eq(result.row_count, 5)
+  assert_eq(result.columns.length(), 4)
+  // id
+  for i in 0..<5 {
+    assert_eq(cell_to_display(result.columns[0].cells[i]), (i + 1).to_string())
+  }
+  // profile: struct<name:string, age:int>
+  assert_eq(
+    cell_to_display(result.columns[1].cells[0]),
+    "{\"name\": alice, \"age\": 30}",
+  )
+  assert_eq(cell_to_display(result.columns[1].cells[1]), "NULL")
+  assert_eq(
+    cell_to_display(result.columns[1].cells[2]),
+    "{\"name\": NULL, \"age\": NULL}",
+  )
+  assert_eq(
+    cell_to_display(result.columns[1].cells[3]),
+    "{\"name\": bob, \"age\": NULL}",
+  )
+  assert_eq(
+    cell_to_display(result.columns[1].cells[4]),
+    "{\"name\": NULL, \"age\": 42}",
+  )
+  // tags: array<string>
+  assert_eq(cell_to_display(result.columns[2].cells[0]), "[red, green]")
+  assert_eq(cell_to_display(result.columns[2].cells[1]), "[]")
+  assert_eq(cell_to_display(result.columns[2].cells[2]), "NULL")
+  assert_eq(cell_to_display(result.columns[2].cells[3]), "[blue, NULL]")
+  assert_eq(cell_to_display(result.columns[2].cells[4]), "[]")
+  // attrs: map<string,string>
+  assert_eq(cell_to_display(result.columns[3].cells[0]), "{k1: v1, k2: v2}")
+  assert_eq(cell_to_display(result.columns[3].cells[1]), "{}")
+  assert_eq(cell_to_display(result.columns[3].cells[2]), "{k: v}")
+  assert_eq(cell_to_display(result.columns[3].cells[3]), "{}")
+  assert_eq(cell_to_display(result.columns[3].cells[4]), "NULL")
 }
 
 ///|
@@ -906,3 +986,4 @@ test "read: byte and short columns round-trip from a delta-rs-written table" {
   assert_eq(cell_to_display(result.columns[1].cells[1]), "200")
   assert_eq(cell_to_display(result.columns[1].cells[2]), "NULL")
 }
+

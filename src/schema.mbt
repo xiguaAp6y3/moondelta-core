@@ -29,11 +29,59 @@ fn parse_decimal_type(s : String) -> DeltaType {
 }
 
 ///|
+/// 解析 array 类型的 elementType / containsNull 为单字段子树（合成名 "element"）
+fn parse_array_node(j : Json) -> DeltaType raise DeltaError {
+  let element_type = match json_field(j, "elementType") {
+    Some(t) => parse_type_node(t)
+    None => UnknownType(raw="<missing elementType>")
+  }
+  let contains_null = match json_field_bool(j, "containsNull") {
+    Some(b) => b
+    None => true
+  }
+  NestedType(
+    kind="array",
+    fields=[{ name: "element", type_: element_type, nullable: contains_null }],
+  )
+}
+
+///|
+/// 解析 map 类型的 keyType / valueType / valueContainsNull 为 key/value 子树
+fn parse_map_node(j : Json) -> DeltaType raise DeltaError {
+  let key_type = match json_field(j, "keyType") {
+    Some(t) => parse_type_node(t)
+    None => UnknownType(raw="<missing keyType>")
+  }
+  let value_type = match json_field(j, "valueType") {
+    Some(t) => parse_type_node(t)
+    None => UnknownType(raw="<missing valueType>")
+  }
+  let value_contains_null = match json_field_bool(j, "valueContainsNull") {
+    Some(b) => b
+    None => true
+  }
+  NestedType(
+    kind="map",
+    fields=[
+      { name: "key", type_: key_type, nullable: false },
+      { name: "value", type_: value_type, nullable: value_contains_null },
+    ],
+  )
+}
+
+///|
+/// 解析 struct 类型的 fields 子树
+fn parse_struct_node(j : Json) -> DeltaType raise DeltaError {
+  let fields = parse_schema_fields(j)
+  NestedType(kind="struct", fields~)
+}
+
+///|
 /// 解析 Delta schema 中的单个类型节点。
 ///
-/// 扁平原始类型按名字映射；`struct` / `array` / `map` 统一标记为 `NestedType`，
-/// 读取或写入时由上层拒绝，避免把嵌套列静默读成错误数据。
-fn parse_type_node(j : Json) -> DeltaType {
+/// 扁平原始类型按名字映射；`struct` / `array` / `map` 保留完整子树
+/// （M2 起可读取），读取或写入时由上层按能力拒绝。
+fn parse_type_node(j : Json) -> DeltaType raise DeltaError {
   match json_as_string(j) {
     Some(s) =>
       if s == "integer" || s == "int" {
@@ -66,8 +114,12 @@ fn parse_type_node(j : Json) -> DeltaType {
     None =>
       match json_field_string(j, "type") {
         Some(kind) =>
-          if kind == "struct" || kind == "array" || kind == "map" {
-            NestedType(kind~)
+          if kind == "struct" {
+            parse_struct_node(j)
+          } else if kind == "array" {
+            parse_array_node(j)
+          } else if kind == "map" {
+            parse_map_node(j)
           } else {
             UnknownType(raw=kind)
           }
@@ -114,23 +166,29 @@ pub fn parse_schema(raw : String) -> DeltaSchema raise DeltaError {
 
 ///|
 /// 判断 schema 是否能在当前读取路径上安全读取；不能则给出明确原因。
+/// M2 起 struct/array/map 可读；decimal/uuid 等仍拒绝（显式例外清单）。
 pub fn ensure_readable_schema(schema : DeltaSchema) -> Unit raise DeltaError {
   for f in schema.fields {
-    match f.type_ {
-      NestedType(kind~) =>
-        raise DeltaError::Unsupported(
-          "nested column '\{f.name}' (type=\{kind}) is not supported by the parquet reader; only flat schemas are readable",
-        )
-      UnknownType(raw~) =>
-        raise DeltaError::Unsupported(
-          "unsupported delta type '\{raw}' for column '\{f.name}'",
-        )
-      DecimalType(precision~, scale~) =>
-        raise DeltaError::Unsupported(
-          "decimal(\{precision},\{scale}) column '\{f.name}' is not supported (logical type is lost by the reader)",
-        )
-      _ => ()
-    }
+    ensure_readable_type(f.name, f.type_)
+  }
+}
+
+///|
+fn ensure_readable_type(name : String, ty : DeltaType) -> Unit raise DeltaError {
+  match ty {
+    UnknownType(raw~) =>
+      raise DeltaError::Unsupported(
+        "unsupported delta type '\{raw}' for column '\{name}'",
+      )
+    DecimalType(precision~, scale~) =>
+      raise DeltaError::Unsupported(
+        "decimal(\{precision},\{scale}) column '\{name}' is not supported (logical type is lost by the reader)",
+      )
+    NestedType(fields~, ..) =>
+      for f in fields {
+        ensure_readable_type("\{name}.\{f.name}", f.type_)
+      }
+    _ => ()
   }
 }
 

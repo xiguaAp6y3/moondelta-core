@@ -77,6 +77,7 @@ priv struct DictionaryPageHeaderMeta {
 ///|
 priv struct LeafColumnMeta {
   name : String
+  path : Array[String]
   column_type : ColumnType
   repetition : Repetition
   max_definition_level : Int32

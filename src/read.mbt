@@ -10,6 +10,10 @@ pub(all) enum Cell {
   CellBin(Bytes)
   CellTs(Int64)
   CellNull
+  /// 嵌套值（M2）：struct 按字段名、list 按序、map 按键值对装配
+  CellStruct(Array[(String, Cell)])
+  CellList(Array[Cell])
+  CellMap(Array[(Cell, Cell)])
 } derive(Debug)
 
 ///|
@@ -119,12 +123,16 @@ fn cell_from_partition(ty : DeltaType, raw : String) -> Cell raise DeltaError {
 /// - `root` 是表目录（parquet 路径相对它）
 /// - `limit` 限制读入行数（None = 全部）
 /// 分区列不会出现在数据文件里，这里用 `partitionValues` 补齐常量列。
+/// schema 含嵌套字段时走 shredded 装配路径（src/shred.mbt）。
 pub fn read_snapshot(
   root : String,
   snapshot : Snapshot,
   limit : Int32?,
 ) -> ReadResult raise DeltaError {
   ensure_readable_schema(snapshot.metadata.schema)
+  if schema_has_nested(snapshot.metadata.schema) {
+    return read_snapshot_shredded(root, snapshot, limit)
+  }
   let fields = snapshot.metadata.schema.fields
   let columns : Array[ReadColumn] = []
   for f in fields {
@@ -191,7 +199,7 @@ pub fn read_snapshot(
 }
 
 ///|
-/// 单元格的展示形式（CLI / 示例用）
+/// 单元格的展示形式（CLI / 示例用）。嵌套值以 JSON 风格渲染。
 pub fn cell_to_display(cell : Cell) -> String {
   match cell {
     CellI32(x) => x.to_string()
@@ -203,5 +211,52 @@ pub fn cell_to_display(cell : Cell) -> String {
     CellBin(x) => x.to_unchecked_string()
     CellTs(x) => x.to_string()
     CellNull => "NULL"
+    CellStruct(members) => {
+      let sb = StringBuilder()
+      sb.write_char('{')
+      let mut i = 0
+      while i < members.length() {
+        if i > 0 {
+          sb.write_string(", ")
+        }
+        let (name, value) = members[i]
+        sb.write_string("\"" + name + "\": ")
+        sb.write_string(cell_to_display(value))
+        i = i + 1
+      }
+      sb.write_char('}')
+      sb.to_string()
+    }
+    CellList(items) => {
+      let sb = StringBuilder()
+      sb.write_char('[')
+      let mut i = 0
+      while i < items.length() {
+        if i > 0 {
+          sb.write_string(", ")
+        }
+        sb.write_string(cell_to_display(items[i]))
+        i = i + 1
+      }
+      sb.write_char(']')
+      sb.to_string()
+    }
+    CellMap(entries) => {
+      let sb = StringBuilder()
+      sb.write_char('{')
+      let mut i = 0
+      while i < entries.length() {
+        if i > 0 {
+          sb.write_string(", ")
+        }
+        let (k, v) = entries[i]
+        sb.write_string(cell_to_display(k))
+        sb.write_string(": ")
+        sb.write_string(cell_to_display(v))
+        i = i + 1
+      }
+      sb.write_char('}')
+      sb.to_string()
+    }
   }
 }

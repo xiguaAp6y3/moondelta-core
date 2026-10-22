@@ -113,21 +113,33 @@ def run(args):
     return p.returncode, p.stdout.decode("utf-8", "replace"), p.stderr.decode("utf-8", "replace")
 
 
-rc, so, se = run(["read", "artifacts/interop-nested/engine-written"])
-raw_out = open(os.path.join(NEST, "raw", "engine-written__read.stdout.txt"), encoding="utf-8").read()
-raw_err = open(os.path.join(NEST, "raw", "engine-written__read.stderr.txt"), encoding="utf-8").read()
-raw_exit = open(os.path.join(NEST, "raw", "engine-written__read.exit.txt"), encoding="utf-8").read().strip()
-msg = "unsupported: nested column 'profile' (type=struct) is not supported by the parquet reader; only flat schemas are readable"
-check("重建 CLI 的 read 错误文本 = README 引用 = raw 原文（0.2.0 起错误走 stderr）", msg in se and msg in raw_out, se.strip()[:160])
-check("重建 CLI read 退出码 = 1（0.2.0 起；raw 记录的 0 为 0.1.x 历史行为）", rc == 1 and raw_exit == "0", "rc=%d raw_exit=%s" % (rc, raw_exit))
-check("错误写 stderr（0.2.0 起；raw 时代的 stdout 原文仍保存为历史证据）", so.strip() == "")
+print("== 3. M2 起：moondelta 正向读取 nested 表，与 oracle 逐值一致 ==")
 
-for kind, field in (("struct", "profile"), ("array", "tags"), ("map", "attrs")):
-    rc, so, se = run(["read", "artifacts/interop-nested/kind-%s-only" % kind])
-    exp = "nested column '%s' (type=%s)" % (field, kind)
-    check("单 kind fixture %s 被结构化拒绝（含字段名+kind，非 0 退出）" % kind, exp in se and rc == 1, se.strip()[:150])
+rc, so, se = run(["read", "artifacts/interop-nested/engine-written", "--limit", "10"])
+check("重建 CLI 正向读取 engine-written（M2 前这里是结构化拒绝）", rc == 0 and so.startswith("read 1 file(s), 5 row(s)"), so.strip()[:120])
+check("CLI 输出路由：成功时 stderr 为空（0.2.0 起错误走 stderr）", se.strip() == "", se.strip()[:100])
+rows = [l for l in so.splitlines() if l and not l.startswith("read ") and "(" not in l.split(" | ")[0]]
+expect_rows_cli = [
+    '1 | {"name": alice, "age": 30} | [red, green] | {k1: v1, k2: v2}',
+    '2 | NULL | [] | {}',
+    '3 | {"name": NULL, "age": NULL} | NULL | {k: v}',
+    '4 | {"name": bob, "age": NULL} | [blue, NULL] | {}',
+    '5 | {"name": NULL, "age": 42} | [] | NULL',
+]
+check("engine-written 5 行逐值 = oracle（struct/list/map + NULL/empty 边界）",
+      rows == expect_rows_cli, str(rows)[:300])
+oracle = load("artifacts/interop-nested/oracle-delta-rs.json")["tables"]["engine-written"]
+orows = [{k: decode(v) for k, v in r.items()} for r in oracle["rows"]]
+check("oracle（delta-rs）边界行不变（fixture 未被改动）",
+      sorted(orows, key=lambda r: r["id"])[1] == {"id": 2, "profile": None, "tags": [], "attrs": {}})
 
-print("== 4. checkpoint-only-nested：外部引擎可读、本项目拒绝 ==")
+for kind, sample in (("struct", '{"name": carol, "age": NULL}'),
+                     ("array", "[c, NULL]"),
+                     ("map", "{k2: NULL}")):
+    rc, so, se = run(["read", "artifacts/interop-nested/kind-%s-only" % kind, "--limit", "6"])
+    check("单 kind fixture %s 正向读取且边界值一致" % kind, rc == 0 and sample in so, so.strip()[:150])
+
+print("== 4. checkpoint-only-nested：外部引擎可读、本项目拒绝（M3 将恢复） ==")
 cp = DeltaTable(os.path.join(NEST, "checkpoint-only-nested"))
 check("delta-rs 从 checkpoint-only-nested 读回 5 行（证明 checkpoint 完整）", cp.to_pyarrow_table().num_rows == 5, "rows=%d" % cp.to_pyarrow_table().num_rows)
 rc, so, se = run(["inspect", "artifacts/interop-nested/checkpoint-only-nested"])
@@ -135,16 +147,16 @@ raw_cp = open(os.path.join(NEST, "raw", "checkpoint-only-nested__inspect.stdout.
 check("重建 CLI inspect 对 checkpoint-only 报 not found 且非 0 退出（raw 为 0.1.x 历史记录）",
       "error: not found" in se and "checkpoint-only table" in se and "has no log entries" in raw_cp, se.strip()[:160])
 
-print("== 5. 负向 fixture：物理 repeated 被明确拒绝，且未被算作互操作通过 ==")
+print("== 5. 负向 fixture：Delta schema 谎报 flat、物理 repeated 的坏文件仍被拒绝 ==")
 rc, so, se = run(["read", "artifacts/interop-nested/negative-physical-nested"])
-check("negative-physical-nested 报 Repeated columns are not supported yet 且非 0 退出",
-      "Repeated columns are not supported yet" in se and rc == 1, se.strip()[:200])
+check("negative-physical-nested 仍被结构化拒绝且非 0 退出（外部引擎同样失败，不作为互操作基线）",
+      rc == 1 and ("Repeated columns are not supported yet" in se or "cannot read" in se), se.strip()[:200])
 neg = load("artifacts/interop-nested/negative-physical-nested.json")
 neg_txt = json.dumps(neg, ensure_ascii=False)
 check("negative fixture 记录外部引擎同样失败（不作为互操作基线）",
       ("ArrowNotImplementedError" in neg_txt) and ("failed" in neg_txt.lower()))
 
-print("== 6. 七项门槛统计与“负向不是通过”的表述 ==")
+print("== 6. 七项门槛统计与“负向不是通过”的表述（D3 历史快照，M2 后进度见 artifacts/acceptance/m2/） ==")
 comp = load("artifacts/interop-nested/comparison.json")
 gc = comp["gate_counts"]
 check("comparison.json gate_counts = {done:1,partial:0,missing:6}", gc == {"done": 1, "partial": 0, "missing": 6}, str(gc))

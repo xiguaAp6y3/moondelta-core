@@ -1,0 +1,63 @@
+# M2 取证（2026-10-22）— 嵌套读取层
+
+## moon check / moon test
+Finished. moon: ran 5 tasks, now up to date (45 warnings, 0 errors)
+Total tests: 32, passed: 32, failed: 0.
+
+## 嵌套 fixture 读取（与 pyarrow/delta-rs oracle 逐值一致）
+--- read artifacts/interop-nested/kind-struct-only ---
+read 1 file(s), 4 row(s), version 0
+id (long) | profile (struct)
+1 | {"name": alice, "age": 30}
+2 | NULL
+3 | {"name": NULL, "age": NULL}
+4 | {"name": carol, "age": NULL}
+exit=0
+--- read artifacts/interop-nested/kind-array-only ---
+read 1 file(s), 4 row(s), version 0
+id (long) | tags (array)
+1 | [a, b]
+2 | []
+3 | NULL
+4 | [c, NULL]
+exit=0
+--- read artifacts/interop-nested/kind-map-only ---
+read 1 file(s), 4 row(s), version 0
+id (long) | attrs (map)
+1 | {k1: v1}
+2 | {}
+3 | NULL
+4 | {k2: NULL}
+exit=0
+--- read artifacts/interop-nested/engine-written ---
+read 1 file(s), 5 row(s), version 0
+id (long) | profile (struct) | tags (array) | attrs (map)
+1 | {"name": alice, "age": 30} | [red, green] | {k1: v1, k2: v2}
+2 | NULL | [] | {}
+3 | {"name": NULL, "age": NULL} | NULL | {k: v}
+4 | {"name": bob, "age": NULL} | [blue, NULL] | {}
+5 | {"name": NULL, "age": 42} | [] | NULL
+exit=0
+--- read artifacts/interop-nested/checkpoint-nested ---
+read 1 file(s), 5 row(s), version 0
+id (long) | profile (struct) | tags (array) | attrs (map)
+1 | {"name": alice, "age": 30} | [red, green] | {k1: v1, k2: v2}
+2 | NULL | [] | {}
+3 | {"name": NULL, "age": NULL} | NULL | {k: v}
+4 | {"name": bob, "age": NULL} | [blue, NULL] | {}
+5 | {"name": NULL, "age": 42} | [] | NULL
+exit=0
+
+## 负向：Delta schema 谎报 flat 的物理 repeated 坏文件仍被拒绝
+error: unsupported: cannot read 'data/list_columns.parquet': Repeated columns are not supported yet
+exit=1
+
+## 扁平回归不受影响
+read 1 file(s), 2 row(s), version 0
+date (string) | county (string) | state (string) | fips (int) | cases (int) | deaths (int)
+2020-01-21 | Snohomish | Washington | 53061 | 1 | 0
+read 1 file(s), 3 row(s), version 0
+b (byte) | s (short) | id (long)
+1 | 100 | 1
+NULL | 200 | 2
+3 | NULL | 3

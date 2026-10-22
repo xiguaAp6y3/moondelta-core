@@ -448,9 +448,11 @@ fn build_leaf_columns(
   ) -> (Int32, Array[LeafColumnMeta]) raise ParquetError {
     let element = schema[index]
     let repetition = to_repetition(element.repetition_type)
+    // Parquet 规范：OPTIONAL 与 REPEATED 都递增 definition level（REPEATED
+    // 才递增 repetition level）；root 不计。扁平数据不受影响，嵌套必须正确。
     let next_definition = if is_root {
       max_definition_level
-    } else if repetition == Optional {
+    } else if repetition == Optional || repetition == Repeated {
       max_definition_level + 1
     } else {
       max_definition_level
@@ -482,6 +484,7 @@ fn build_leaf_columns(
               [
                 {
                   name: normalize_schema_name(element.name),
+                  path: next_path,
                   column_type: to_column_type(type_code, element.converted_type),
                   repetition,
                   max_definition_level: next_definition,

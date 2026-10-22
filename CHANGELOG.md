@@ -2,6 +2,24 @@
 
 本项目遵循语义化版本；格式参考 Keep a Changelog。
 
+## [Unreleased]
+
+路线图 M2（Parquet 嵌套读取层，2026-10-22 完成，较排期提前）：测试数 31 → 32。
+
+### Added
+
+- **嵌套读取**：`struct` / 标准 3-level `list` / `map` 的完整读取（NULL、空集合、
+  null 元素/子字段、Delta schema 外多余列忽略）；`Cell` 新增
+  `CellStruct` / `CellList` / `CellMap`，CLI 以 JSON 风格渲染嵌套值
+- vendored parquet 新增 shredded 读取入口（每叶列输出值 + def/rep level 槽位流），
+  `NestedType` schema 解析保留子树
+
+### Fixed
+
+- vendored `build_leaf_columns` 的 definition level 递增规则：Parquet 规范要求
+  OPTIONAL 与 REPEATED 都递增，原实现只对 OPTIONAL 递增（扁平数据不受影响，
+  嵌套列 def 全错）
+
 ## [0.2.0] - 2026-10-22
 
 路线图 M1（协议与工程基线）：协议越界从"静默接受"转为"拒绝并说明原因"，全部有负向测试；测试数 14 → 31。
