@@ -1,6 +1,6 @@
 ///|
 fn usage() -> Unit {
-  println("moondelta-core 0.1.0 — MoonBit Delta Lake table-format kernel")
+  println("moondelta-core 0.3.0 — MoonBit Delta Lake table-format kernel")
   println("")
   println("Usage:")
   println("  delta inspect <table-root>")
@@ -399,7 +399,7 @@ fn main {
   let cmd = args[1]
   let rest = tail(args, 2)
   let ok = if cmd == "version" {
-    println("moondelta-core 0.1.0")
+    println("moondelta-core 0.3.0")
     true
   } else if cmd == "inspect" {
     if rest.length() < 1 {

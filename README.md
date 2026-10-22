@@ -12,7 +12,7 @@ MoonBit 原生的 **Delta Lake 表格式内核**：回放 `_delta_log` 事务日
 
 ## 状态
 
-MVP（README/CLI 仍标 0.1.0，`moon.mod` 已为 0.1.1，版本文案待统一，见 `artifacts/protocol-audit.md` §5 第 9 条）：
+0.3.0（完全兼容冲刺：M1 协议基线 0.2.0 → M2 嵌套读取 → M3 checkpoint 恢复 → M4 嵌套写入；版本文案已统一）：
 
 -  日志解析与回放：`protocol` / `metaData` / `add` / `remove` / `commitInfo`，`txn` 识别，`cdc` / `domainMetadata` 显式忽略并在输出中提示，未知 action 结构化拒绝，`_last_checkpoint` 识别
 -  协议范围（0.2.0 起强制）：只读 `minReaderVersion = 1` 的表——reader v2/v3 与 `readerFeatures` 拒绝并说明原因（column mapping / 删除向量 / v2 checkpoint 为高版本特性）；`add.deletionVector` 拒绝；日志文件名严格按 20 位校验；`add.path` percent-decoding；写出到 `minReaderVersion = 1, minWriterVersion = 2`（writer > 2 的表拒绝 append）；日志从非 0 起点/缺版本明确拒绝；checkpoint-only 返回结构化 NotFound；**M3 起日志被截断 / checkpoint-only 的表从最新单文件 checkpoint 恢复基底并叠加其后 JSON commit（不再静默读旧快照；多部分 checkpoint 显式拒绝）**
@@ -32,7 +32,7 @@ MVP（README/CLI 仍标 0.1.0，`moon.mod` 已为 0.1.1，版本文案待统一�
 要求：MoonBit 工具链（`moon` / `moonc`，建议 2026-10 之后的版本）。
 
 ```bash
-# 从 mooncakes.io 安装（发布记录待复核，见上方说明；README/CLI 版本文案待统一为 0.1.1）
+# 从 mooncakes.io 安装（0.3.0 发布待推送 mooncakes 后复核留存安装日志）
 moon add xiguaAp6y3/moondelta-core
 
 # 或从源码构建

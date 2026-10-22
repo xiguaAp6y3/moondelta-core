@@ -1,0 +1,48 @@
+=== M5 全量复验（2026-10-22, 9b6bff4） ===
+
+--- moon check / test ---
+Finished. moon: ran 6 tasks, now up to date (59 warnings, 0 errors)
+Total tests: 37, passed: 37, failed: 0.
+
+--- 校验脚本 ---
+d2_verify: PASS=17 FAIL=0
+d3_verify: PASS=40 FAIL=0
+d4_structure: PASS=27 FAIL=0
+d4_v3_check: PASS=65 FAIL=0
+links_hashes: PASS=15 FAIL=0
+
+--- M1 负向 fixture（全部应 exit=1 + 结构化错误） ---
+deletion-vector-add exit=1
+protocol-reader-v2 exit=1
+protocol-reader-v3-features exit=1
+nonstandard-log-name exit=1
+unknown-actions exit=1
+log-gap exit=1
+log-start-v1 exit=1
+--- 未知参数 / 缺值 ---
+unknown-flag exit=1
+missing-value exit=1
+
+--- M2 嵌套读取（应 exit=0） ---
+kind-struct-only exit=0
+kind-array-only exit=0
+kind-map-only exit=0
+engine-written exit=0
+checkpoint-nested exit=0
+--- M3 checkpoint ---
+current version  : 10  (log versions: 10)
+files            : 100  rows: 100  bytes: 45194
+checkpoint-only exit=0
+checkpoint-only-nested exit=0
+--- M4 嵌套写出的外部回读 ---
+moondelta-nested-written exit=0
+（delta-rs/DuckDB 回读 10/10 见 artifacts/acceptance/m4/external-readback.json）
+
+--- 扁平回归 ---
+table_a inspect exit=0
+byte-short read exit=0
+（负向）deletion-vector-add exit=1
+
+--- Mimosa 深度审计 ---
+scanId: scan-2026-10-22T05-27-29.613Z-d02540482fa1
+findings: 0（seal sha256:03864376...）
