@@ -1,6 +1,6 @@
 # 2026-10-31 独立审计与协议加固
 
-> 基线：`9ac2669`（0.3.0）。测试：`moon check --target native` 0 errors；`moon test --target native` **48/48 passed**。
+> 基线：`9ac2669`（0.3.0）。测试：`moon check --target native` 0 errors；`moon test --target native` **37/37 passed**。按项目口径要求，本轮新增单元测试已回退，新增行为暂由外部脚本与手工验证覆盖。
 > 本文只记录本轮发现与修复；历史验收报告保留原结论，但不再作为当前“完全兼容”的证据。
 
 ## 1. 发现并修复
@@ -18,23 +18,15 @@
 | 中 | 写入仅覆盖 6 种 flat 类型，缺少 float/date/timestamp 与分区类型 | 补齐 11 种 primitive 与嵌套叶写入；增加 FLOAT、DATE、TIMESTAMP_MICROS logical annotation |
 | 中 | 读取端允许 writer>2 / writerFeatures | 与申报口径一致，读取端拒绝 |
 
-## 2. 回归测试
+## 2. 测试口径
 
-新增 11 个具名用例（总数 37 → 48）：
+按项目要求，本轮未保留新增单元测试，测试数保持 **37 个**；新增行为由以下自动化/手工证据覆盖：
 
-- `snapshot: percent-encoded remove.path deletes the added file`
-- `stats: non-string add.stats is rejected instead of becoming zero`
-- `write: writerFeatures refuse appends without creating a commit`
-- `schema: timestamp_ntz is rejected until its semantics are preserved`
-- `checkpoint: deletion vector, unknown action and missing metadata are rejected`
-- `read: Delta schema and parquet physical type mismatch is rejected`
-- `read: INT96 timestamp remains supported after physical type checks`
-- `partition: primitive values including ISO date are parsed`
-- `write/read: all 11 primitive types roundtrip`
-- `write/read: nested struct carries float, date and timestamp`
-- `protocol: writer version above 2 and writerFeatures are rejected on read`
+- `artifacts/acceptance/all_types_verify.py`：delta-rs 回读 11 种 primitive，DuckDB 校验非 timestamp 列；
+- `artifacts/acceptance/d2_verify.py`、`d3_verify.py`：既有 flat/nested/checkpoint 互操作；
+- CLI 手工复验：类型错配、checkpoint 删除向量/未知 action、stats 对象、writer 门控。
 
-新增 `fixtures/checkpoint-negative/`（4 个 fixture）与生成脚本 `fixtures/generate_checkpoint_negative.py`。
+新增 `fixtures/checkpoint-negative/`（4 个 fixture）与生成脚本 `fixtures/generate_checkpoint_negative.py`，供后续补单元测试。
 
 ## 3. 仍存在的已知边界
 
