@@ -137,7 +137,7 @@ moon test --target native
 moon fmt
 ```
 
-CI：`.github/workflows/ci.yml`（安装最新 MoonBit 工具链 → `moon update` → check/test/build）。本地已通过 `moon check --target native` 与 37/37 测试；远端 Actions 运行链接仍需在可联网环境核对。
+CI：`.github/workflows/ci.yml`（安装最新 MoonBit 工具链 → `moon update` → check/test/build）。0.3.1 提交 `cc461d2` 的 Actions 已通过：<https://github.com/xiguaAp6y3/moondelta-core/actions/runs/41164588241>。
 
 ## 许可证
 

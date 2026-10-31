@@ -35,7 +35,13 @@
 - 互操作结论仅覆盖仓库指定 flat/nested fixture，不外推到任意 reader v1 表。
 - CI 远端运行链接、mooncakes 新版本发布与安装仍需可联网环境完成。
 
-## 4. 复验命令
+## 4. 0.3.1 交付状态
+
+- GitHub：`cc461d2` 已推送，标签 `v0.3.1` 已推送。
+- CI：<https://github.com/xiguaAp6y3/moondelta-core/actions/runs/41164588241>（success）。
+- mooncakes：`0.3.1` 发布返回 200 OK；空工程安装日志见 `artifacts/acceptance/mooncakes-0.3.1/`。
+
+## 5. 复验命令
 
 ```powershell
 moon check --target native
