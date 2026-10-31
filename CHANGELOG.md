@@ -2,7 +2,7 @@
 
 本项目遵循语义化版本；格式参考 Keep a Changelog。
 
-## [Unreleased]
+## [0.3.1] - 2026-10-31
 
 ### Fixed
 

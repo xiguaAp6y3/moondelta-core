@@ -1,6 +1,6 @@
 name = "xiguaAp6y3/moondelta-core"
 
-version = "0.3.0"
+version = "0.3.1"
 
 readme = "README.md"
 

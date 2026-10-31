@@ -105,15 +105,20 @@ Get-Content artifacts\acceptance-report.md
 ## 5. 入库与残留待办（历史）
 
 - 本节是 2026-10-20 的待办快照。其中的删除向量、截断 checkpoint、protocol feature、append 校验、CLI 退出码、stats object、fixture 路径与 NOTICE 描述均已在后续提交或 2026-10-31 加固中处理。
-- 仍未完成：registry 新版本发布与安装复核、GitHub Actions 运行链接、Delta schema 与 Parquet 物理类型普遍一致性校验。
+- 后续进展：0.3.1 已发布并完成安装复核；GitHub Actions 当前提交已通过；flat/nested 叶类型一致性校验已实现。
 
-## 6. 2026-10-31 全类型覆盖
+## 6. 2026-10-31 发布 0.3.1
+
+- [mooncakes-0.3.1/README.md](acceptance/mooncakes-0.3.1/README.md)：`moon publish` 200 OK 与空工程安装验证。
+- [mooncakes-0.3.1/install-log.txt](acceptance/mooncakes-0.3.1/install-log.txt)：`moon add …@0.3.1` 后编译运行成功。
+
+## 7. 2026-10-31 全类型覆盖
 
 - [all-primitives-written](interop-flat/all-primitives-written/)：本项目写出的 11 种 primitive Delta 表。
 - [all_types_verify.py](acceptance/all_types_verify.py)：delta-rs 校验 11 列 schema 与值，DuckDB 校验 10 个非 timestamp 列（环境缺 pytz）。
 - [all-types-verify.out](acceptance/all-types-verify.out)：最近一次运行结果。
 
-## 7. 2026-10-21 发布前验收（按文档 §1/§2/§6/§7）
+## 8. 2026-10-21 发布前验收（按文档 §1/§2/§6/§7）
 
 - 报告：[acceptance-2026-10-21.md](acceptance-2026-10-21.md)。
 - 前提：本机未收到推送（HEAD 仍 `3376045`，工作区仍为未提交状态；GitHub / mooncakes.io 被本机网络屏蔽，`git fetch` 返回 502），本报告仅覆盖本机可观测状态。

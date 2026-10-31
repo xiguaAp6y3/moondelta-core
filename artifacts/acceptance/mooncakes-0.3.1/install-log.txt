@@ -1,0 +1,9 @@
+$ moon add xiguaAp6y3/moondelta-core@0.3.1
+Downloading xiguaAp6y3/moondelta-core@0.3.1
+Using cached moonbitlang/x@0.5.5
+
+$ moon run --target native src
+ok: v0->v1 rows=1 id=7
+
+（空工程 name = "verify/install-0.3.1"，仅 import xiguaAp6y3/moondelta-core @delta；
+  create_table/append_rows/DeltaTable::open/snapshot/read_snapshot 均来自 0.3.1 registry 包。）

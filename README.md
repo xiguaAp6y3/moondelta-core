@@ -8,11 +8,11 @@ MoonBit 原生的 **Delta Lake 表格式内核**：回放 `_delta_log` 事务日
 >
 > 参赛申报书：[申报书.md](申报书.md) ｜ 第三方声明：[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
 >
-> 已发布：[mooncakes.io/docs/xiguaAp6y3/moondelta-core](https://mooncakes.io/docs/xiguaAp6y3/moondelta-core)（0.3.0；空工程安装日志见 `artifacts/acceptance/mooncakes-0.3.0/`）。当前源码另含未发布的 checkpoint/路径/写入安全加固，安装 registry 版时不包含这些修复。
+> 已发布：[mooncakes.io/docs/xiguaAp6y3/moondelta-core](https://mooncakes.io/docs/xiguaAp6y3/moondelta-core)（0.3.1；空工程安装日志见 `artifacts/acceptance/mooncakes-0.3.1/`）。registry 版本与当前源码一致。
 
 ## 状态
 
-0.3.0 及后续未发布加固（M1 协议基线 → M2 嵌套读取 → M3 checkpoint 恢复 → M4 嵌套写入；能力口径为**已验证子集**，不是任意标准 Delta 表的完整兼容）：
+0.3.1（M1 协议基线 → M2 嵌套读取 → M3 checkpoint 恢复 → M4 嵌套写入 + 类型/安全检查；能力口径为**已验证子集**，不是任意标准 Delta 表的完整兼容）：
 
 -  日志解析与回放：`protocol` / `metaData` / `add` / `remove` / `commitInfo`，`txn` 识别，`cdc` / `domainMetadata` 显式忽略并在输出中提示，未知 action 结构化拒绝，`_last_checkpoint` 识别
 -  协议范围（0.2.0 起强制）：只读 `minReaderVersion = 1` 的表——reader v2/v3 与 `readerFeatures` 拒绝并说明原因（column mapping / 删除向量 / v2 checkpoint 为高版本特性）；JSON 与 checkpoint 的 `add.deletionVector` 均拒绝；日志文件名严格按 20 位校验；`add.path` 与 `remove.path` 统一 percent-decoding；写出到 `minReaderVersion = 1, minWriterVersion = 2`（writer > 2 或非空 `writerFeatures` 的表拒绝 append）；日志从非 0 起点/缺版本明确拒绝；**M3 起日志被截断 / checkpoint-only 的表从最新单文件 checkpoint 恢复基底并叠加其后 JSON commit（不再静默读旧快照；多部分 checkpoint 显式拒绝）**
@@ -32,7 +32,7 @@ MoonBit 原生的 **Delta Lake 表格式内核**：回放 `_delta_log` 事务日
 要求：MoonBit 工具链（`moon` / `moonc`，建议 2026-10 之后的版本）。
 
 ```bash
-# 从 mooncakes.io 安装已发布版本（0.3.0；不含当前源码中的未发布加固）
+# 从 mooncakes.io 安装当前发布版本 0.3.1
 moon add xiguaAp6y3/moondelta-core
 
 # 或从源码构建
@@ -122,7 +122,7 @@ let columns : Array[@delta.ReadColumn] = [
 
 ## 路线图
 
-完整路线图见 [docs/ROADMAP.md](docs/ROADMAP.md)。0.3.0 已完成 M1–M4，当前剩余重点：
+完整路线图见 [docs/ROADMAP.md](docs/ROADMAP.md)。0.3.1 已完成 M1–M4 与类型/安全加固，当前剩余重点：
 
 - 发布包含本轮安全加固的新版本并复核 registry 安装；
 - 补带时区/精度语义的 `timestamp_ntz`、timestamp millis/nanos；
