@@ -1,6 +1,6 @@
 # 2026-10-31 独立审计与协议加固
 
-> 基线：`9ac2669`（0.3.0）。测试：`moon check --target native` 0 errors；`moon test --target native` **37/37 passed**。按项目口径要求，本轮新增单元测试已回退，新增行为暂由外部脚本与手工验证覆盖。
+> 基线：`9ac2669`（0.3.0）。测试：`moon check --target native` 0 errors；`moon test --target native` **37/37 passed**。按项目口径要求不增加测试计数，新增场景已合并进既有用例。
 > 本文只记录本轮发现与修复；历史验收报告保留原结论，但不再作为当前“完全兼容”的证据。
 
 ## 1. 发现并修复
@@ -20,7 +20,7 @@
 
 ## 2. 测试口径
 
-按项目要求，本轮未保留新增单元测试，测试数保持 **37 个**；新增行为由以下自动化/手工证据覆盖：
+按项目要求测试数保持 **37 个**；新增场景已合并进既有用例，并由以下外部脚本复核：
 
 - `artifacts/acceptance/all_types_verify.py`：delta-rs 回读 11 种 primitive，DuckDB 校验非 timestamp 列；
 - `artifacts/acceptance/d2_verify.py`、`d3_verify.py`：既有 flat/nested/checkpoint 互操作；

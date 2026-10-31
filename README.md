@@ -21,7 +21,7 @@ MoonBit 原生的 **Delta Lake 表格式内核**：回放 `_delta_log` 事务日
 -  读取：11 种 primitive + UNCOMPRESSED/SNAPPY；**M2 起支持嵌套读取**、**M4 起支持嵌套写入**——`struct` / 标准 3-level `list` / `map`（含 NULL、空集合、null 元素/子字段），读写均与 delta-rs/DuckDB 逐值对拍一致（`artifacts/acceptance/m2|m4/`）
 -  写入：`create_table`（已存在的表拒绝）+ `append_rows` 覆盖 11 种 primitive 与嵌套叶；校验列名/类型/NOT NULL；数据文件与 commit 均为 put-if-absent；分区列读取时按 `partitionValues` 补齐
 -  CLI：`inspect / history / scan / read / create / version`；错误输出到 stderr、非 0 退出码、未知参数/缺值报错
--  37 个单元测试（含分区读/过滤、统计剪枝边界、缺失数据文件、嵌套读写、协议版本/feature 拒绝、删除向量拒绝、未知 action 拒绝、日志名校验、路径解码、写防护等）+ 真实与自造 Delta fixture；本轮新增的全类型/checkpoint 加固暂由外部互操作脚本与手工验证覆盖
+-  37 个单元测试（新增场景并入既有用例：11 种 primitive 与嵌套 logical type 回环、ISO date 分区、协议门控、JSON/checkpoint 删除向量、remove 路径解码、stats 类型、物理类型一致性等）+ 真实与自造 Delta fixture 与外部互操作脚本
 
 已用真实数据验证（均为仓库 fixture 读取，D1 已复核）：delta-rs `table_a`（13 个版本回放 → 120 个文件，仓库只含日志、不含数据文件）、Databricks 写出的 COVID-19_NYT 表的 1 个数据文件（157,865 行 6 列，snappy；该表共 8 个数据文件，其余 7 个未入库）。
 
