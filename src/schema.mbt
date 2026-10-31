@@ -198,12 +198,8 @@ fn ensure_readable_type(name : String, ty : DeltaType) -> Unit raise DeltaError 
 /// 判断某个类型是否能由写入路径产出
 pub fn is_writable_type(ty : DeltaType) -> Bool {
   match ty {
-    Int32Type => true
-    Int64Type => true
-    StringType => true
-    BinaryType => true
-    BooleanType => true
-    DoubleType => true
+    ByteType | ShortType | Int32Type | Int64Type | FloatType | DoubleType |
+    BooleanType | StringType | BinaryType | DateType | TimestampType => true
     _ => false
   }
 }

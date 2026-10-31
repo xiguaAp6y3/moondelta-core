@@ -411,9 +411,17 @@ fn to_column_type(
   if type_code == parquet_type_boolean {
     Boolean
   } else if type_code == parquet_type_int32 {
-    Int32
+    if converted_type == Some(converted_type_date) {
+      Date
+    } else {
+      Int32
+    }
   } else if type_code == parquet_type_int64 {
-    Int64
+    if converted_type == Some(converted_type_timestamp_micros) {
+      TimestampMicros64
+    } else {
+      Int64
+    }
   } else if type_code == parquet_type_int96 {
     TimestampMicros
   } else if type_code == parquet_type_float {

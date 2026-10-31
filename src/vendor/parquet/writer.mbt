@@ -15,7 +15,8 @@ fn assert_flat_supported(file : ParquetFile) -> Unit raise ParquetError {
       unsupported("Repeated columns are not supported by the writer yet")
     }
     match column.column_type {
-      Int32 | Int64 | String | Binary | Boolean | Double => ()
+      Int32 | Date | Int64 | TimestampMicros64 | Float | Double | String |
+      Binary | Boolean => ()
       _ => unsupported("This column type is not supported by the writer yet")
     }
   }
@@ -74,11 +75,11 @@ fn collect_column_values(
 ///|
 fn writer_type_code(column_type : ColumnType) -> Int32 raise ParquetError {
   match column_type {
-    Int32 => parquet_type_int32
-    Int64 => parquet_type_int64
-    String => parquet_type_byte_array
-    Binary => parquet_type_byte_array
+    Int32 | Date => parquet_type_int32
+    Int64 | TimestampMicros64 => parquet_type_int64
+    String | Binary => parquet_type_byte_array
     Boolean => parquet_type_boolean
+    Float => parquet_type_float
     Double => parquet_type_double
     TimestampMicros => {
       unsupported(
@@ -131,8 +132,10 @@ fn encode_plain_non_null_values(
   let sink = ByteSink::new()
   for value in values {
     match (column_type, value) {
-      (Int32, Value::Int32(v)) => sink.push_i32_le(v)
+      (Int32 | Date, Value::Int32(v)) => sink.push_i32_le(v)
       (Int64, Value::Int64(v)) => sink.push_i64_le(v)
+      (TimestampMicros64, Value::TimestampMicros(v)) => sink.push_i64_le(v)
+      (Float, Value::Float(v)) => sink.push_i32_le(v.reinterpret_as_int())
       (String, Value::String(v)) => {
         let bytes = string_to_bytes(v)
         sink.push_u32_le(bytes.length())
@@ -145,12 +148,10 @@ fn encode_plain_non_null_values(
       (Double, Value::Double(v)) => sink.push_i64_le(v.reinterpret_as_int64())
       (TimestampMicros, _) =>
         unsupported(
-          "TIMESTAMP_MICROS columns are not supported by the writer yet",
+          "INT96 timestamp columns are not supported by the writer yet",
         )
       (Boolean, _) =>
         unsupported("BOOLEAN columns are not supported by the writer yet")
-      (Float, _) =>
-        unsupported("FLOAT columns are not supported by the writer yet")
       (_, Null) => ()
       _ => unsupported("Column values do not match declared column type")
     }
@@ -273,8 +274,12 @@ fn encode_parquet(file : ParquetFile) -> Bytes raise ParquetError {
       },
     )
     element.write_string_field(4, column.name)
-    if column.column_type == String {
-      element.write_i32_field(6, converted_type_utf8)
+    match column.column_type {
+      String => element.write_i32_field(6, converted_type_utf8)
+      Date => element.write_i32_field(6, converted_type_date)
+      TimestampMicros64 =>
+        element.write_i32_field(6, converted_type_timestamp_micros)
+      _ => ()
     }
     element.end_struct()
     footer.sink.push_bytes(element.write_bytes()[:])

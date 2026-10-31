@@ -47,6 +47,7 @@ fn nest_cell_to_value(cell : Cell) -> @parquet.Value raise DeltaError {
   match cell {
     CellI32(x) => @parquet.Int32(x)
     CellI64(x) => @parquet.Int64(x)
+    CellTs(x) => @parquet.TimestampMicros(x)
     CellF32(x) => @parquet.Float(x)
     CellF64(x) => @parquet.Double(x)
     CellBool(x) => @parquet.Boolean(x)
@@ -64,11 +65,14 @@ fn nest_cell_to_value(cell : Cell) -> @parquet.Value raise DeltaError {
 fn nest_parquet_type(ty : DeltaType) -> @parquet.ColumnType raise DeltaError {
   match ty {
     Int32Type | ByteType | ShortType => @parquet.Int32
+    DateType => @parquet.Date
     Int64Type => @parquet.Int64
+    TimestampType => @parquet.TimestampMicros64
+    FloatType => @parquet.Float
+    DoubleType => @parquet.Double
     StringType => @parquet.String
     BinaryType => @parquet.Binary
     BooleanType => @parquet.Boolean
-    DoubleType => @parquet.Double
     _ =>
       raise DeltaError::Unsupported(
         "nested write does not support column type '\{delta_type_name(ty)}'",
@@ -175,7 +179,8 @@ fn nest_build_node(
       } else {
         raise DeltaError::Unsupported("unknown nested kind '\{kind}'")
       }
-    Int32Type | ByteType | ShortType | Int64Type | StringType | BinaryType | BooleanType | DoubleType => {
+    Int32Type | ByteType | ShortType | Int64Type | FloatType | DoubleType |
+    StringType | BinaryType | BooleanType | DateType | TimestampType => {
       let column_type = nest_parquet_type(ty)
       ctx.accs.push({
         path: next_path,

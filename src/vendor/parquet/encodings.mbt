@@ -1728,7 +1728,7 @@ fn decode_plain_values(
   let values : Array[Value] = Array(capacity=count)
   match column.column_type {
     Boolean => ()
-    Int32 =>
+    Int32 | Date =>
       for _ in 0..<count {
         values.push(Value::Int32(read_i32_le(data, offset)))
         offset += 4
@@ -1736,6 +1736,11 @@ fn decode_plain_values(
     Int64 =>
       for _ in 0..<count {
         values.push(Value::Int64(read_i64_le(data, offset)))
+        offset += 8
+      }
+    TimestampMicros64 =>
+      for _ in 0..<count {
+        values.push(Value::TimestampMicros(read_i64_le(data, offset)))
         offset += 8
       }
     TimestampMicros =>
@@ -1801,7 +1806,7 @@ fn decode_plain_values_into(
   let mut offset = start
   match column.column_type {
     Boolean => ()
-    Int32 =>
+    Int32 | Date =>
       for _ in 0..<count {
         target.push(Value::Int32(read_i32_le(data, offset)))
         offset += 4
@@ -1809,6 +1814,11 @@ fn decode_plain_values_into(
     Int64 =>
       for _ in 0..<count {
         target.push(Value::Int64(read_i64_le(data, offset)))
+        offset += 8
+      }
+    TimestampMicros64 =>
+      for _ in 0..<count {
+        target.push(Value::TimestampMicros(read_i64_le(data, offset)))
         offset += 8
       }
     TimestampMicros =>
@@ -1887,8 +1897,22 @@ fn decode_non_null_values(
     decode_plain_values(data, start, column, count)
   } else if encoding == encoding_delta_binary_packed {
     match column.column_type {
-      Int32 => decode_delta_binary_packed_int32_values(data, start, count)
+      Int32 | Date => decode_delta_binary_packed_int32_values(data, start, count)
       Int64 => decode_delta_binary_packed_int64_values(data, start, count)
+      TimestampMicros64 => {
+        let (values, consumed) = decode_delta_binary_packed_int64_values(
+          data, start, count,
+        )
+        (
+          values.map(fn(value) {
+            match value {
+              Value::Int64(x) => Value::TimestampMicros(x)
+              other => other
+            }
+          }),
+          consumed,
+        )
+      }
       _ => {
         unsupported("DELTA_BINARY_PACKED is only valid for INT32/INT64")
         ([], 0)
@@ -1939,10 +1963,25 @@ fn decode_non_null_values_into(
     decode_plain_values_into(target, data, start, column, count)
   } else if encoding == encoding_delta_binary_packed {
     match column.column_type {
-      Int32 =>
+      Int32 | Date =>
         decode_delta_binary_packed_int32_values_into(target, data, start, count)
       Int64 =>
         decode_delta_binary_packed_int64_values_into(target, data, start, count)
+      TimestampMicros64 => {
+        let temp : Array[Value] = []
+        let consumed = decode_delta_binary_packed_int64_values_into(
+          temp, data, start, count,
+        )
+        for value in temp {
+          target.push(
+            match value {
+              Value::Int64(x) => Value::TimestampMicros(x)
+              other => other
+            },
+          )
+        }
+        consumed
+      }
       _ => {
         unsupported("DELTA_BINARY_PACKED is only valid for INT32/INT64")
         0

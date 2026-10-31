@@ -18,14 +18,14 @@ MoonBit 原生的 **Delta Lake 表格式内核**：回放 `_delta_log` 事务日
 -  协议范围（0.2.0 起强制）：只读 `minReaderVersion = 1` 的表——reader v2/v3 与 `readerFeatures` 拒绝并说明原因（column mapping / 删除向量 / v2 checkpoint 为高版本特性）；JSON 与 checkpoint 的 `add.deletionVector` 均拒绝；日志文件名严格按 20 位校验；`add.path` 与 `remove.path` 统一 percent-decoding；写出到 `minReaderVersion = 1, minWriterVersion = 2`（writer > 2 或非空 `writerFeatures` 的表拒绝 append）；日志从非 0 起点/缺版本明确拒绝；**M3 起日志被截断 / checkpoint-only 的表从最新单文件 checkpoint 恢复基底并叠加其后 JSON commit（不再静默读旧快照；多部分 checkpoint 显式拒绝）**
 -  快照、版本历史、时间旅行（`snapshot_at`）
 -  扫描规划：分区等值过滤 + 文件级 min/max 统计剪枝（stats 损坏显式报错，不再静默返 0）
--  读取：flat schema（含 byte/short）+ UNCOMPRESSED/SNAPPY；**M2 起支持嵌套读取**、**M4 起支持嵌套写入**——`struct` / 标准 3-level `list` / `map`（含 NULL、空集合、null 元素/子字段），读写均与 delta-rs/DuckDB 逐值对拍一致（`artifacts/acceptance/m2|m4/`）
--  写入：`create_table`（已存在的表拒绝）+ `append_rows`（Int32/Int64/String/Binary/Boolean/Double；校验列名/类型/NOT NULL；数据文件与 commit 均为 put-if-absent）；分区列读取时按 `partitionValues` 补齐
+-  读取：11 种 primitive + UNCOMPRESSED/SNAPPY；**M2 起支持嵌套读取**、**M4 起支持嵌套写入**——`struct` / 标准 3-level `list` / `map`（含 NULL、空集合、null 元素/子字段），读写均与 delta-rs/DuckDB 逐值对拍一致（`artifacts/acceptance/m2|m4/`）
+-  写入：`create_table`（已存在的表拒绝）+ `append_rows` 覆盖 11 种 primitive 与嵌套叶；校验列名/类型/NOT NULL；数据文件与 commit 均为 put-if-absent；分区列读取时按 `partitionValues` 补齐
 -  CLI：`inspect / history / scan / read / create / version`；错误输出到 stderr、非 0 退出码、未知参数/缺值报错
--  44 个单元测试（含分区读/过滤、统计剪枝边界、缺失数据文件、嵌套读写、flat 物理类型一致性、协议版本/feature 拒绝、JSON 与 checkpoint 删除向量拒绝、未知 action 拒绝、日志名校验、add/remove 路径解码、checkpoint 必需状态校验、写防护等负向用例）+ 真实与自造 Delta fixture
+-  48 个单元测试（含 11 种 primitive 与嵌套逻辑类型回环、分区回填、统计剪枝边界、缺失数据文件、协议版本/feature 拒绝、JSON 与 checkpoint 删除向量拒绝、未知 action 拒绝、日志名校验、add/remove 路径解码、checkpoint 必需状态校验等）+ 真实与自造 Delta fixture
 
 已用真实数据验证（均为仓库 fixture 读取，D1 已复核）：delta-rs `table_a`（13 个版本回放 → 120 个文件，仓库只含日志、不含数据文件）、Databricks 写出的 COVID-19_NYT 表的 1 个数据文件（157,865 行 6 列，snappy；该表共 8 个数据文件，其余 7 个未入库）。
 
-外部引擎互操作：与 delta-rs 1.6.6、DuckDB 1.5.6 在**指定 flat/nested fixture** 上完成双向对拍（flat 49 PASS / 0 FAIL / 2 项已记录差异，见 [artifacts/interop-flat/README.md](artifacts/interop-flat/README.md)；nested 见 [artifacts/acceptance/m2/](artifacts/acceptance/m2/README.md) 与 [m4/](artifacts/acceptance/m4/README.md)）。这些结果不外推到任意 reader v1 表；Spark / Databricks 未验证。完整口径见 [docs/协议兼容性与互操作范围.md](docs/协议兼容性与互操作范围.md)。
+外部引擎互操作：与 delta-rs 1.6.6、DuckDB 1.5.6 在**指定 flat/nested fixture** 上完成双向对拍（flat 49 PASS / 0 FAIL / 2 项已记录差异，见 [artifacts/interop-flat/README.md](artifacts/interop-flat/README.md)；nested 见 [artifacts/acceptance/m2/](artifacts/acceptance/m2/README.md) 与 [m4/](artifacts/acceptance/m4/README.md)）。11 种 primitive 的写出另经 delta-rs 与 DuckDB 验证（`artifacts/interop-flat/all-primitives-written/`、`artifacts/acceptance/all_types_verify.py`；DuckDB 环境缺 pytz，timestamp 列由 delta-rs/pyarrow 验证）。这些结果不外推到任意 reader v1 表；Spark / Databricks 未验证。完整口径见 [docs/协议兼容性与互操作范围.md](docs/协议兼容性与互操作范围.md)。
 
 ## 快速开始
 
@@ -98,18 +98,18 @@ let columns : Array[@delta.ReadColumn] = [
 |---|---|---|
 | protocol | reader v1 读取；writer v2 写出 | reader > 1、`readerFeatures`、非空 `writerFeatures`；未声称任意 reader v1 表全部兼容 |
 | 日志 | version 0 起连续 JSON commit；20 位文件名；截断 / checkpoint-only 从单文件 checkpoint 恢复 | 多部分 checkpoint；checkpoint 缺失 protocol/metaData；checkpoint 中真实出现的未知 action |
-| schema | flat primitive 读取（校验 Delta 类型与 Parquet 物理类型）；struct / 3-level list / map 读写（指定 fixture 对拍） | decimal、uuid、`timestamp_ntz`；nested 叶类型尚不做同等一致性校验 |
+| schema | 11 种 primitive 与 struct / 3-level list / map 读写；flat 与 nested 叶均校验 Delta 类型和 Parquet 物理类型 | decimal、uuid、`timestamp_ntz`、timestamp millis/nanos |
 | 压缩 | UNCOMPRESSED、SNAPPY | ZSTD、GZIP、BROTLI、LZ4 |
-| 写入类型 | Int32 / Int64 / String / Binary / Boolean / Double，以及已验证的嵌套 Cell | Float / Date / Timestamp / 其他 primitive 写入 |
+| 写入类型 | `boolean` / `byte` / `short` / `int` / `long` / `float` / `double` / `string` / `binary` / `date` / `timestamp`，包含嵌套叶 | decimal、uuid、`timestamp_ntz`、timestamp millis/nanos |
 | 写入表 | 非分区 append；校验列名/类型/NOT NULL；put-if-absent | 分区 append；列在 Parquet 中恒为 Optional |
 | 删除向量 | JSON 与 checkpoint 的 `add.deletionVector` 均拒绝 | column mapping、v2 checkpoint、CDF、MERGE/UPDATE/DELETE |
 | 存储 | 本地文件系统 | 对象存储（S3/R2） |
 
-分区值回填只覆盖 int/long/double/boolean/string/date；date 需十进制天数，ISO 日期字符串尚不支持。`add.stats` 必须是 JSON 编码字符串；非字符串或损坏内容直接报错。CLI 成功退出 0，错误走 stderr 并以非 0 退出。
+分区值回填覆盖 11 种 primitive；date 同时接受 `YYYY-MM-DD` 与 epoch 天数，timestamp 分区值使用 epoch 微秒。`add.stats` 必须是 JSON 编码字符串；非字符串或损坏内容直接报错。CLI 成功退出 0，错误走 stderr 并以非 0 退出。
 
 ## 依赖说明：vendored parquet
 
-`mizchi/parquet@0.2.2` 声明了 `mizchi/duckdb@0.6.4`，后者仍使用旧版 `moon.mod.json`，当前 MoonBit 工具链会拒绝解析。该依赖只被上游的 DuckDB 演示子包使用，因此本项目把 parquet 的 `src/` 以 Apache-2.0 许可证 **vendored 到 `src/vendor/parquet`**，删除了 `cmd/duckdb_e2e` 与 `playground_bridge` 两个子包；新增 shredded 嵌套读写入口并修复 REPEATED definition level 规则，writer 另扩展 BOOLEAN / DOUBLE（见 NOTICE）。详见 `src/vendor/parquet/NOTICE.md`。
+`mizchi/parquet@0.2.2` 声明了 `mizchi/duckdb@0.6.4`，后者仍使用旧版 `moon.mod.json`，当前 MoonBit 工具链会拒绝解析。该依赖只被上游的 DuckDB 演示子包使用，因此本项目把 parquet 的 `src/` 以 Apache-2.0 许可证 **vendored 到 `src/vendor/parquet`**，删除了 `cmd/duckdb_e2e` 与 `playground_bridge` 两个子包；新增 shredded 嵌套读写入口并修复 REPEATED definition level 规则，writer 另扩展 BOOLEAN / FLOAT / DOUBLE 与 DATE / TIMESTAMP_MICROS logical annotation（见 NOTICE）。详见 `src/vendor/parquet/NOTICE.md`。
 
 ## Fixtures 与数据来源
 
@@ -125,7 +125,7 @@ let columns : Array[@delta.ReadColumn] = [
 完整路线图见 [docs/ROADMAP.md](docs/ROADMAP.md)。0.3.0 已完成 M1–M4，当前剩余重点：
 
 - 发布包含本轮安全加固的新版本并复核 registry 安装；
-- 补 nested 叶类型一致性校验，以及带单位/时区语义的 INT64 timestamp/timestamp_ntz；
+- 补带时区/精度语义的 `timestamp_ntz`、timestamp millis/nanos；
 - ZSTD/GZIP/BROTLI 解压、分区表 append、对象存储（S3/R2）、CDF、Float/Timestamp 写入；
 - 流式读取与 row-group 级剪枝、Arrow IPC / DataFrame / moonice 互操作。
 
@@ -137,7 +137,7 @@ moon test --target native
 moon fmt
 ```
 
-CI：`.github/workflows/ci.yml`（安装最新 MoonBit 工具链 → `moon update` → check/test/build）。本地已通过 `moon check --target native` 与 44/44 测试；远端 Actions 运行链接仍需在可联网环境核对。
+CI：`.github/workflows/ci.yml`（安装最新 MoonBit 工具链 → `moon update` → check/test/build）。本地已通过 `moon check --target native` 与 48/48 测试；远端 Actions 运行链接仍需在可联网环境核对。
 
 ## 许可证
 

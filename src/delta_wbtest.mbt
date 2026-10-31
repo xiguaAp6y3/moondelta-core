@@ -648,6 +648,147 @@ test "write: create + append + read back (int64/string, nullable)" {
 }
 
 ///|
+test "partition: primitive values including ISO date are parsed" {
+  assert_eq(cell_to_display(cell_from_partition(DateType, "2026-01-01")), "20454")
+  assert_eq(cell_to_display(cell_from_partition(ByteType, "7")), "7")
+  assert_eq(cell_to_display(cell_from_partition(FloatType, "1.5")), "1.5")
+  assert_eq(cell_to_display(cell_from_partition(BooleanType, "false")), "false")
+  assert_eq(
+    cell_to_display(cell_from_partition(TimestampType, "1577836800000000")),
+    "1577836800000000",
+  )
+}
+
+///|
+test "write/read: all 11 primitive types roundtrip" {
+  let root = "_build/test-tmp/table-all-primitives"
+  reset_dir(root)
+  let schema = "{\"type\":\"struct\",\"fields\":[" +
+    "{\"name\":\"b\",\"type\":\"byte\",\"nullable\":true,\"metadata\":{}}," +
+    "{\"name\":\"s\",\"type\":\"short\",\"nullable\":true,\"metadata\":{}}," +
+    "{\"name\":\"i\",\"type\":\"integer\",\"nullable\":true,\"metadata\":{}}," +
+    "{\"name\":\"l\",\"type\":\"long\",\"nullable\":true,\"metadata\":{}}," +
+    "{\"name\":\"f\",\"type\":\"float\",\"nullable\":true,\"metadata\":{}}," +
+    "{\"name\":\"d\",\"type\":\"double\",\"nullable\":true,\"metadata\":{}}," +
+    "{\"name\":\"bo\",\"type\":\"boolean\",\"nullable\":true,\"metadata\":{}}," +
+    "{\"name\":\"st\",\"type\":\"string\",\"nullable\":true,\"metadata\":{}}," +
+    "{\"name\":\"bin\",\"type\":\"binary\",\"nullable\":true,\"metadata\":{}}," +
+    "{\"name\":\"dt\",\"type\":\"date\",\"nullable\":true,\"metadata\":{}}," +
+    "{\"name\":\"ts\",\"type\":\"timestamp\",\"nullable\":true,\"metadata\":{}}]}"
+  ignore(create_table(root, schema, []) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  })
+  let columns : Array[ReadColumn] = [
+    { name: "b", type_: ByteType, cells: [CellI32(7), CellNull] },
+    { name: "s", type_: ShortType, cells: [CellI32(300), CellNull] },
+    { name: "i", type_: Int32Type, cells: [CellI32(42), CellNull] },
+    { name: "l", type_: Int64Type, cells: [CellI64(123456789L), CellNull] },
+    { name: "f", type_: FloatType, cells: [CellF32(1.5), CellNull] },
+    { name: "d", type_: DoubleType, cells: [CellF64(2.25), CellNull] },
+    { name: "bo", type_: BooleanType, cells: [CellBool(true), CellNull] },
+    { name: "st", type_: StringType, cells: [CellStr("hello"), CellNull] },
+    { name: "bin", type_: BinaryType, cells: [CellBin(b"raw"), CellNull] },
+    { name: "dt", type_: DateType, cells: [CellI32(20454), CellNull] },
+    {
+      name: "ts",
+      type_: TimestampType,
+      cells: [CellTs(1577836800000000L), CellNull],
+    },
+  ]
+  ignore(append_rows(root, columns, 1000L) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  })
+  let snapshot = DeltaTable::open(root).snapshot() catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  let result = read_snapshot(root, snapshot, None) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_eq(result.row_count, 2)
+  assert_eq(cell_to_display(result.columns[0].cells[0]), "7")
+  assert_eq(cell_to_display(result.columns[4].cells[0]), "1.5")
+  assert_eq(cell_to_display(result.columns[9].cells[0]), "20454")
+  assert_eq(cell_to_display(result.columns[10].cells[0]), "1577836800000000")
+  assert_eq(cell_to_display(result.columns[10].cells[1]), "NULL")
+}
+
+///|
+test "write/read: nested struct carries float, date and timestamp" {
+  let root = "_build/test-tmp/table-nested-primitives"
+  reset_dir(root)
+  let schema = "{\"type\":\"struct\",\"fields\":[" +
+    "{\"name\":\"id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{}}," +
+    "{\"name\":\"payload\",\"type\":{\"type\":\"struct\",\"fields\":[" +
+    "{\"name\":\"f\",\"type\":\"float\",\"nullable\":true,\"metadata\":{}}," +
+    "{\"name\":\"dt\",\"type\":\"date\",\"nullable\":true,\"metadata\":{}}," +
+    "{\"name\":\"ts\",\"type\":\"timestamp\",\"nullable\":true,\"metadata\":{}}]}," +
+    "\"nullable\":true,\"metadata\":{}}]}"
+  ignore(create_table(root, schema, []) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  })
+  let payload = NestedType(
+    kind="struct",
+    fields=[
+      { name: "f", type_: FloatType, nullable: true },
+      { name: "dt", type_: DateType, nullable: true },
+      { name: "ts", type_: TimestampType, nullable: true },
+    ],
+  )
+  let columns : Array[ReadColumn] = [
+    { name: "id", type_: Int64Type, cells: [CellI64(1L)] },
+    {
+      name: "payload",
+      type_: payload,
+      cells: [
+        CellStruct([
+          ("f", CellF32(1.5)),
+          ("dt", CellI32(20454)),
+          ("ts", CellTs(1577836800000000L)),
+        ]),
+      ],
+    },
+  ]
+  ignore(append_rows(root, columns, 1000L) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  })
+  let snapshot = DeltaTable::open(root).snapshot() catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  let result = read_snapshot(root, snapshot, None) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_eq(result.row_count, 1)
+  let text = cell_to_display(result.columns[1].cells[0])
+  assert_true(text.contains("\"f\": 1.5"))
+  assert_true(text.contains("\"dt\": 20454"))
+  assert_true(text.contains("\"ts\": 1577836800000000"))
+}
+
+///|
 /// 构造一个合成的分区表：id(long) + dt(string, 分区列)，两个分区各一个数据文件
 fn build_partitioned_table(root : String) -> Unit raise {
   reset_dir(root)
@@ -892,6 +1033,20 @@ test "protocol: readerFeatures on a v1 protocol are rejected at snapshot level" 
   }
   let message = snapshot_error_of(root)
   assert_true(message.contains("readerFeatures"))
+}
+
+///|
+test "protocol: writer version above 2 and writerFeatures are rejected on read" {
+  let v5 = snapshot_error_of("artifacts/protocol-audit/fixtures/writer-v5-features")
+  assert_true(v5.contains("writer protocol version 5"))
+  let root = "_build/test-tmp/table-writer-features-read"
+  reset_dir(root)
+  ensure_dir(root + "/_delta_log") catch { _ => () }
+  write_text(
+    root + "/_delta_log/00000000000000000000.json",
+    "{\"protocol\":{\"minReaderVersion\":1,\"minWriterVersion\":2,\"writerFeatures\":[\"appendOnly\"]}}\n",
+  ) catch { _ => () }
+  assert_true(snapshot_error_of(root).contains("writerFeatures"))
 }
 
 ///|

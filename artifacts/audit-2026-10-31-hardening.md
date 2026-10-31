@@ -1,6 +1,6 @@
 # 2026-10-31 独立审计与协议加固
 
-> 基线：`9ac2669`（0.3.0）。测试：`moon check --target native` 0 errors；`moon test --target native` **44/44 passed**。
+> 基线：`9ac2669`（0.3.0）。测试：`moon check --target native` 0 errors；`moon test --target native` **48/48 passed**。
 > 本文只记录本轮发现与修复；历史验收报告保留原结论，但不再作为当前“完全兼容”的证据。
 
 ## 1. 发现并修复
@@ -14,11 +14,13 @@
 | 中 | 非字符串 `add.stats` 被丢弃并返回 0 行 | 解析期要求 stats 为 JSON 编码字符串 |
 | 中 | 非空 `writerFeatures` 仍可 append | writer 门控拒绝，不创建数据文件或 commit |
 | 中 | `timestamp_ntz` 被折叠为 UTC timestamp | 在保留时区语义前显式拒绝 |
-| 中 | Delta schema 声明 long、Parquet 实际为 string 时仍返回字符串 | flat 读取校验逻辑类型/物理类型；`timestamp` 只接受可识别的 INT96 |
+| 中 | Delta schema 声明 long、Parquet 实际为 string 时仍返回字符串 | flat 与 nested 叶读取校验逻辑类型/物理类型 |
+| 中 | 写入仅覆盖 6 种 flat 类型，缺少 float/date/timestamp 与分区类型 | 补齐 11 种 primitive 与嵌套叶写入；增加 FLOAT、DATE、TIMESTAMP_MICROS logical annotation |
+| 中 | 读取端允许 writer>2 / writerFeatures | 与申报口径一致，读取端拒绝 |
 
 ## 2. 回归测试
 
-新增 7 个具名用例（总数 37 → 44）：
+新增 11 个具名用例（总数 37 → 48）：
 
 - `snapshot: percent-encoded remove.path deletes the added file`
 - `stats: non-string add.stats is rejected instead of becoming zero`
@@ -27,14 +29,17 @@
 - `checkpoint: deletion vector, unknown action and missing metadata are rejected`
 - `read: Delta schema and parquet physical type mismatch is rejected`
 - `read: INT96 timestamp remains supported after physical type checks`
+- `partition: primitive values including ISO date are parsed`
+- `write/read: all 11 primitive types roundtrip`
+- `write/read: nested struct carries float, date and timestamp`
+- `protocol: writer version above 2 and writerFeatures are rejected on read`
 
 新增 `fixtures/checkpoint-negative/`（4 个 fixture）与生成脚本 `fixtures/generate_checkpoint_negative.py`。
 
 ## 3. 仍存在的已知边界
 
-- flat 列已做 Delta/Parquet 类型一致性校验；nested 叶类型尚未做同等校验。
-- `timestamp` 仅支持可识别的 INT96；INT64 TIMESTAMP_MICROS/millis 与 adjusted 标志尚未实现。
-- 分区值回填只支持部分类型；date 仅接受整数天数。
+- `timestamp_ntz` 与 timestamp millis/nanos 尚未实现；当前 timestamp 写出使用 TIMESTAMP_MICROS。
+- 分区值回填覆盖 11 种类型；timestamp 分区值使用 epoch 微秒，尚未解析 ISO timestamp 字符串。
 - 互操作结论仅覆盖仓库指定 flat/nested fixture，不外推到任意 reader v1 表。
 - CI 远端运行链接、mooncakes 新版本发布与安装仍需可联网环境完成。
 
@@ -48,4 +53,6 @@ _build\native\debug\build\cmd\delta\delta.exe inspect fixtures\checkpoint-negati
 _build\native\debug\build\cmd\delta\delta.exe inspect artifacts\protocol-audit\fixtures\stats-object
 .tools\pyenv\Scripts\python.exe artifacts\acceptance\d2_verify.py
 .tools\pyenv\Scripts\python.exe artifacts\acceptance\d3_verify.py
+moon run --target native src/examples/write_all_types -- artifacts/interop-flat/all-primitives-written
+.tools\pyenv\Scripts\python.exe artifacts\acceptance\all_types_verify.py
 ```

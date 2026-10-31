@@ -8,7 +8,7 @@
 - 版本：0.2.2（发布于 2026-09-24）
 - 许可证：Apache-2.0（全文见 `src/vendor/parquet/LICENSE`）
 - 位置：`src/vendor/parquet/`
-- 修改：删除上游 `src/cmd/duckdb_e2e` 与 `src/playground_bridge` 两个 DuckDB 演示子包（它们依赖的 `mizchi/duckdb@0.6.4` 仍使用旧版 `moon.mod.json`，当前 MoonBit 工具链会拒绝解析）；新增 shredded 嵌套读取与写入入口，修复 REPEATED definition level 递增规则，writer 另扩展 `BOOLEAN` / `DOUBLE` 列写入（PLAIN 编码）。原有 encoding / metadata 读取路径未改动。
+- 修改：删除上游 `src/cmd/duckdb_e2e` 与 `src/playground_bridge` 两个 DuckDB 演示子包（它们依赖的 `mizchi/duckdb@0.6.4` 仍使用旧版 `moon.mod.json`，当前 MoonBit 工具链会拒绝解析）；新增 shredded 嵌套读取与写入入口，修复 REPEATED definition level 递增规则，writer 扩展 `BOOLEAN` / `FLOAT` / `DOUBLE` 以及 `DATE` / `TIMESTAMP_MICROS` logical annotation。原有 encoding / metadata 读取路径未改动。
 - 详细说明见 `src/vendor/parquet/NOTICE.md`。
 
 ## 2. 测试数据：delta-rs

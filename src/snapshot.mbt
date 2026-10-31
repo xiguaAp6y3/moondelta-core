@@ -108,6 +108,16 @@ fn validate_protocol(p : Protocol) -> Unit raise DeltaError {
       "table declares readerFeatures [\{feature_list_text(p.reader_features)}]; reader version 1 has no feature list",
     )
   }
+  if p.min_writer_version > 2 {
+    raise DeltaError::Unsupported(
+      "table requires writer protocol version \{p.min_writer_version}; this kernel implements writer version 2 only",
+    )
+  }
+  if p.writer_features.length() > 0 {
+    raise DeltaError::Unsupported(
+      "table declares writerFeatures [\{feature_list_text(p.writer_features)}]; writer version 2 has no feature list",
+    )
+  }
 }
 
 ///|

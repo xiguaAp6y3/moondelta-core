@@ -30,7 +30,8 @@ pub(all) struct WriteNode {
   repetition : Repetition
   /// None = group（有 children）；Some = 叶
   column_type : ColumnType?
-  /// converted_type 注解：UTF8(0) / LIST(3) / MAP(4)；None = 不写
+  /// converted_type 注解：UTF8(0) / LIST(3) / MAP(4) / DATE(6) /
+  /// TIMESTAMP_MICROS(10)；None = 按叶物理类型推导或省略
   converted_type : Int32?
   children : Array[WriteNode]
 }
@@ -74,11 +75,11 @@ fn encode_data_page_shredded(leaf : WriteLeaf) -> Bytes raise ParquetError {
 ///|
 fn writer_type_code_or_invalid(column_type : ColumnType) -> Int32 raise ParquetError {
   match column_type {
-    Int32 => parquet_type_int32
-    Int64 => parquet_type_int64
-    String => parquet_type_byte_array
-    Binary => parquet_type_byte_array
+    Int32 | Date => parquet_type_int32
+    Int64 | TimestampMicros64 => parquet_type_int64
+    String | Binary => parquet_type_byte_array
     Boolean => parquet_type_boolean
+    Float => parquet_type_float
     Double => parquet_type_double
     _ => {
       unsupported("This column type is not supported by the writer yet")
@@ -120,11 +121,14 @@ fn write_schema_elements(
         element.write_string_field(4, node.name)
         match node.converted_type {
           Some(ct) => element.write_i32_field(6, ct)
-          None => {
-            if column_type == String {
-              element.write_i32_field(6, converted_type_utf8)
+          None =>
+            match column_type {
+              String => element.write_i32_field(6, converted_type_utf8)
+              Date => element.write_i32_field(6, converted_type_date)
+              TimestampMicros64 =>
+                element.write_i32_field(6, converted_type_timestamp_micros)
+              _ => ()
             }
-          }
         }
       }
       None => {

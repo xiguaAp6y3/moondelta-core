@@ -20,9 +20,9 @@ implementation is unchanged; the writer was extended in this repository (see bel
    nested reads) and `writer_shredded.mbt` (nested schema tree and slot-stream
    writer). Fixed the definition-level increment rule so both OPTIONAL and REPEATED
    levels increment, as required by the Parquet specification.
-3. Extended `writer.mbt` to support `BOOLEAN` and `DOUBLE` columns (plain encoding:
-   bit-packed booleans, IEEE-754 little-endian doubles). Upstream only wrote
-   `INT32` / `INT64` / `BYTE_ARRAY` columns.
+3. Extended `writer.mbt` to support `BOOLEAN`, `FLOAT` and `DOUBLE` columns
+   (plain encoding) plus `DATE` and `TIMESTAMP_MICROS` logical annotations.
+   Upstream only wrote `INT32` / `INT64` / `BYTE_ARRAY` columns.
 
 ## License compliance
 

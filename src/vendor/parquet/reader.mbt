@@ -1694,6 +1694,7 @@ fn value_to_int64(
   match (column_type, value) {
     (Int64, Int64(v)) => v
     (TimestampMicros, TimestampMicros(v)) => v
+    (TimestampMicros64, TimestampMicros(v)) => v
     _ => {
       invalid_data("Dictionary value type mismatch for INT64-like column")
       0L
@@ -1856,6 +1857,11 @@ fn decode_required_int64_values_into(
         for _ in 0..<count {
           target.push(read_int96_micros(data, offset))
           offset += 12
+        }
+      TimestampMicros64 =>
+        for _ in 0..<count {
+          target.push(read_i64_le(data, offset))
+          offset += 8
         }
       _ => {
         unsupported("Unsupported required INT64-like column type")
@@ -3518,9 +3524,9 @@ fn decode_column_chunk_columnar(
     return Values(decode_column_chunk(data, chunk, column))
   }
   match column.column_type {
-    Int32 => decode_int32_column_chunk_data(data, chunk, column)
+    Int32 | Date => decode_int32_column_chunk_data(data, chunk, column)
     Int64 => decode_int64_column_chunk_data(data, chunk, column)
-    TimestampMicros =>
+    TimestampMicros | TimestampMicros64 =>
       decode_timestamp_micros_column_chunk_data(data, chunk, column)
     String => decode_utf8_column_chunk_data(data, chunk, column)
     Binary => decode_binary_column_chunk_data(data, chunk, column)

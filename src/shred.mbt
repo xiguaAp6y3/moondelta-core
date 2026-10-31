@@ -149,6 +149,11 @@ fn assemble_cell(
       if c.at_end() {
         raise DeltaError::ParseError("parquet level stream ended early")
       }
+      if !parquet_type_matches(ty, c.leaf.column_type) {
+        raise DeltaError::ParseError(
+          "parquet column '\{path_text(c.leaf.path)}' is \{c.leaf.column_type} but the Delta schema declares \{delta_type_name(ty)}",
+        )
+      }
       let def = c.peek_def()
       let cell = if def == c.leaf.max_definition_level {
         shred_value_to_cell(c.leaf.values[c.pos])

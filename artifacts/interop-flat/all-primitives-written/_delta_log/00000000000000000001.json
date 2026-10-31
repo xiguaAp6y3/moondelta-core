@@ -1,0 +1,2 @@
+{"commitInfo":{"timestamp":1750000000000,"operation":"WRITE","operationParameters":{"mode":"Append","partitionBy":"[]"},"isolationLevel":"Serializable","isBlindAppend":true,"engineInfo":"moondelta-core"}}
+{"add":{"path":"part%2D0000%2D1750000000000%2D1%2Eparquet","partitionValues":{},"size":786,"modificationTime":1750000000000,"dataChange":true,"stats":"{\"numRecords\":2,\"minValues\":{\"b\":7,\"s\":300,\"i\":42,\"l\":123456789,\"f\":1.5,\"d\":2.25,\"dt\":20454},\"maxValues\":{\"b\":7,\"s\":300,\"i\":42,\"l\":123456789,\"f\":1.5,\"d\":2.25,\"dt\":20454}}"}}

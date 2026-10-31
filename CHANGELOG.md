@@ -13,11 +13,14 @@
 - 非字符串 `add.stats` 结构化报错，不再静默按 0 行处理
 - append 拒绝非空 `writerFeatures`，不生成数据文件或新 commit
 - `timestamp_ntz` 在保留时区语义前显式拒绝，不再与 UTC timestamp 混淆
-- flat 读取校验 Delta 逻辑类型与 Parquet 物理类型，类型错配不再读出错误值；`timestamp` 仅接受可识别的 INT96 物理类型
+- flat 与 nested 叶读取校验 Delta 逻辑类型与 Parquet 物理类型，类型错配不再读出错误值
+- 写入补齐 11 种基础类型；`float`、`date`、`timestamp` 增加正确的 Parquet 物理编码与 logical annotation
+- 分区值回填补齐 11 种基础类型，`date` 支持 `YYYY-MM-DD` 与 epoch 天数
+- reader v1 / writer v2 门控收紧：读取端同样拒绝 writer>2 与非空 `writerFeatures`
 
 ### Changed
 
-- 测试数 37 → 44；新增 checkpoint 负向 fixture 与生成脚本
+- 测试数 37 → 48；新增全类型、嵌套逻辑类型、分区解析与 checkpoint 负向测试
 - README、申报书、使用/测试说明及第三方声明同步为“已验证子集”口径
 
 ## [0.3.0] - 2026-10-22

@@ -56,13 +56,16 @@ fn parquet_type_matches(
 ) -> Bool {
   match delta {
     BooleanType => physical is @parquet.Boolean
-    ByteType | ShortType | Int32Type | DateType => physical is @parquet.Int32
+    ByteType | ShortType | Int32Type => physical is @parquet.Int32
+    DateType => physical is @parquet.Date
     Int64Type => physical is @parquet.Int64
     FloatType => physical is @parquet.Float
     DoubleType => physical is @parquet.Double
     StringType => physical is @parquet.String
     BinaryType => physical is @parquet.Binary
-    TimestampType => physical is @parquet.TimestampMicros
+    TimestampType =>
+      physical is @parquet.TimestampMicros ||
+      physical is @parquet.TimestampMicros64
     _ => false
   }
 }
@@ -91,15 +94,53 @@ fn partition_value_of(file : AddFile, name : String) -> String? {
 }
 
 ///|
+/// ISO 日期 `YYYY-MM-DD` → Unix epoch 天数；纯整数仍按 Delta 的 date 天数值解析。
+fn partition_date_days(raw : String) -> Int32 raise DeltaError {
+  let parts = Array::from_iter(raw.split("-"))
+  if parts.length() == 1 {
+    return @string.parse_int(raw, base=10) catch {
+      _ =>
+        raise DeltaError::ParseError("invalid date partition value '\{raw}'")
+    }
+  }
+  if parts.length() != 3 {
+    raise DeltaError::ParseError("invalid date partition value '\{raw}'")
+  }
+  let year = @string.parse_int(parts[0], base=10) catch {
+    _ => raise DeltaError::ParseError("invalid date partition value '\{raw}'")
+  }
+  let month = @string.parse_int(parts[1], base=10) catch {
+    _ => raise DeltaError::ParseError("invalid date partition value '\{raw}'")
+  }
+  let day = @string.parse_int(parts[2], base=10) catch {
+    _ => raise DeltaError::ParseError("invalid date partition value '\{raw}'")
+  }
+  if month < 1 || month > 12 || day < 1 || day > 31 {
+    raise DeltaError::ParseError("invalid date partition value '\{raw}'")
+  }
+  let y = if month <= 2 { year - 1 } else { year }
+  let era = if y >= 0 { y / 400 } else { (y - 399) / 400 }
+  let yoe = y - era * 400
+  let mp = month + (if month > 2 { -3 } else { 9 })
+  let doy = (153 * mp + 2) / 5 + day - 1
+  let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy
+  era * 146097 + doe - 719468
+}
+
+///|
 fn cell_from_partition(ty : DeltaType, raw : String) -> Cell raise DeltaError {
   match ty {
-    Int32Type =>
+    ByteType | ShortType | Int32Type | DateType =>
       CellI32(
-        @string.parse_int(raw, base=10) catch {
-          _ =>
-            raise DeltaError::ParseError(
-              "invalid int32 partition value '\{raw}'",
-            )
+        if ty is DateType {
+          partition_date_days(raw)
+        } else {
+          @string.parse_int(raw, base=10) catch {
+            _ =>
+              raise DeltaError::ParseError(
+                "invalid \{delta_type_name(ty)} partition value '\{raw}'",
+              )
+          }
         },
       )
     Int64Type =>
@@ -111,6 +152,26 @@ fn cell_from_partition(ty : DeltaType, raw : String) -> Cell raise DeltaError {
             )
         },
       )
+    TimestampType =>
+      CellTs(
+        @string.parse_int64(raw, base=10) catch {
+          _ =>
+            raise DeltaError::ParseError(
+              "timestamp partition value must be microseconds since epoch: '\{raw}'",
+            )
+        },
+      )
+    FloatType =>
+      CellF32(
+        Float::from_double(
+          @string.parse_double(raw) catch {
+            _ =>
+              raise DeltaError::ParseError(
+                "invalid float partition value '\{raw}'",
+              )
+          },
+        ),
+      )
     DoubleType =>
       CellF64(
         @string.parse_double(raw) catch {
@@ -120,17 +181,17 @@ fn cell_from_partition(ty : DeltaType, raw : String) -> Cell raise DeltaError {
             )
         },
       )
-    BooleanType => CellBool(raw == "true")
+    BooleanType =>
+      if raw == "true" {
+        CellBool(true)
+      } else if raw == "false" {
+        CellBool(false)
+      } else {
+        raise DeltaError::ParseError(
+          "invalid boolean partition value '\{raw}'",
+        )
+      }
     StringType => CellStr(raw)
-    DateType =>
-      CellI32(
-        @string.parse_int(raw, base=10) catch {
-          _ =>
-            raise DeltaError::ParseError(
-              "invalid date partition value '\{raw}'",
-            )
-        },
-      )
     _ =>
       raise DeltaError::Unsupported(
         "partition column of type \{delta_type_name(ty)} is not supported by the reader",

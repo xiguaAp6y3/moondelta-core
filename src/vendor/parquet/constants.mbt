@@ -47,6 +47,12 @@ let repetition_repeated = 2
 let converted_type_utf8 = 0
 
 ///|
+let converted_type_date = 6
+
+///|
+let converted_type_timestamp_micros = 10
+
+///|
 let encoding_plain = 0
 
 ///|

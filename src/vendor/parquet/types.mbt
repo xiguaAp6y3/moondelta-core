@@ -2,8 +2,13 @@
 pub(all) enum ColumnType {
   Boolean
   Int32
+  /// INT32 with the Parquet DATE logical annotation.
+  Date
   Int64
+  /// INT96 timestamp.
   TimestampMicros
+  /// INT64 timestamp with the TIMESTAMP_MICROS logical annotation.
+  TimestampMicros64
   Float
   Double
   String
@@ -21,8 +26,10 @@ pub impl Show for ColumnType with fn output(self, logger) {
   let name = match self {
     Boolean => "Boolean"
     Int32 => "Int32"
+    Date => "Date"
     Int64 => "Int64"
     TimestampMicros => "TimestampMicros"
+    TimestampMicros64 => "TimestampMicros64"
     Float => "Float"
     Double => "Double"
     String => "String"

@@ -1,0 +1,4 @@
+PASS delta-rs schema: 11 primitive types
+PASS delta-rs values: first row exact, second row all null
+PASS DuckDB delta_scan: 10 non-timestamp columns exact
+NOTE DuckDB timestamp check skipped: environment lacks pytz
