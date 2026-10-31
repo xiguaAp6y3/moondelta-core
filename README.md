@@ -21,7 +21,7 @@ MoonBit 原生的 **Delta Lake 表格式内核**：回放 `_delta_log` 事务日
 -  读取：flat schema（含 byte/short）+ UNCOMPRESSED/SNAPPY；**M2 起支持嵌套读取**、**M4 起支持嵌套写入**——`struct` / 标准 3-level `list` / `map`（含 NULL、空集合、null 元素/子字段），读写均与 delta-rs/DuckDB 逐值对拍一致（`artifacts/acceptance/m2|m4/`）
 -  写入：`create_table`（已存在的表拒绝）+ `append_rows`（Int32/Int64/String/Binary/Boolean/Double；校验列名/类型/NOT NULL；数据文件与 commit 均为 put-if-absent）；分区列读取时按 `partitionValues` 补齐
 -  CLI：`inspect / history / scan / read / create / version`；错误输出到 stderr、非 0 退出码、未知参数/缺值报错
--  42 个单元测试（含分区读/过滤、统计剪枝边界、缺失数据文件、嵌套读写、协议版本/feature 拒绝、JSON 与 checkpoint 删除向量拒绝、未知 action 拒绝、日志名校验、add/remove 路径解码、checkpoint 必需状态校验、写防护等负向用例）+ 真实与自造 Delta fixture
+-  44 个单元测试（含分区读/过滤、统计剪枝边界、缺失数据文件、嵌套读写、flat 物理类型一致性、协议版本/feature 拒绝、JSON 与 checkpoint 删除向量拒绝、未知 action 拒绝、日志名校验、add/remove 路径解码、checkpoint 必需状态校验、写防护等负向用例）+ 真实与自造 Delta fixture
 
 已用真实数据验证（均为仓库 fixture 读取，D1 已复核）：delta-rs `table_a`（13 个版本回放 → 120 个文件，仓库只含日志、不含数据文件）、Databricks 写出的 COVID-19_NYT 表的 1 个数据文件（157,865 行 6 列，snappy；该表共 8 个数据文件，其余 7 个未入库）。
 
@@ -98,7 +98,7 @@ let columns : Array[@delta.ReadColumn] = [
 |---|---|---|
 | protocol | reader v1 读取；writer v2 写出 | reader > 1、`readerFeatures`、非空 `writerFeatures`；未声称任意 reader v1 表全部兼容 |
 | 日志 | version 0 起连续 JSON commit；20 位文件名；截断 / checkpoint-only 从单文件 checkpoint 恢复 | 多部分 checkpoint；checkpoint 缺失 protocol/metaData；checkpoint 中真实出现的未知 action |
-| schema | flat primitive 读取；struct / 3-level list / map 读写（指定 fixture 对拍） | decimal、uuid、`timestamp_ntz`（保留语义前拒绝）；未做 Delta schema 与 Parquet 物理类型的普遍一致性校验 |
+| schema | flat primitive 读取（校验 Delta 类型与 Parquet 物理类型）；struct / 3-level list / map 读写（指定 fixture 对拍） | decimal、uuid、`timestamp_ntz`；nested 叶类型尚不做同等一致性校验 |
 | 压缩 | UNCOMPRESSED、SNAPPY | ZSTD、GZIP、BROTLI、LZ4 |
 | 写入类型 | Int32 / Int64 / String / Binary / Boolean / Double，以及已验证的嵌套 Cell | Float / Date / Timestamp / 其他 primitive 写入 |
 | 写入表 | 非分区 append；校验列名/类型/NOT NULL；put-if-absent | 分区 append；列在 Parquet 中恒为 Optional |
@@ -125,7 +125,7 @@ let columns : Array[@delta.ReadColumn] = [
 完整路线图见 [docs/ROADMAP.md](docs/ROADMAP.md)。0.3.0 已完成 M1–M4，当前剩余重点：
 
 - 发布包含本轮安全加固的新版本并复核 registry 安装；
-- 补 Delta schema 与 Parquet 物理类型一致性校验，以及带单位/时区语义的 timestamp/timestamp_ntz；
+- 补 nested 叶类型一致性校验，以及带单位/时区语义的 INT64 timestamp/timestamp_ntz；
 - ZSTD/GZIP/BROTLI 解压、分区表 append、对象存储（S3/R2）、CDF、Float/Timestamp 写入；
 - 流式读取与 row-group 级剪枝、Arrow IPC / DataFrame / moonice 互操作。
 
@@ -137,7 +137,7 @@ moon test --target native
 moon fmt
 ```
 
-CI：`.github/workflows/ci.yml`（安装最新 MoonBit 工具链 → `moon update` → check/test/build）。本地已通过 `moon check --target native` 与 42/42 测试；远端 Actions 运行链接仍需在可联网环境核对。
+CI：`.github/workflows/ci.yml`（安装最新 MoonBit 工具链 → `moon update` → check/test/build）。本地已通过 `moon check --target native` 与 44/44 测试；远端 Actions 运行链接仍需在可联网环境核对。
 
 ## 许可证
 

@@ -47,6 +47,27 @@ fn convert_cell(v : @parquet.Value) -> Cell {
 }
 
 ///|
+/// Delta 逻辑类型与 Parquet 物理类型必须相容。当前 Parquet 层只可靠识别
+/// INT96 timestamp；INT64 TIMESTAMP_MICROS 的 logical type 尚未解析，不能把
+/// 普通 long 当成 timestamp。
+fn parquet_type_matches(
+  delta : DeltaType,
+  physical : @parquet.ColumnType,
+) -> Bool {
+  match delta {
+    BooleanType => physical is @parquet.Boolean
+    ByteType | ShortType | Int32Type | DateType => physical is @parquet.Int32
+    Int64Type => physical is @parquet.Int64
+    FloatType => physical is @parquet.Float
+    DoubleType => physical is @parquet.Double
+    StringType => physical is @parquet.String
+    BinaryType => physical is @parquet.Binary
+    TimestampType => physical is @parquet.TimestampMicros
+    _ => false
+  }
+}
+
+///|
 fn find_column_index(columns : Array[@parquet.Column], name : String) -> Int32? {
   let mut i = 0
   while i < columns.length() {
@@ -178,6 +199,12 @@ pub fn read_snapshot(
         None =>
           match find_column_index(pcols, field.name) {
             Some(pidx) => {
+              let physical = pcols[pidx].column_type()
+              if !parquet_type_matches(field.type_, physical) {
+                raise DeltaError::ParseError(
+                  "column '\{field.name}' is \{delta_type_name(field.type_)} in the Delta schema but \{physical} in parquet file '\{file.path}'",
+                )
+              }
               let mut r = 0
               while r < take {
                 let row = rows[r]

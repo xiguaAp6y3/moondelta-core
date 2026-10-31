@@ -1221,6 +1221,44 @@ test "checkpoint: deletion vector, unknown action and missing metadata are rejec
 }
 
 ///|
+test "read: Delta schema and parquet physical type mismatch is rejected" {
+  let table = DeltaTable::open("artifacts/protocol-audit/fixtures/type-mismatch") catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  let snapshot = table.snapshot() catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  let message = read_error_of("artifacts/protocol-audit/fixtures/type-mismatch", snapshot)
+  assert_true(message.contains("long in the Delta schema but"))
+  assert_true(message.contains("String in parquet"))
+}
+
+///|
+test "read: INT96 timestamp remains supported after physical type checks" {
+  let root = "artifacts/protocol-audit/fixtures/int96-timestamp"
+  let snapshot = DeltaTable::open(root).snapshot() catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  let result = read_snapshot(root, snapshot, None) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_eq(result.row_count, 2)
+  assert_eq(result.columns[0].type_, TimestampType)
+}
+
+///|
 test "read: byte and short columns round-trip from a delta-rs-written table" {
   let table = DeltaTable::open("fixtures/delta/byte-short") catch {
     err => {

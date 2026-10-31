@@ -13,10 +13,11 @@
 - 非字符串 `add.stats` 结构化报错，不再静默按 0 行处理
 - append 拒绝非空 `writerFeatures`，不生成数据文件或新 commit
 - `timestamp_ntz` 在保留时区语义前显式拒绝，不再与 UTC timestamp 混淆
+- flat 读取校验 Delta 逻辑类型与 Parquet 物理类型，类型错配不再读出错误值；`timestamp` 仅接受可识别的 INT96 物理类型
 
 ### Changed
 
-- 测试数 37 → 42；新增 checkpoint 负向 fixture 与生成脚本
+- 测试数 37 → 44；新增 checkpoint 负向 fixture 与生成脚本
 - README、申报书、使用/测试说明及第三方声明同步为“已验证子集”口径
 
 ## [0.3.0] - 2026-10-22
