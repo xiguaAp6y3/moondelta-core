@@ -1,9 +1,8 @@
 ///|
 /// Delta Lake 状态类型（本实现支持的类型子集 + 明确的"不支持"标记）
 ///
-/// 说明：Delta 的 schema 可以任意嵌套（struct/array/map）。本内核的读取依赖
-/// `mizchi/parquet`，而该库当前只支持 flat 列；因此嵌套类型在 schema 解析阶段
-/// 被标记为 `Nested`，读取/写入时给出明确错误，而不是静默返回错误数据。
+/// Delta schema 保留嵌套子树；读写能力分别在 read/write 路径校验，
+/// 未支持的逻辑类型显式拒绝，不静默丢失语义。
 pub(all) enum DeltaType {
   Int32Type
   Int64Type

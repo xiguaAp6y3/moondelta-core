@@ -16,10 +16,13 @@ implementation is unchanged; the writer was extended in this repository (see bel
 ## Modifications vs upstream
 
 1. Removed `src/cmd/duckdb_e2e` and `src/playground_bridge` (DuckDB interoperability demos).
-2. Extended `writer.mbt` to support `BOOLEAN` and `DOUBLE` columns (plain encoding:
+2. Added `shredded.mbt` (leaf value + definition/repetition-level slot streams for
+   nested reads) and `writer_shredded.mbt` (nested schema tree and slot-stream
+   writer). Fixed the definition-level increment rule so both OPTIONAL and REPEATED
+   levels increment, as required by the Parquet specification.
+3. Extended `writer.mbt` to support `BOOLEAN` and `DOUBLE` columns (plain encoding:
    bit-packed booleans, IEEE-754 little-endian doubles). Upstream only wrote
-   `INT32` / `INT64` / `BYTE_ARRAY` columns. No reader, encoding or metadata changes
-   were needed for this extension.
+   `INT32` / `INT64` / `BYTE_ARRAY` columns.
 
 ## License compliance
 

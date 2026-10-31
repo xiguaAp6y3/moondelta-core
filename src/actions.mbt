@@ -90,20 +90,21 @@ pub fn parse_metadata(j : Json) -> TableInfo raise DeltaError {
 }
 
 ///|
-/// Delta 规范：add.path 是 percent-encoded 的 URI 路径成分，读取文件系统前必须解码。
-pub fn decode_add_path(encoded : String) -> String raise DeltaError {
+/// Delta 规范：add/remove.path 是 percent-encoded 的 URI 路径成分。
+/// 所有路径先解码为同一规范形式，再用于文件访问或状态匹配。
+pub fn decode_action_path(encoded : String) -> String raise DeltaError {
   let bytes = @percent.decode(encoded)
   @utf8.decode(bytes[:]) catch {
     Malformed(_) =>
       raise DeltaError::ParseError(
-        "add.path is not valid percent-encoded UTF-8: '\{encoded}'",
+        "action path is not valid percent-encoded UTF-8: '\{encoded}'",
       )
   }
 }
 
 ///|
 pub fn parse_add(j : Json) -> AddFile raise DeltaError {
-  let path = decode_add_path(require_string(j, "path", "add"))
+  let path = decode_action_path(require_string(j, "path", "add"))
   let partition_values = match json_field(j, "partitionValues") {
     Some(pv) => json_object_pairs_string(pv)
     None => []
@@ -120,14 +121,19 @@ pub fn parse_add(j : Json) -> AddFile raise DeltaError {
     Some(b) => b
     None => true
   }
-  let stats = json_field_string(j, "stats")
+  let stats = match json_field(j, "stats") {
+    Some(Json::String(s)) => Some(s)
+    Some(_) =>
+      raise DeltaError::ParseError("add.stats must be a JSON-encoded string")
+    None => None
+  }
   let has_deletion_vector = json_field(j, "deletionVector") is Some(_)
   { path, partition_values, size, modification_time, data_change, stats, has_deletion_vector, }
 }
 
 ///|
 pub fn parse_remove(j : Json) -> RemoveFile raise DeltaError {
-  let path = require_string(j, "path", "remove")
+  let path = decode_action_path(require_string(j, "path", "remove"))
   let deletion_timestamp = json_field_int64(j, "deletionTimestamp")
   let data_change = match json_field_bool(j, "dataChange") {
     Some(b) => b

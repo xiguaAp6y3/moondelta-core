@@ -291,11 +291,17 @@ fn replay_until(
         let (p_opt, m_opt, files) = parse_checkpoint(path)
         match p_opt {
           Some(p) => st.protocol = p
-          None => ()
+          None =>
+            raise DeltaError::ParseError(
+              "checkpoint '\{path}' has no protocol action",
+            )
         }
         match m_opt {
           Some(m) => st.metadata = m
-          None => ()
+          None =>
+            raise DeltaError::ParseError(
+              "checkpoint '\{path}' has no metaData action",
+            )
         }
         for f in files {
           apply_action(st, AddAction(f))

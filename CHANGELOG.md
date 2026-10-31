@@ -2,6 +2,23 @@
 
 本项目遵循语义化版本；格式参考 Keep a Changelog。
 
+## [Unreleased]
+
+### Fixed
+
+- `remove.path` 与 `add.path` 统一 percent-decode；JSON 与 checkpoint 回放不再因编码路径漏删文件
+- checkpoint 恢复检测并拒绝 `add.deletionVector`，修复其绕过 JSON 路径删除向量防护的问题
+- checkpoint 仅拒绝当前记录中真实出现的未知 action，不再误伤预声明为空列的合法 schema
+- checkpoint 缺失 protocol/metaData 时按损坏拒绝，不再回退到默认 reader v1 或空 schema
+- 非字符串 `add.stats` 结构化报错，不再静默按 0 行处理
+- append 拒绝非空 `writerFeatures`，不生成数据文件或新 commit
+- `timestamp_ntz` 在保留时区语义前显式拒绝，不再与 UTC timestamp 混淆
+
+### Changed
+
+- 测试数 37 → 42；新增 checkpoint 负向 fixture 与生成脚本
+- README、申报书、使用/测试说明及第三方声明同步为“已验证子集”口径
+
 ## [0.3.0] - 2026-10-22
 
 （0.3.0 = 完全兼容冲刺发布：M1 已单独发 0.2.0；本版并入 M2/M3/M4 + M5 收尾）

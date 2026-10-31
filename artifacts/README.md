@@ -1,5 +1,7 @@
 # artifacts —— D1–D4 交付索引与验收记录
 
+> **历史归档声明：** 第 1–6 节记录 2026-10-20/21 的 0.1.1 基线审计与口径补丁，不是当前能力或待办清单。M1–M4 已关闭其中大部分代码缺口，2026-10-31 又修复 checkpoint 删除向量、remove 路径等安全问题；当前状态见 [audit-2026-10-31-hardening.md](audit-2026-10-31-hardening.md)、[README](../README.md) 与 [CHANGELOG](../CHANGELOG.md)。
+
 > 任务来源：[docs/协议兼容性与互操作范围.md 第 6 节（D1–D4 指派）与第 7 节（发布证据门槛）](../docs/协议兼容性与互操作范围.md)。
 > 执行方式：Team Lead 拆分为共享任务，分别指派 4 个子 agent 并行完成 D1–D4，再由独立子 agent（D5）做证据复核；Lead 负责环境准备、合并与最终校验。
 > 完成时间：2026-10-20（Asia/Hong_Kong）。仓库 HEAD：`3376045`。
@@ -100,13 +102,10 @@ git apply -p1 --check artifacts\claim-alignment.patch
 Get-Content artifacts\acceptance-report.md
 ```
 
-## 5. 入库与残留待办
+## 5. 入库与残留待办（历史）
 
-- **未跟踪需一并入库**：`artifacts/`（扣除 `.tools/`、`_build/`、`.mooncakes/` 等已忽略内容后约 2 MB）、`docs/协议兼容性与互操作范围.md`、`src/examples/interop_flat_writer/`；否则补丁新增的证据引用与 `moon add` 示例行数会失效。
-- `.tools/pyenv` 为本地 Python 引擎环境，已写入 `.gitignore`，不入库。
-- **发布前仍需人工补齐的证据**（D5 无法代为生成，补丁已如实标注“待复核”）：① `moon package` 实际输出；② GitHub Actions 运行链接/日志；③ mooncakes.io `0.1.1` 空工程安装日志与页面链接。
-- 代码层待修复项（本批任务只审计与出补丁，不改实现）：删除向量检测、截断日志 + checkpoint 检测、protocol version/feature 校验、append 列名/类型/NOT NULL 校验、CLI 非 0 退出码、stats object 解析。修复前 README/申报书不得改回“明确拒绝/不静默降级”。
-- 范围外小错建议另开文档修正任务：`fixtures/README.md` 两处路径/测试描述（D1 §5 #11/#12）、`docs/开发计划.md` L6 与 NOTICE 的 writer 描述矛盾。
+- 本节是 2026-10-20 的待办快照。其中的删除向量、截断 checkpoint、protocol feature、append 校验、CLI 退出码、stats object、fixture 路径与 NOTICE 描述均已在后续提交或 2026-10-31 加固中处理。
+- 仍未完成：registry 新版本发布与安装复核、GitHub Actions 运行链接、Delta schema 与 Parquet 物理类型普遍一致性校验。
 
 ## 6. 2026-10-21 发布前验收（按文档 §1/§2/§6/§7）
 

@@ -1020,6 +1020,32 @@ test "read: percent-encoded add.path is decoded before file access" {
 }
 
 ///|
+test "snapshot: percent-encoded remove.path deletes the added file" {
+  let root = "_build/test-tmp/table-percent-remove"
+  reset_dir(root)
+  ensure_dir(root + "/_delta_log") catch { _ => () }
+  let schema = "{\\\"type\\\":\\\"struct\\\",\\\"fields\\\":[{\\\"name\\\":\\\"id\\\",\\\"type\\\":\\\"long\\\",\\\"nullable\\\":true,\\\"metadata\\\":{}}]}"
+  let header = "{\"protocol\":{\"minReaderVersion\":1,\"minWriterVersion\":2}}\n{\"metaData\":{\"id\":\"paths\",\"format\":{\"provider\":\"parquet\",\"options\":{}},\"schemaString\":\"" + schema + "\",\"partitionColumns\":[],\"configuration\":{}}}\n"
+  write_text(root + "/_delta_log/00000000000000000000.json", header) catch { _ => () }
+  write_text(
+    root + "/_delta_log/00000000000000000001.json",
+    "{\"add\":{\"path\":\"dir/my%20file.parquet\",\"partitionValues\":{},\"size\":1,\"modificationTime\":0,\"dataChange\":true,\"stats\":\"{\\\"numRecords\\\":1}\"}}\n",
+  ) catch { _ => () }
+  write_text(
+    root + "/_delta_log/00000000000000000002.json",
+    "{\"remove\":{\"path\":\"dir/my%20file.parquet\",\"deletionTimestamp\":1,\"dataChange\":true}}\n",
+  ) catch { _ => () }
+  let snapshot = DeltaTable::open(root).snapshot() catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_eq(snapshot.files.length(), 0)
+  assert_eq(snapshot.total_rows, 0L)
+}
+
+///|
 test "schema: byte and short map to readable types" {
   let raw = "{\"type\":\"struct\",\"fields\":[{\"name\":\"b\",\"type\":\"byte\",\"nullable\":true,\"metadata\":{}},{\"name\":\"s\",\"type\":\"short\",\"nullable\":true,\"metadata\":{}}]}"
   let schema = parse_schema(raw) catch {
@@ -1151,6 +1177,47 @@ test "stats: malformed add.stats is a structured error, not silent zero" {
   }
   let message = snapshot_error_of(root)
   assert_true(message.contains("add.stats"))
+}
+
+///|
+test "stats: non-string add.stats is rejected instead of becoming zero" {
+  let message = snapshot_error_of("artifacts/protocol-audit/fixtures/stats-object")
+  assert_true(message.contains("add.stats must be a JSON-encoded string"))
+}
+
+///|
+test "write: writerFeatures refuse appends without creating a commit" {
+  let root = "_build/test-tmp/table-writer-features"
+  reset_dir(root)
+  ensure_dir(root + "/_delta_log") catch { _ => () }
+  write_text(
+    root + "/_delta_log/00000000000000000000.json",
+    "{\"protocol\":{\"minReaderVersion\":1,\"minWriterVersion\":2,\"writerFeatures\":[\"appendOnly\"]}}\n{\"metaData\":{\"id\":\"wf\",\"format\":{\"provider\":\"parquet\",\"options\":{}},\"schemaString\":\"{\\\"type\\\":\\\"struct\\\",\\\"fields\\\":[{\\\"name\\\":\\\"id\\\",\\\"type\\\":\\\"long\\\",\\\"nullable\\\":true,\\\"metadata\\\":{}}]}\",\"partitionColumns\":[],\"configuration\":{}}}\n",
+  ) catch { _ => () }
+  let columns : Array[ReadColumn] = [
+    { name: "id", type_: Int64Type, cells: [CellI64(1L)] },
+  ]
+  assert_true(append_error_of(root, columns).contains("writerFeatures"))
+  assert_eq(list_versions(root).length(), 1)
+}
+
+///|
+test "schema: timestamp_ntz is rejected until its semantics are preserved" {
+  let schema = parse_schema("{\"type\":\"struct\",\"fields\":[{\"name\":\"ts\",\"type\":\"timestamp_ntz\",\"nullable\":true,\"metadata\":{}}]}") catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_false(schema_is_readable(schema))
+}
+
+///|
+test "checkpoint: deletion vector, unknown action and missing metadata are rejected" {
+  assert_true(snapshot_error_of("fixtures/checkpoint-negative/deletion-vector").contains("deletionVector"))
+  assert_true(snapshot_error_of("fixtures/checkpoint-negative/unknown-action").contains("unknown action 'futureAction'"))
+  assert_true(snapshot_error_of("fixtures/checkpoint-negative/missing-protocol").contains("no protocol action"))
+  assert_true(snapshot_error_of("fixtures/checkpoint-negative/missing-metadata").contains("no metaData action"))
 }
 
 ///|

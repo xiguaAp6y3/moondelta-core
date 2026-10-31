@@ -8,7 +8,8 @@
 /// - map/list 叶组：首条目 rep == 外层深度，后续条目 rep == 组最大深度，
 ///   "字段存在但无条目"占 1 个 def 较低的槽位；
 /// - action 是否出现：以该 action 的规范必填标量（add.path 等）为判据。
-/// 未解释的叶（tags / deletionVector / sidecar 等）按记录消耗槽位保持游标同步。
+/// 已知但未解释的叶（tags 等）按记录消耗槽位保持游标同步；
+/// 未知 action 与删除向量必须拒绝，不能静默跳过。
 
 ///|
 priv struct CpCursor {
@@ -240,6 +241,29 @@ fn cp_map_pairs(
 }
 
 ///|
+/// 删除向量的任一叶存在即表示该 add 需要 DV 语义；读取端不支持时必须拒绝。
+fn cp_has_deletion_vector(
+  group : Array[CpCursor],
+  rec : Int,
+) -> Bool raise DeltaError {
+  for cc in group {
+    let path = cc.c.leaf.path
+    if path.length() >= 2 && path[1] == "deletionVector" {
+      let present = cp_scalar([cc], path[path.length() - 1], rec)
+      match present {
+        Some(cell) =>
+          match cell {
+            CellNull => ()
+            _ => return true
+          }
+        None => ()
+      }
+    }
+  }
+  false
+}
+
+///|
 fn checkpoint_file_name(version : Int32) -> String {
   let s = version.to_string()
   let sb = StringBuilder()
@@ -314,7 +338,18 @@ pub fn parse_checkpoint(
       raise DeltaError::IoError("cannot read '\{path}': \{msg}")
   }
   let cursors : Array[CpCursor] = []
+  let unknown_actions : Array[String] = []
   for leaf in leaves {
+    if leaf.path.length() == 0 {
+      raise DeltaError::ParseError("checkpoint contains an empty column path")
+    }
+    let action = leaf.path[0]
+    if action != "protocol" && action != "metaData" && action != "add" &&
+      action != "remove" && action != "txn" && action != "commitInfo" &&
+      action != "cdc" && action != "domainMetadata" &&
+      !unknown_actions.contains(action) {
+      unknown_actions.push(action)
+    }
     cursors.push({ c: { leaf, pos: 0 }, token: -1 })
   }
   let mut protocol : Protocol? = None
@@ -429,20 +464,34 @@ pub fn parse_checkpoint(
         None => []
       }
       files.push({
-        path: decode_add_path(p),
+        path: decode_action_path(p),
         partition_values,
         size,
         modification_time,
         data_change,
         stats,
-        has_deletion_vector: false,
+        has_deletion_vector: cp_has_deletion_vector(
+          cp_group(cursors, "add"),
+          rec,
+        ),
       })
     }
     // ---- remove（收集被剔除路径） ----
     let remove_path = cp_scalar(cp_group(cursors, "remove"), "path", rec)
     match cp_cell_str(remove_path) {
-      Some(s) => removed.push(s)
+      Some(s) => removed.push(decode_action_path(s))
       None => ()
+    }
+    // 未知 action 仅在当前记录真实出现（def > 0）时拒绝；
+    // checkpoint schema 常预声明全空列，不能把列存在本身当作 action。
+    for action in unknown_actions {
+      for cc in cp_group(cursors, action) {
+        if !cc.c.at_end() && cc.c.peek_def() > 0 {
+          raise DeltaError::Unsupported(
+            "unknown action '\{action}' in checkpoint '\{path}'",
+          )
+        }
+      }
     }
     // ---- 全组兜底：未解释/漏掉的叶按记录消耗，保持游标同步 ----
     for cc in cursors {

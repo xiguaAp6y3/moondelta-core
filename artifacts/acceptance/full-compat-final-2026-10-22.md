@@ -1,5 +1,7 @@
 # 完全兼容标准验收 —— 终态报告（M5，2026-10-22）
 
+> **历史记录（口径已收紧）：** 本报告的“0 FAIL / 完全兼容”仅表示当时 M1–M5 既定用例通过。2026-10-31 独立审计发现 checkpoint 删除向量、remove 编码路径等缺口；当前结论与修复见 [audit-2026-10-31-hardening.md](../audit-2026-10-31-hardening.md)。
+
 > 验收人：Team Lead　｜　验收时点：2026-10-22　｜　基线：[acceptance-2026-10-22-full-compat.md](full-compat-2026-10-22.md)（15 FAIL / 9 PASS）
 > 标准：[docs/ROADMAP.md](../docs/ROADMAP.md) §1/§2 —— Delta Transaction Log Protocol `minReaderVersion=1, minWriterVersion=2` 完整实现（含嵌套 schema 读写与 checkpoint 恢复），双外部引擎同协议双向对拍。
 > 本版结论对应 commit `9b6bff4` 之后的 0.3.0 工作区；全量复验原始输出见 [m5-sweep.txt](m5-sweep.txt)。

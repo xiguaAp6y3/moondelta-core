@@ -212,6 +212,11 @@ pub fn append_rows(
       "table requires writer protocol version \{snapshot.protocol.min_writer_version}; the writer implements writer version 2 only",
     )
   }
+  if snapshot.protocol.writer_features.length() > 0 {
+    raise DeltaError::Unsupported(
+      "append requires unsupported writerFeatures [\{feature_list_text(snapshot.protocol.writer_features)}]; this kernel implements writer version 2 without feature lists",
+    )
+  }
   if snapshot.metadata.partition_columns.length() > 0 {
     raise DeltaError::Unsupported(
       "append to partitioned tables is not supported yet (MVP writes only unpartitioned tables)",

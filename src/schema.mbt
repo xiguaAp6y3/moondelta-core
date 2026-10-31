@@ -104,8 +104,10 @@ fn parse_type_node(j : Json) -> DeltaType raise DeltaError {
         BinaryType
       } else if s == "date" {
         DateType
-      } else if s == "timestamp" || s == "timestamp_ntz" {
+      } else if s == "timestamp" {
         TimestampType
+      } else if s == "timestamp_ntz" {
+        UnknownType(raw="timestamp_ntz")
       } else if s.has_prefix("decimal") {
         parse_decimal_type(s)
       } else {

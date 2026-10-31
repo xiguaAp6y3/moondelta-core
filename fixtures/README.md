@@ -18,13 +18,13 @@ fixtures/
 │  │     ├─ 00000000000000000010.checkpoint.parquet                 # v10 checkpoint，21,615 B
 │  │     └─ _last_checkpoint                                        # 4,799 B
 │  └─ covid/
-│     ├─ log0.json                                                  # 5,624 B
+│     ├─ _delta_log/00000000000000000000.json                       # 5,624 B
 │     └─ part-00000-a496f40c-…-c000.snappy.parquet                  # 690,424 B
 └─ parquet/
    └─ list_columns.parquet                                          # 2,526 B
 ```
 
-合计 **18 个数据文件**（13 个版本 JSON + 1 个 checkpoint + `_last_checkpoint` + covid 的 `log0.json` 与 1 个数据文件 + `list_columns.parquet`）；连本 `README.md` 共 **19 个文件**。
+核心 fixture 合计 **18 个数据文件**（13 个版本 JSON + 1 个 checkpoint + `_last_checkpoint` + covid 的日志与 1 个数据文件 + `list_columns.parquet`）；另有 `delta/byte-short/` 与生成式 `checkpoint-negative/` 用例。
 
 ---
 
@@ -33,8 +33,8 @@ fixtures/
 | 本仓库路径 | 上游来源仓库 | 上游路径 | 许可证 | 本项目用途 |
 |---|---|---|---|---|
 | `fixtures/delta/table_a/_delta_log/`（13 个 `000…json` + `000…10.checkpoint.parquet` + `_last_checkpoint`） | [`delta-io/delta-rs`](https://github.com/delta-io/delta-rs) 测试数据（`table_a` 表） | 上游测试数据目录下的 `table_a`（本仓库未 pin 上游 commit，见 §5） | Apache-2.0 | **多版本回放**：日志解析、快照构建、时间旅行、扫描规划的统计剪枝 |
-| `fixtures/delta/covid/log0.json` + `fixtures/delta/covid/part-00000-…-c000.snappy.parquet` | [`delta-io/delta-rs`](https://github.com/delta-io/delta-rs) 测试数据（`COVID-19_NYT` 表，由 Databricks 写出） | 上游测试数据目录下的 `covid/`（同上，未 pin commit） | Apache-2.0 | **真实 Spark/Databricks 数据读取**：验证把 Delta `add` 指向的真实 snappy Parquet 文件读成行/列 |
-| `fixtures/parquet/list_columns.parquet` | [`apache/parquet-testing`](https://github.com/apache/parquet-testing) | `data/list_columns.parquet` | Apache-2.0 | **负向用例**：嵌套 `LIST` 列在依赖库不支持时的报错行为（必须"明确报错"，不得 panic 或静默错读） |
+| `fixtures/delta/covid/_delta_log/00000000000000000000.json` + `fixtures/delta/covid/part-00000-…-c000.snappy.parquet` | [`delta-io/delta-rs`](https://github.com/delta-io/delta-rs) 测试数据（`COVID-19_NYT` 表，由 Databricks 写出） | 上游测试数据目录下的 `covid/`（同上，未 pin commit） | Apache-2.0 | **真实 Spark/Databricks 数据读取**：验证把 Delta `add` 指向的真实 snappy Parquet 文件读成行/列 |
+| `fixtures/parquet/list_columns.parquet` | [`apache/parquet-testing`](https://github.com/apache/parquet-testing) | `data/list_columns.parquet` | Apache-2.0 | **正向 LIST 读取**，并作为物理 schema/Delta schema 不一致的负向素材 |
 | `fixtures/delta/byte-short/`（1 个 `000…json` + 1 个 snappy parquet） | 本项目用 `deltalake`（delta-rs）Python 包生成（2026-10-22，M1） | 本地生成（`write_deltalake`，无上游） | Apache-2.0（随本项目） | **byte/short 类型读取**（M1-D4）：`b: byte`（含 null）、`s: short`（含 null）、`id: long`，3 行；验证 schema 映射与 Parquet 物理读取 |
 
 两份上游仓库均为 **Apache License 2.0**，与本项目 `LICENSE` 一致；数据文件随原仓库以 Apache-2.0 分发，本目录仅做原样复制（字节级一致，校验见 §4）。
@@ -68,17 +68,23 @@ fixtures/
 
 ### 3.2 `delta/covid` —— 真实 Spark/Databricks 数据读取
 
-- `log0.json`：11 行动作（`commitInfo` + `protocol` + `metaData` + **8 个 `add`**），`engineInfo` 为 Databricks，`commitInfo.timestamp = 1619121487931`（2021-04-22），`operationMetrics = {numFiles:8, numOutputBytes:6190485, numOutputRows:1111930}`。
+- `_delta_log/00000000000000000000.json`：11 行动作（`commitInfo` + `protocol` + `metaData` + **8 个 `add`**），`engineInfo` 为 Databricks，`commitInfo.timestamp = 1619121487931`（2021-04-22），`operationMetrics = {numFiles:8, numOutputBytes:6190485, numOutputRows:1111930}`。
 - 表结构：`date: string, county: string, state: string, fips: integer, cases: integer, deaths: integer`（6 列，无分区，`minReaderVersion=1 / minWriterVersion=2`）。
 - **只复制了第 1 个数据文件**：`part-00000-a496f40c-e091-413a-85f9-b1b69d4b3b4e-c000.snappy.parquet`（690,424 B，snappy），`stats.numRecords = 157865`，即该文件 **157,865 行 6 列**；其余 7 个 `part-00001…00007` 未复制。
 - 因此：「文件级读取」用例可用本文件（行数、首行值、`min/max` 与 `stats` 对账）；「整表扫描」用例会因缺 7 个文件而失败——测试若走表级 API，必须显式声明"数据文件缺失"路径，或改为只断言文件清单而不读数据。
 - 附带用途：`stats` 的 `minValues/maxValues/nullCount`（如 `date` 2020-01-21 ~ 2020-05-19、`cases` 0 ~ 198114、`deaths` nullCount 1065）可作为统计剪枝的真实样本。
 
-### 3.3 `parquet/list_columns.parquet` —— 嵌套类型负向用例
+### 3.3 `parquet/list_columns.parquet` —— 嵌套 LIST 读取
 
-- 2,526 B，**3 行 2 列**：`int64_list: list<int64>`、`utf8_list: list<utf8>`（均由 `PAR1` magic 结尾，写入方为 `pyarrow 0.15.1` / `parquet-cpp 1.5.1-SNAPSHOT`，pandas metadata 记录 `pandas_version 0.25.3`）。
-- LIST 在 Parquet 物理层是 repeated group，当前依赖 `mizchi/parquet` 对 repeated 列报 `Unsupported(Repeated columns are not supported yet)`，与本项目实测一致。
-- 断言口径：读该文件应返回**结构化错误**（含列名/原因），不得 panic、不得返回 0 行假装成功。
+- 2,526 B，**3 行 2 列**：`int64_list: list<int64>`、`utf8_list: list<utf8>`（写入方为 `pyarrow 0.15.1` / `parquet-cpp 1.5.1-SNAPSHOT`）。
+- 当前读取路径可正向读出 `[1,2,3]`、`[NULL,1]`、`[4]` 等值。
+- 该文件也用于验证“Delta schema 谎报 flat、物理列仍为 repeated”的坏表必须结构化拒绝。
+
+### 3.4 `checkpoint-negative/` —— checkpoint 安全负向 fixture
+
+- 由 `fixtures/generate_checkpoint_negative.py` 基于 `checkpoint-only` 的 Spark checkpoint 生成。
+- 覆盖 `add.deletionVector`、真实出现的未知 `futureAction`、缺失 `protocol`、缺失 `metaData` 四类输入。
+- 预期均结构化拒绝；License 随本项目 Apache-2.0。
 
 ---
 
@@ -90,7 +96,7 @@ fixtures/
 | `delta/table_a/_delta_log/00000000000000000000.json` | 715 | `9e06c54ff2303dde9675d0b7324f92068a04a4f4c91a3bb812b3f4fa159c101e` |
 | `delta/table_a/_delta_log/00000000000000000012.json` | 3,152 | `2e92dccfdde1b16fd3baa7f88087ed617ed999c805d52cf825860fe5bdd69f94` |
 | `delta/table_a/_delta_log/00000000000000000010.checkpoint.parquet` | 21,615 | `4c217257e9ed15793d8584c77d1d75dc842cd6f966a047f7b86394d0264397ed` |
-| `delta/covid/log0.json` | 5,624 | `6e93948d6ff8bf09207c2a7eb788d7a58fcf0764223e1b2d3dcf8449eb14f356` |
+| `delta/covid/_delta_log/00000000000000000000.json` | 5,624 | `6e93948d6ff8bf09207c2a7eb788d7a58fcf0764223e1b2d3dcf8449eb14f356` |
 | `delta/covid/part-00000-…-c000.snappy.parquet` | 690,424 | `ac5c9a4ae246dde1f054bfd2a9f67f120294b1632f7d89bb03a2fe4c5e7fea55` |
 | `parquet/list_columns.parquet` | 2,526 | `5988ab91b6cb7efa7bf6a77f789b40929212280519be6c9daad56e01d5ceb218` |
 
