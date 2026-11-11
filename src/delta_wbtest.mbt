@@ -1265,8 +1265,34 @@ test "write: append validates column names, types and NOT NULL" {
 }
 
 ///|
-test "write: commit is put-if-absent (write_text_new refuses existing files)" {
+test "write: atomic publish exposes complete immutable files" {
   let root = "_build/test-tmp/table-commit-guard"
+  reset_dir(root)
+  ensure_dir(root) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  let path = root + "/published.json"
+  atomic_write_file(path, @utf8.encode("complete payload")) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_eq(read_text(path), "complete payload")
+  let message = write_new_error_of(path, "replacement")
+  assert_true(message.contains("commit conflict"))
+  assert_eq(read_text(path), "complete payload")
+  for name in @fs.read_dir(root) {
+    assert_false(name.contains("moondelta-tmp"))
+  }
+}
+
+///|
+test "write: empty append and staged log residue do not create a version" {
+  let root = "_build/test-tmp/table-empty-append"
   reset_dir(root)
   let schema = "{\"type\":\"struct\",\"fields\":[{\"name\":\"id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{}}]}"
   let _ = create_table(root, schema, []) catch {
@@ -1275,26 +1301,61 @@ test "write: commit is put-if-absent (write_text_new refuses existing files)" {
       return
     }
   }
-  let commit_path = root + "/_delta_log/00000000000000000001.json"
-  write_text(commit_path, "{\"commitInfo\":{\"timestamp\":0}}\n") catch {
-    _ => ()
+  let columns : Array[ReadColumn] = [
+    { name: "id", type_: Int64Type, cells: [] },
+  ]
+  assert_true(append_error_of(root, columns).contains("empty batches"))
+  let snapshot = DeltaTable::open(root).snapshot() catch {
+    err => {
+      fail("\{err}")
+      return
+    }
   }
-  let message = write_new_error_of(commit_path, "{\"commitInfo\":{}}\n")
-  assert_true(message.contains("put-if-absent"))
-  // append 的数据文件同样不覆盖：预创建同名数据文件后 append 必须失败
+  assert_eq(snapshot.version, 0)
+  assert_eq(snapshot.files.length(), 0)
+  assert_true(@fs.path_exists(log_dir(root) + "/00000000000000000000.json"))
+  assert_eq(@fs.read_dir(log_dir(root)).length(), 1)
+  write_text(
+    log_dir(root) + "/00000000000000000001.json.moondelta-tmp-crash",
+    "{\"commitInfo\":",
+  ) catch { _ => () }
+  let versions = list_versions(root) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_eq(versions.length(), 1)
+  assert_eq(versions[0], 0)
+}
+
+///|
+test "log: empty or truncated formal commits fail closed, commitInfo-only remains valid" {
+  let root = "_build/test-tmp/table-empty-formal-log"
+  reset_dir(root)
+  let schema = "{\"type\":\"struct\",\"fields\":[{\"name\":\"id\",\"type\":\"long\",\"nullable\":true,\"metadata\":{}}]}"
+  assert_eq(create_table(root, schema, []), 0)
+  let path = log_dir(root) + "/" + version_file_name(1)
   let columns : Array[ReadColumn] = [
     { name: "id", type_: Int64Type, cells: [CellI64(1L)] },
   ]
-  let pcols : Array[@parquet.Column] = [
-    @parquet.new_column("id", @parquet.Int64, @parquet.Optional),
-  ]
-  @parquet.write_file(
-    root + "/part-0000-1000-2.parquet",
-    @parquet.new_parquet_file(pcols, [[@parquet.Int64(9L)]], None),
-  ) catch {
-    _ => ()
+  for content in ["", "\n\r\n", " \t\n", "{\"commitInfo\":"] {
+    // Deliberately simulate a damaged external formal commit, bypassing publication.
+    write_text(path, content)
+    let message = snapshot_error_of(root)
+    assert_true(message.length() > 0)
+    if content == "" || content == "\n\r\n" {
+      assert_true(message.contains("contains no actions"))
+    }
+    assert_eq(DeltaTable::open(root).snapshot_at(0).version, 0)
+    assert_false(append_error_of(root, columns).contains("unexpectedly appended"))
+    assert_true(@fs.path_exists(log_dir(root) + "/00000000000000000000.json"))
+    assert_eq(@fs.read_dir(log_dir(root)).length(), 2)
   }
-  assert_true(append_error_of(root, columns).contains("data file already exists"))
+  write_text(path, "{\"commitInfo\":{\"operation\":\"TEST\"}}\n")
+  let snapshot = DeltaTable::open(root).snapshot()
+  assert_eq(snapshot.version, 1)
+  assert_eq(snapshot.files.length(), 0)
 }
 
 ///|
@@ -1431,3 +1492,978 @@ test "read: byte and short columns round-trip from a delta-rs-written table" {
   }
 }
 
+
+///|
+test "sha256: FIPS 180-4 vectors and hex encoding" {
+  let empty : Array[Byte] = []
+  assert_eq(
+    sha256_hex(Bytes::from_array(empty)),
+    "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  )
+  assert_eq(
+    sha256_hex(@utf8.encode("abc")),
+    "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+  )
+  assert_eq(
+    sha256_hex(@utf8.encode("abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq")),
+    "248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1",
+  )
+  assert_eq(
+    sha256_hex(@utf8.encode("The quick brown fox jumps over the lazy dog")),
+    "d7a8fbb307d7809469ca9abcb0082e4f8d5651e46d3cdb762d02d0bf37c9e592",
+  )
+}
+
+///|
+fn test_columns(ids : Array[Int64]) -> Array[ReadColumn] {
+  let cells : Array[Cell] = []
+  for id in ids {
+    cells.push(CellI64(id))
+  }
+  [{ name: "id", type_: Int64Type, cells }, { name: "name", type_: StringType, cells: {
+    let names : Array[Cell] = []
+    for _ in ids {
+      names.push(CellStr("row"))
+    }
+    names
+  } }]
+}
+
+///|
+fn test_schema() -> String {
+  "{\"type\":\"struct\",\"fields\":[{\"name\":\"id\",\"type\":\"long\",\"nullable\":false,\"metadata\":{}},{\"name\":\"name\",\"type\":\"string\",\"nullable\":true,\"metadata\":{}}]}"
+}
+
+///|
+fn make_test_table(root : String) -> Unit raise {
+  reset_dir(root)
+  let _ = create_table(root, test_schema(), [])
+}
+
+///|
+fn relative_files(root : String) -> Array[String] {
+  let out : Array[String] = []
+  let names = @fs.read_dir(root) catch { _ => return out }
+  for name in names {
+    let path = root + "/" + name
+    if (@fs.is_dir(path) catch { _ => false }) {
+      for child in relative_files(path) {
+        out.push(name + "/" + child)
+      }
+    } else {
+      out.push(name)
+    }
+  }
+  out.sort()
+  out
+}
+
+///|
+fn count_matching(root : String, needle : String) -> Int32 {
+  let mut total = 0
+  for name in relative_files(root) {
+    if name.contains(needle) {
+      total = total + 1
+    }
+  }
+  total
+}
+
+///|
+fn count_suffix(root : String, suffix : String) -> Int32 {
+  let mut total = 0
+  for name in relative_files(root) {
+    if name.has_suffix(suffix) {
+      total = total + 1
+    }
+  }
+  total
+}
+
+///|
+fn count_formal_commits(root : String) -> Int32 {
+  let names = @fs.read_dir(log_dir(root)) catch { _ => return 0 }
+  let mut total = 0
+  for name in names {
+    if name.has_suffix(".json") {
+      total = total + 1
+    }
+  }
+  total
+}
+
+///|
+test "txn: ids are OS-random, unique and embedded in the data file name" {
+  let seen : Array[String] = []
+  let mut i = 0
+  while i < 200 {
+    let id = random_txn_id() catch {
+      err => {
+        fail("\{err}")
+        return
+      }
+    }
+    assert_eq(id.char_length(), 32)
+    assert_true(is_txn_id(id))
+    assert_false(seen.contains(id))
+    seen.push(id)
+    i = i + 1
+  }
+  let root = "_build/test-tmp/txn-id-embed"
+  make_test_table(root) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  let (version, txn) = append_rows_with_txn(root, test_columns([7L]), 1000L) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_eq(version, 1)
+  assert_true(is_txn_id(txn))
+  let data_name = "part-1000-1-" + txn + ".parquet"
+  assert_true(@fs.path_exists(root + "/" + data_name))
+  assert_eq(count_matching(root, txn), 1)
+  let commit = read_text(log_dir(root) + "/" + version_file_name(1))
+  assert_true(commit.contains("\"moondeltaTxnId\":\"" + txn + "\""))
+  // 成功提交后 intent 与临时名都已清理
+  assert_eq(list_intent_dir(root).length(), 0)
+  assert_eq(count_matching(root, ".moondelta-tmp-"), 0)
+}
+
+///|
+test "txn: query reports committed, not-committed, conflict and corrupt intent" {
+  let root = "_build/test-tmp/txn-query"
+  make_test_table(root) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  // 已提交但清理未执行：commit 可见、intent 仍在
+  ignore(append_rows_impl(root, test_columns([11L]), 1000L, TxnAbortAfterCommit) catch {
+    DeltaError::IoError(_) => (0, "")
+    err => {
+      fail("\{err}")
+      return
+    }
+  })
+  let intents = list_intent_dir(root)
+  assert_eq(intents.length(), 1)
+  let txn = intents[0].substring(start=0, end=32)
+  let status = query_transaction(root, txn) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  if platform_confirms_directory_durability() {
+    assert_eq(status.state, TxnCommitted)
+  } else {
+    assert_eq(status.state, TxnCommittedUnconfirmed)
+  }
+  assert_eq(status.version, 1)
+  // 数据已发布、commit 未发布
+  ignore(append_rows_impl(root, test_columns([12L]), 1001L, TxnAbortAfterDataPublish) catch {
+    DeltaError::IoError(_) => (0, "")
+    err => {
+      fail("\{err}")
+      return
+    }
+  })
+  let pending_names = list_intent_dir(root)
+  assert_eq(pending_names.length(), 2)
+  let mut pending_txn = ""
+  for name in pending_names {
+    if name.substring(start=0, end=32) != txn {
+      pending_txn = name.substring(start=0, end=32)
+    }
+  }
+  let pending = query_transaction(root, pending_txn) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_eq(pending.state, TxnNotCommitted)
+  assert_eq(pending.version, 2)
+  let version_zero = log_dir(root) + "/" + version_file_name(0)
+  let valid_version_zero = read_text(version_zero)
+  write_text(version_zero, "\n \t\n") catch { _ => () }
+  let empty_history = query_transaction(root, pending_txn) catch {
+    err => {
+      fail("query failed for empty formal history: {err}")
+      return
+    }
+  }
+  assert_eq(empty_history.state, TxnUnresolved)
+  write_text(version_zero, "{not json}\n") catch { _ => () }
+  let corrupt_history = query_transaction(root, pending_txn) catch {
+    err => {
+      fail("query failed for corrupt formal history: {err}")
+      return
+    }
+  }
+  assert_eq(corrupt_history.state, TxnUnresolved)
+  write_text(version_zero, valid_version_zero) catch { _ => () }
+  // 目标版本被其他事务占用 → conflict
+  let conflict_txn = random_txn_id() catch {
+    _ => ""
+  }
+  let conflict : TxnIntent = {
+    format_version: 1,
+    txn_id: conflict_txn,
+    kind: "append",
+    version: 1,
+    data_temp: Some("part-conflict.parquet" + temp_name(conflict_txn)),
+    data_path: Some("part-conflict.parquet"),
+    data_length: 4L,
+    data_digest: Some("0000000000000000000000000000000000000000000000000000000000000000"),
+    commit_temp: "_delta_log/" + version_file_name(1) + temp_name(conflict_txn),
+    commit_path: "_delta_log/" + version_file_name(1),
+    commit_digest: "1111111111111111111111111111111111111111111111111111111111111111",
+  }
+  write_text(intent_path(root, conflict_txn), txn_intent_to_json(conflict)) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  let conflict_status = query_transaction(root, conflict_txn) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_eq(conflict_status.state, TxnConflict)
+  // intent 损坏 → unresolved，而不是“未提交”
+  write_text(intent_path(root, conflict_txn), "{not json") catch { _ => () }
+  let corrupt = query_transaction(root, conflict_txn) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_eq(corrupt.state, TxnUnresolved)
+}
+
+///|
+test "locks: shared writers coexist and block the non-blocking recoverer" {
+  let root = "_build/test-tmp/lock-semantics"
+  make_test_table(root) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  let first = acquire_shared_lock(root) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  let busy = try_acquire_exclusive_lock(root) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_true(busy is None)
+  let second = acquire_shared_lock(root) catch {
+    err => {
+      fail("second shared lock failed: \{err}")
+      return
+    }
+  }
+  release_table_lock(first)
+  let still_busy = try_acquire_exclusive_lock(root) catch { _ => None }
+  assert_true(still_busy is None)
+  release_table_lock(second)
+  let exclusive = try_acquire_exclusive_lock(root) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  match exclusive {
+    Some(handle) => release_table_lock(handle)
+    None => fail("exclusive lock was not released with the last shared holder")
+  }
+}
+
+///|
+test "recover: dry-run previews, apply needs the managed policy, cleanup is idempotent" {
+  let root = "_build/test-tmp/recover-policy"
+  make_test_table(root) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  ignore(append_rows_impl(root, test_columns([21L]), 1000L, TxnAbortAfterDataPublish) catch {
+    DeltaError::IoError(_) => (0, "")
+    err => {
+      fail("\{err}")
+      return
+    }
+  })
+  assert_eq(count_suffix(root, ".parquet"), 1)
+  assert_eq(list_intent_dir(root).length(), 1)
+  // 默认 dry-run：只报告，不删除
+  let preview = recover_table(root, true) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_false(preview.applied)
+  assert_eq(preview.deleted, 0)
+  assert_eq(count_suffix(root, ".parquet"), 1)
+  let mut saw_candidate = false
+  for entry in preview.entries {
+    if entry.action == "would-delete" {
+      saw_candidate = true
+    }
+  }
+  assert_true(saw_candidate)
+  // 未标记受管：apply 被策略阻止
+  let blocked = recover_table(root, false) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_false(blocked.applied)
+  assert_true(blocked.blocked is Some(_))
+  assert_eq(count_suffix(root, ".parquet"), 1)
+  // 显式受管后才真正清理
+  set_managed_table(root, true) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_true(managed_table(root))
+  let applied = recover_table(root, false) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_true(applied.applied)
+  assert_true(applied.deleted >= 2)
+  assert_eq(count_suffix(root, ".parquet"), 0)
+  assert_eq(count_matching(root, ".moondelta-tmp-"), 0)
+  assert_eq(list_intent_dir(root).length(), 0)
+  let snapshot = DeltaTable::open(root).snapshot() catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_eq(snapshot.version, 0)
+  assert_eq(snapshot.files.length(), 0)
+  // 幂等：再次恢复删除 0 个文件
+  let again = recover_table(root, false) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_eq(again.deleted, 0)
+  assert_eq(again.entries.length(), 0)
+}
+
+///|
+test "recover: committed transaction keeps its data and only residue is removed" {
+  let root = "_build/test-tmp/recover-committed"
+  make_test_table(root) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  ignore(append_rows_impl(root, test_columns([31L]), 1000L, TxnAbortAfterCommit) catch {
+    DeltaError::IoError(_) => (0, "")
+    err => {
+      fail("\{err}")
+      return
+    }
+  })
+  assert_eq(count_matching(root, ".moondelta-tmp-"), 2)
+  assert_eq(list_intent_dir(root).length(), 1)
+  set_managed_table(root, true) catch { _ => () }
+  let report = recover_table(root, false) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_true(report.applied)
+  // 正式数据与 commit 保留，临时名与 intent 清除
+  assert_eq(count_matching(root, ".parquet.moondelta-tmp-"), 0)
+  assert_eq(count_matching(root, ".json.moondelta-tmp-"), 0)
+  assert_eq(list_intent_dir(root).length(), 0)
+  assert_eq(count_suffix(root, ".parquet"), 1)
+  assert_eq(count_formal_commits(root), 2)
+  let snapshot = DeltaTable::open(root).snapshot() catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_eq(snapshot.version, 1)
+  assert_eq(snapshot.total_rows, 1L)
+}
+
+///|
+test "recover: history protection keeps removed-but-reachable data, log gaps block deletion" {
+  let root = "_build/test-tmp/recover-protection"
+  make_test_table(root) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  let (_, history_txn) = append_rows_with_txn(root, test_columns([41L]), 1000L) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  let history_data = "part-1000-1-" + history_txn + ".parquet"
+  let bytes = @fs.read_file_to_bytes(root + "/" + history_data) catch { _ => Bytes::make(0, 0) }
+  let orphan_txn = random_txn_id() catch { _ => "" }
+  let orphan : TxnIntent = {
+    format_version: 1,
+    txn_id: orphan_txn,
+    kind: "append",
+    version: 2,
+    data_temp: Some(history_data + temp_name(orphan_txn)),
+    data_path: Some(history_data),
+    data_length: bytes.length().to_int64(),
+    data_digest: Some(sha256_hex(bytes)),
+    commit_temp: "_delta_log/" + version_file_name(2) + temp_name(orphan_txn),
+    commit_path: "_delta_log/" + version_file_name(2),
+    commit_digest: "2222222222222222222222222222222222222222222222222222222222222222",
+  }
+  write_text(intent_path(root, orphan_txn), txn_intent_to_json(orphan)) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  set_managed_table(root, true) catch { _ => () }
+  let report = recover_table(root, false) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_true(@fs.path_exists(root + "/" + history_data))
+  let mut protected_reported = false
+  for entry in report.entries {
+    if entry.action == "keep" && entry.reason.contains("protected") {
+      protected_reported = true
+    }
+  }
+  assert_true(protected_reported)
+  // 日志缺口：候选正式数据不得删除，intent 保留
+  ignore(append_rows_with_txn(root, test_columns([42L]), 1002L) catch {
+    _ => (0, "")
+  })
+  @fs.remove_file(root + "/_delta_log/" + version_file_name(1)) catch { _ => () }
+  let broken_txn = random_txn_id() catch { _ => "" }
+  write_text(root + "/part-broken.parquet", "not a real parquet") catch { _ => () }
+  let broken : TxnIntent = {
+    format_version: 1,
+    txn_id: broken_txn,
+    kind: "append",
+    version: 3,
+    data_temp: Some("part-broken.parquet" + temp_name(broken_txn)),
+    data_path: Some("part-broken.parquet"),
+    data_length: 18L,
+    data_digest: Some("3333333333333333333333333333333333333333333333333333333333333333"),
+    commit_temp: "_delta_log/" + version_file_name(3) + temp_name(broken_txn),
+    commit_path: "_delta_log/" + version_file_name(3),
+    commit_digest: "4444444444444444444444444444444444444444444444444444444444444444",
+  }
+  write_text(intent_path(root, broken_txn), txn_intent_to_json(broken)) catch { _ => () }
+  let gap_report = recover_table(root, false) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_false(gap_report.log_complete)
+  assert_true(@fs.path_exists(root + "/part-broken.parquet"))
+  assert_true(@fs.path_exists(intent_path(root, broken_txn)))
+}
+
+///|
+test "recover: unowned legacy names and unknown files are preserved" {
+  let root = "_build/test-tmp/recover-unknown"
+  make_test_table(root) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  let legacy = root + "/part-legacy.moondelta-tmp-abcdef"
+  let windows_like = root + "/mdt1234.tmp"
+  let unknown_intent = intents_dir(root) + "/notes.txt"
+  write_text(legacy, "junk") catch { _ => () }
+  write_text(windows_like, "junk") catch { _ => () }
+  write_text(unknown_intent, "junk") catch { _ => () }
+  set_managed_table(root, true) catch { _ => () }
+  let report = recover_table(root, false) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_true(@fs.path_exists(legacy))
+  assert_true(@fs.path_exists(windows_like))
+  assert_true(@fs.path_exists(unknown_intent))
+  let mut reported = 0
+  for entry in report.entries {
+    if entry.action == "keep" && entry.reason.contains("unowned") {
+      reported = reported + 1
+    }
+  }
+  assert_true(reported >= 2)
+}
+
+///|
+test "recover: an active writer's shared lock reports busy and removes nothing" {
+  let root = "_build/test-tmp/recover-lock-busy"
+  make_test_table(root) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  ignore(append_rows_impl(root, test_columns([51L]), 1000L, TxnAbortAfterDataPublish) catch {
+    DeltaError::IoError(_) => (0, "")
+    err => {
+      fail("\{err}")
+      return
+    }
+  })
+  set_managed_table(root, true) catch { _ => () }
+  let writer = acquire_shared_lock(root) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  let busy = recover_table(root, false) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_true(busy.lock_busy)
+  assert_false(busy.applied)
+  assert_eq(count_suffix(root, ".parquet"), 1)
+  release_table_lock(writer)
+  let after = recover_table(root, false) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_false(after.lock_busy)
+  assert_true(after.deleted >= 1)
+  assert_eq(count_suffix(root, ".parquet"), 0)
+}
+
+///|
+test "recover: an intent-only residue is settled without touching table data" {
+  let root = "_build/test-tmp/recover-intent-only"
+  make_test_table(root) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  ignore(append_rows_impl(root, test_columns([61L]), 1000L, TxnAbortAfterIntent) catch {
+    DeltaError::IoError(_) => (0, "")
+    err => {
+      fail("\{err}")
+      return
+    }
+  })
+  assert_eq(count_suffix(root, ".parquet"), 0)
+  assert_eq(list_intent_dir(root).length(), 1)
+  set_managed_table(root, true) catch { _ => () }
+  let report = recover_table(root, false) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_true(report.deleted >= 1)
+  assert_eq(list_intent_dir(root).length(), 0)
+  let snapshot = DeltaTable::open(root).snapshot() catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_eq(snapshot.version, 0)
+  assert_eq(snapshot.files.length(), 0)
+}
+
+///|
+test "recover: a managed writer settles stale residue before appending" {
+  let root = "_build/test-tmp/recover-auto"
+  make_test_table(root) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  set_managed_table(root, true) catch { _ => () }
+  ignore(append_rows_impl(root, test_columns([71L]), 1000L, TxnAbortAfterDataPublish) catch {
+    DeltaError::IoError(_) => (0, "")
+    err => {
+      fail("\{err}")
+      return
+    }
+  })
+  assert_eq(list_intent_dir(root).length(), 1)
+  let (version, _) = append_rows_with_txn(root, test_columns([72L]), 1001L) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_eq(version, 1)
+  assert_eq(list_intent_dir(root).length(), 0)
+  assert_eq(count_matching(root, ".moondelta-tmp-"), 0)
+  assert_eq(count_suffix(root, ".parquet"), 1)
+  let rows = read_snapshot(root, DeltaTable::open(root).snapshot() catch { _ => return }, None) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_eq(rows.row_count, 1)
+  match rows.columns[0].cells[0] {
+    CellI64(value) => assert_eq(value, 72L)
+    _ => fail("unexpected first cell in managed writer test")
+  }
+}
+
+///|
+test "recover: a remove action keeps data reachable by older versions" {
+  let root = "_build/test-tmp/recover-remove-history"
+  make_test_table(root) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  let (_, txn) = append_rows_with_txn(root, test_columns([81L]), 1000L) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  let data_name = "part-1000-1-" + txn + ".parquet"
+  let bytes = @fs.read_file_to_bytes(root + "/" + data_name) catch { _ => Bytes::make(0, 0) }
+  let remove_log = "{\"commitInfo\":{\"timestamp\":1001,\"operation\":\"DELETE\"}}\n" +
+    "{\"remove\":{\"path\":" +
+    json_string(@percent.encode(data_name)) +
+    ",\"deletionTimestamp\":1001,\"dataChange\":true}}\n"
+  write_text(log_dir(root) + "/" + version_file_name(2), remove_log) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  let table = DeltaTable::open(root) catch { _ => return }
+  let v1 = table.snapshot_at(1) catch { _ => return }
+  assert_eq(v1.files.length(), 1)
+  let v2 = table.snapshot_at(2) catch { _ => return }
+  assert_eq(v2.files.length(), 0)
+  let orphan_txn = random_txn_id() catch { _ => "" }
+  let orphan : TxnIntent = {
+    format_version: 1,
+    txn_id: orphan_txn,
+    kind: "append",
+    version: 3,
+    data_temp: Some(data_name + temp_name(orphan_txn)),
+    data_path: Some(data_name),
+    data_length: bytes.length().to_int64(),
+    data_digest: Some(sha256_hex(bytes)),
+    commit_temp: "_delta_log/" + version_file_name(3) + temp_name(orphan_txn),
+    commit_path: "_delta_log/" + version_file_name(3),
+    commit_digest: "5555555555555555555555555555555555555555555555555555555555555555",
+  }
+  write_text(intent_path(root, orphan_txn), txn_intent_to_json(orphan)) catch { _ => () }
+  set_managed_table(root, true) catch { _ => () }
+  let report = recover_table(root, false) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_true(@fs.path_exists(root + "/" + data_name))
+  let mut reported = false
+  for entry in report.entries {
+    if entry.action == "keep" && entry.reason.contains("protected") {
+      reported = true
+    }
+  }
+  assert_true(reported)
+  let version1 = table.snapshot_at(1) catch { _ => return }
+  assert_eq(version1.files.length(), 1)
+  assert_eq(version1.files[0].path, data_name)
+}
+
+///|
+test "recover: percent-encoded add paths protect their decoded file" {
+  let root = "_build/test-tmp/recover-percent-path"
+  make_test_table(root) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  let decoded = "part-中.parquet"
+  let bytes = @utf8.encode("percent-encoded-protection")
+  write_text(root + "/" + decoded, "percent-encoded-protection") catch { _ => () }
+  ignore(bytes)
+  let add_line = "{\"add\":{\"path\":" +
+    json_string(@percent.encode(decoded)) +
+    ",\"partitionValues\":{},\"size\":27,\"modificationTime\":1000,\"dataChange\":true}}\n"
+  write_text(log_dir(root) + "/" + version_file_name(1), add_line) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  let (protected_paths, complete) = collect_protected_paths(root)
+  assert_true(complete)
+  assert_true(protected_paths.contains(decoded))
+  let orphan_txn = random_txn_id() catch { _ => "" }
+  let orphan : TxnIntent = {
+    format_version: 1,
+    txn_id: orphan_txn,
+    kind: "append",
+    version: 2,
+    data_temp: Some(decoded + temp_name(orphan_txn)),
+    data_path: Some(decoded),
+    data_length: 27L,
+    data_digest: Some(sha256_hex(@utf8.encode("percent-encoded-protection"))),
+    commit_temp: "_delta_log/" + version_file_name(2) + temp_name(orphan_txn),
+    commit_path: "_delta_log/" + version_file_name(2),
+    commit_digest: "6666666666666666666666666666666666666666666666666666666666666666",
+  }
+  write_text(intent_path(root, orphan_txn), txn_intent_to_json(orphan)) catch { _ => () }
+  set_managed_table(root, true) catch { _ => () }
+  let report = recover_table(root, false) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_true(@fs.path_exists(root + "/" + decoded))
+  let mut reported = false
+  for entry in report.entries {
+    if entry.action == "keep" && entry.reason.contains("protected") {
+      reported = true
+    }
+  }
+  assert_true(reported)
+}
+
+///|
+test "recover: multi-part checkpoints disable deletion instead of guessing" {
+  let root = "_build/test-tmp/recover-multipart-checkpoint"
+  make_test_table(root) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  ignore(append_rows_with_txn(root, test_columns([82L]), 1000L) catch { _ => (0, "") })
+  write_text(
+    log_dir(root) + "/00000000000000000001.checkpoint.1.2.parquet",
+    "not a real checkpoint",
+  ) catch { _ => () }
+  let junk = root + "/part-junk.parquet"
+  write_text(junk, "junk") catch { _ => () }
+  let txn = random_txn_id() catch { _ => "" }
+  let intent : TxnIntent = {
+    format_version: 1,
+    txn_id: txn,
+    kind: "append",
+    version: 2,
+    data_temp: Some("part-junk.parquet" + temp_name(txn)),
+    data_path: Some("part-junk.parquet"),
+    data_length: 4L,
+    data_digest: Some(sha256_hex(@utf8.encode("junk"))),
+    commit_temp: "_delta_log/" + version_file_name(2) + temp_name(txn),
+    commit_path: "_delta_log/" + version_file_name(2),
+    commit_digest: "7777777777777777777777777777777777777777777777777777777777777777",
+  }
+  write_text(intent_path(root, txn), txn_intent_to_json(intent)) catch { _ => () }
+  set_managed_table(root, true) catch { _ => () }
+  let report = recover_table(root, false) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_false(report.log_complete)
+  assert_true(@fs.path_exists(junk))
+  assert_true(@fs.path_exists(intent_path(root, txn)))
+}
+
+///|
+test "recover: a table outside the supported reader subset is never cleaned" {
+  let root = "_build/test-tmp/recover-unsupported-protocol"
+  reset_dir(root)
+  ensure_dir(log_dir(root)) catch { _ => return }
+  let header = "{\"commitInfo\":{\"timestamp\":0,\"operation\":\"CREATE TABLE\"}}\n" +
+    "{\"protocol\":{\"minReaderVersion\":2,\"minWriterVersion\":2}}\n" +
+    "{\"metaData\":{\"id\":\"unsupported\",\"format\":{\"provider\":\"parquet\"},\"schemaString\":" +
+    json_string(test_schema()) +
+    ",\"partitionColumns\":[],\"configuration\":{}}}\n"
+  write_text(log_dir(root) + "/" + version_file_name(0), header) catch { _ => return }
+  ensure_dir(intents_dir(root)) catch { _ => return }
+  let junk = root + "/part-junk.parquet"
+  write_text(junk, "junk") catch { _ => () }
+  let txn = random_txn_id() catch { _ => "" }
+  let intent : TxnIntent = {
+    format_version: 1,
+    txn_id: txn,
+    kind: "append",
+    version: 1,
+    data_temp: Some("part-junk.parquet" + temp_name(txn)),
+    data_path: Some("part-junk.parquet"),
+    data_length: 4L,
+    data_digest: Some(sha256_hex(@utf8.encode("junk"))),
+    commit_temp: "_delta_log/" + version_file_name(1) + temp_name(txn),
+    commit_path: "_delta_log/" + version_file_name(1),
+    commit_digest: "8888888888888888888888888888888888888888888888888888888888888888",
+  }
+  write_text(intent_path(root, txn), txn_intent_to_json(intent)) catch { _ => () }
+  set_managed_table(root, true) catch { _ => () }
+  let report = recover_table(root, false) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_false(report.log_complete)
+  assert_true(@fs.path_exists(junk))
+  assert_true(@fs.path_exists(intent_path(root, txn)))
+  let mut reported = false
+  for entry in report.entries {
+    if entry.action == "keep" && entry.reason.contains("outside the supported") {
+      reported = true
+    }
+  }
+  assert_true(reported)
+}
+
+///|
+test "log: delta path encoding keeps unreserved characters literal" {
+  assert_eq(
+    encode_action_path("part-1000-1-abc.parquet"),
+    "part-1000-1-abc.parquet",
+  )
+  assert_eq(
+    encode_action_path("part 中.parquet"),
+    "part%20%E4%B8%AD.parquet",
+  )
+  assert_eq(encode_action_path("a_b~c.parquet"), "a_b~c.parquet")
+}
+
+///|
+test "recover: traversal and aliased intents are preserved and reported" {
+  let root = "_build/test-tmp/recover-hostile-intents"
+  make_test_table(root) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  let digest = "9999999999999999999999999999999999999999999999999999999999999999"
+  let bad_txn = random_txn_id() catch { _ => "" }
+  let bad_json = "{\"formatVersion\":1,\"txnId\":" +
+    json_string(bad_txn) +
+    ",\"kind\":\"append\",\"version\":1,\"dataTempPath\":" +
+    json_string("../victim.parquet" + temp_name(bad_txn)) +
+    ",\"dataPath\":\"../victim.parquet\",\"dataLength\":4,\"dataDigest\":" +
+    json_string(digest) +
+    ",\"commitTempPath\":" +
+    json_string("_delta_log/" + version_file_name(1) + temp_name(bad_txn)) +
+    ",\"commitPath\":" +
+    json_string("_delta_log/" + version_file_name(1)) +
+    ",\"commitDigest\":" +
+    json_string(digest) +
+    "}"
+  write_text(intent_path(root, bad_txn), bad_json) catch { _ => () }
+  let first_txn = random_txn_id() catch { _ => "" }
+  let second_txn = random_txn_id() catch { _ => "" }
+  let shared = "part-shared.parquet"
+  let first : TxnIntent = {
+    format_version: 1,
+    txn_id: first_txn,
+    kind: "append",
+    version: 1,
+    data_temp: Some(shared + temp_name(first_txn)),
+    data_path: Some(shared),
+    data_length: 4L,
+    data_digest: Some(digest),
+    commit_temp: "_delta_log/" + version_file_name(1) + temp_name(first_txn),
+    commit_path: "_delta_log/" + version_file_name(1),
+    commit_digest: digest,
+  }
+  let second : TxnIntent = {
+    format_version: 1,
+    txn_id: second_txn,
+    kind: "append",
+    version: 2,
+    data_temp: Some(shared + temp_name(second_txn)),
+    data_path: Some(shared),
+    data_length: 4L,
+    data_digest: Some(digest),
+    commit_temp: "_delta_log/" + version_file_name(2) + temp_name(second_txn),
+    commit_path: "_delta_log/" + version_file_name(2),
+    commit_digest: digest,
+  }
+  write_text(intent_path(root, first_txn), txn_intent_to_json(first)) catch { _ => () }
+  write_text(intent_path(root, second_txn), txn_intent_to_json(second)) catch { _ => () }
+  set_managed_table(root, true) catch { _ => () }
+  let report = recover_table(root, false) catch {
+    err => {
+      fail("\{err}")
+      return
+    }
+  }
+  assert_true(@fs.path_exists(intent_path(root, bad_txn)))
+  assert_true(@fs.path_exists(intent_path(root, first_txn)))
+  assert_true(@fs.path_exists(intent_path(root, second_txn)))
+  assert_false(@fs.path_exists("_build/test-tmp/victim.parquet"))
+  let mut traversal_reported = false
+  let mut alias_reported = 0
+  for entry in report.entries {
+    if entry.action == "keep" && entry.reason.contains("intent is invalid") {
+      traversal_reported = true
+    }
+    if entry.action == "keep" && entry.reason.contains("path alias") {
+      alias_reported = alias_reported + 1
+    }
+  }
+  assert_true(traversal_reported)
+  assert_eq(alias_reported, 2)
+}
