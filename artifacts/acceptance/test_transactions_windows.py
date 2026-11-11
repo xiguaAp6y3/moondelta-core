@@ -292,6 +292,31 @@ def main() -> None:
         print("PASS: cross-process LockFileEx coordination (writer blocked, recoverer busy)")
         results["windows_locks"] = "PASS"
 
+        policy_table = base / "policy-lock"
+        init_table(policy_table)
+        policy_txn = secrets.token_hex(16)
+        policy_data = b"policy revoke must prevent cleanup"
+        policy_name = f"part-9001-1-{policy_txn}.parquet"
+        (policy_table / policy_name).write_bytes(policy_data)
+        write_intent(policy_table, policy_txn, 1, policy_name, policy_data, "0" * 64)
+        require(run("manage", str(policy_table), "1").returncode == 0, "cannot enable policy")
+        policy_lock = TableLock(policy_table, exclusive=False)
+        policy_lock.acquire()
+        revoke = subprocess.Popen(
+            [str(WORKER), "manage", str(policy_table), "0"],
+            text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        )
+        time.sleep(0.5)
+        require(revoke.poll() is None, "policy revoke did not wait for the active writer lock")
+        policy_lock.release()
+        stdout, stderr = revoke.communicate(timeout=30)
+        require(revoke.returncode == 0, f"policy revoke failed: {stdout}{stderr}")
+        report, _ = recover(policy_table, apply=True)
+        require(report["deleted"] == "0", "recovery deleted data after policy revoke")
+        require((policy_table / policy_name).exists(), "policy revoke did not preserve candidate data")
+        print("PASS: policy revoke serializes with writer locks and disables apply")
+        results["policy_lock_serialization"] = "PASS"
+
         # 6. concurrent processes with identical payload produce distinct OS-random ids.
         unique_tables = [base / f"txn-unique-{index}" for index in range(8)]
         create_ids = [init_table(table) for table in unique_tables]
