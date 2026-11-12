@@ -2,6 +2,24 @@
 
 本项目遵循语义化版本；格式参考 Keep a Changelog。
 
+## [未发布] - 2026-11-12（S5 内容一致性门槛）
+
+### Added
+
+- 验收器内容一致性门槛：`verify_round.record_baseline()` 在干净基线 boot 后记录版本、Schema、逐行规范化内容摘要与数据文件 SHA-256；`compare_content()` 按“提交存活/丢失”选取预期结果，强制项目 reader 与 delta-rs 返回相同的行数、逐行内容摘要与 Schema，并核对既有数据文件摘要；任一读取失败、输出无法解析、必需字段缺失或差异均判该轮 `FAILED`
+- `run_powerloss.expected_append_row()`：目标行 `id = payload + 1000 + round` 由 host 端先于切断算出，`guest/init` 用同一公式（`selfcheck.py` 校验两侧一致）；`atomic_commit_worker append` 增加可选第 4 个参数（显式 id），使每行内容唯一
+- `judge_round` 判决加严：必须有内容对照，且 project / deltaRs / expected / inspect 的行数与内容摘要必须互相一致（此前只要求 `deltaRs.status == PASSED`，伪造行数可通过）
+- `test_verifier.py` 新反例：同长度 payload 篡改、Schema 变更、数据文件摘要不符、伪造 delta-rs 行数、缺少内容对照的轮次
+- `artifacts/acceptance/transaction-2026-11-12-review/check_verifier_gaps_closed.py`：把两处漏检做成闭合回归
+- `artifacts/acceptance/lock_threads.c`：同进程真实多线程锁竞争矩阵（S2），直接驱动 writer/恢复器所用的 C 锁原语
+- `artifacts/acceptance/powerloss/test_recover_interrupts.py`：S3 恢复器自身中断矩阵，在 `cleanup-unlinked`/`cleanup-dir-fsynced` 边界 SIGKILL `recover --apply` 后重复收敛
+- `ci.yml` 增加验收器内容回归、漏检闭合回归、POSIX 线程锁矩阵与 S3 中断矩阵步骤
+
+### Changed
+
+- `delta read` 打印所有实际读取到的行（此前固定只打印前 10 行），使验收器能取整表内容；`--limit` 仍限制读入行数
+- 文档口径更新：S5 的 100 轮实跑只证明版本/结构/引用长度/双引擎可读性，未核对内容；补齐门槛后需重跑，完整事务验收当前为 `NOT_PASSED`；路线图 S2/S4 的“远端 CI 未运行”、测试说明的“工作区未推送”等现时声明同步为事实
+
 ## [0.4.0] - 2026-11-11（本地工作区，未发布 registry）
 
 ### Added

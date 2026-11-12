@@ -81,6 +81,17 @@ DURABLE_BOUNDARIES = {"commit-publish-dir-fsynced"}
 # The S5 exit gate is "at least 100 valid power cuts". A green run with fewer
 # rounds is a smoke test, not acceptance, so it is downgraded to INVALID.
 MINIMUM_ROUNDS = 100
+# The target row's id is derived from the payload size and the round number
+# alone. The host therefore knows the exact content that a surviving commit must
+# contain *before* the cut, and never has to trust the guest's report of it.
+# guest/init uses the same formula.
+TARGET_ID_OFFSET = 1000
+MAX_SETUP_APPENDS = TARGET_ID_OFFSET
+
+
+def expected_append_row(payload_size: int, round_index: int) -> dict:
+    return {"id": payload_size + TARGET_ID_OFFSET + round_index,
+            "payload": "x" * payload_size}
 
 
 # --------------------------------------------------------------------------
@@ -342,8 +353,16 @@ def verify_image(
     workdir: Path,
     round_index: int,
     keep: bool,
+    expected: dict | None = None,
+    capture_baseline: bool = False,
 ) -> dict:
-    """fsck a copy (the reboot), mount it read-only, verify, then throw it away."""
+    """fsck a copy (the reboot), mount it read-only, verify, then throw it away.
+
+    `expected` is the state the host recorded before this cut; when it is given
+    the verification covers content, not just structure. `capture_baseline` is
+    for the clean setup boot, which has no earlier state: it records the state
+    the following rounds must start from.
+    """
     record: dict = {"performed": True}
     scratch = workdir / "scratch"
     scratch.mkdir(parents=True, exist_ok=True)
@@ -384,7 +403,10 @@ def verify_image(
             record["report"] = None
         else:
             report = verify_round.verify_table(
-                table, Path(args.delta_cli) if args.delta_cli else None
+                table,
+                Path(args.delta_cli) if args.delta_cli else None,
+                expected=expected,
+                capture_baseline=capture_baseline,
             )
             record["report"] = report
             record["problems"] = list(report["problems"])
@@ -446,6 +468,45 @@ def judge_round(
             failed.append(
                 f"row count {rows} does not equal the number of surviving appends {observed}"
             )
+        report = verification.get("report") or {}
+        content = report.get("content") or {}
+        if not content.get("branch"):
+            failed.append(
+                "no expected content was compared for this round, so schema, row values and "
+                "data-file digests are unproven (the round has no host-recorded baseline)"
+            )
+        elif not content.get("ok"):
+            reasons = "; ".join(content.get("problems") or ["no detail recorded"])
+            failed.append(f"content verification failed: {reasons}")
+        else:
+            # The two engines, the recorded expectation and the structural view
+            # must all report the same thing. Checking only that "delta-rs passed"
+            # is what let a forged row count through before.
+            project = content.get("project") or {}
+            second = content.get("deltaRs") or {}
+            counts = {
+                "project": project.get("rows"),
+                "deltaRs": second.get("rows"),
+                "expected": content.get("expectedRows"),
+                "inspect": rows,
+                "reportedDeltaRs": (report.get("deltaRs") or {}).get("rows"),
+            }
+            missing = [name for name, value in counts.items() if value is None]
+            if missing:
+                failed.append(
+                    f"row counts are missing for {missing}; content equality cannot be judged"
+                )
+            elif len(set(counts.values())) != 1:
+                failed.append(f"row counts disagree across engines/expectation: {counts}")
+            digests = {
+                "project": project.get("tableDigest"),
+                "deltaRs": second.get("tableDigest"),
+                "expected": content.get("expectedTableDigest"),
+            }
+            if any(value is None for value in digests.values()):
+                failed.append(f"content digests are missing: {digests}")
+            elif len(set(digests.values())) != 1:
+                failed.append(f"content digests disagree across engines/expectation: {digests}")
         if observed is not None and base_version is not None:
             survived = observed == base_version + 1
             record["commitOutcome"] = "survived" if survived else "lost"
@@ -485,6 +546,26 @@ def judge_round(
     record["reasons"] = failed + invalid
     record["invalidReasons"] = invalid
     record["failedReasons"] = failed
+
+
+def baseline_from_report(report: dict) -> dict | None:
+    """Turn a passing verification into the expectation for the next round.
+
+    The host records this from its own read of the cut image — the state the
+    next boot will replay into — so no later comparison ever trusts the guest.
+    """
+    content = report.get("content") or {}
+    project = content.get("project") or {}
+    if not content.get("ok") or not content.get("branch"):
+        return None
+    if project.get("status") != "PASSED" or not isinstance(project.get("rowDigests"), list):
+        return None
+    return {
+        "baseVersion": report.get("latest"),
+        "schemaString": report.get("schemaString"),
+        "rowDigests": project["rowDigests"],
+        "files": content.get("files") or {},
+    }
 
 
 # --------------------------------------------------------------------------
@@ -595,7 +676,9 @@ def run_prepare(args: argparse.Namespace, image: Path, size: int, workdir: Path)
         record["status"] = "INVALID"
         return record
 
-    verification = verify_image(args, image, workdir, 0, keep=not record["reasons"])
+    verification = verify_image(
+        args, image, workdir, 0, keep=not record["reasons"], capture_baseline=True
+    )
     record["verification"] = verification
     if verification.get("problems"):
         record["reasons"].extend(verification["problems"])
@@ -607,8 +690,23 @@ def run_prepare(args: argparse.Namespace, image: Path, size: int, workdir: Path)
             f"prepare expected version {args.setup} (init + {args.setup} clean appends), "
             f"found {observed}"
         )
+    baseline = baseline_from_report(verification.get("report") or {})
+    record["baseline"] = {
+        "version": (baseline or {}).get("baseVersion"),
+        "rows": len((baseline or {}).get("rowDigests") or []),
+        "tableDigest": (
+            verify_round.table_digest(baseline["rowDigests"]) if baseline else None
+        ),
+    }
+    if baseline is None:
+        record["reasons"].append(
+            "the clean setup state could not be recorded as a baseline, so no round would "
+            "have an expectation to compare against"
+        )
     record["baseVersion"] = observed
     record["status"] = "PASS" if not record["reasons"] else "FAILED"
+    if record["status"] == "PASS":
+        record["baselineState"] = baseline
     return record
 
 
@@ -620,6 +718,7 @@ def run_inject_round(
     index: int,
     boundary: str,
     base_version: int | None,
+    baseline: dict | None,
 ) -> dict:
     print(f"[round {index:03d}] cut at {boundary}")
     record: dict = {
@@ -681,9 +780,28 @@ def run_inject_round(
         return record
 
     keep = record.get("boundaryAnnounced") != record.get("boundaryRequested")
-    verification = verify_image(args, image, workdir, index, keep=keep)
+    expected = None
+    if baseline is not None:
+        expected = dict(baseline)
+        expected["appendRow"] = expected_append_row(args.payload, index)
+    verification = verify_image(args, image, workdir, index, keep=keep, expected=expected)
     record["verification"] = verification
     judge_round(record, base_version, require_host_verify=True, require_delta_rs=not args.smoke_test)
+    if record["status"] == "PASS":
+        carried = baseline_from_report(verification.get("report") or {})
+        if carried is None:
+            record["status"] = "FAILED"
+            record["failedReasons"].append(
+                "the verified state could not be recorded as the next round's baseline"
+            )
+            record["reasons"] = record["failedReasons"] + record.get("invalidReasons", [])
+        else:
+            record["baseline"] = {
+                "version": carried["baseVersion"],
+                "rows": len(carried["rowDigests"]),
+                "tableDigest": verify_round.table_digest(carried["rowDigests"]),
+            }
+            record["baselineState"] = carried
     record["finishedAt"] = now()
     return record
 
@@ -881,6 +999,12 @@ def main() -> int:
                              "every result is forced to INVALID and can never be evidence")
     args = parser.parse_args()
 
+    if not 0 <= args.setup < MAX_SETUP_APPENDS:
+        fail(
+            f"--setup must be between 0 and {MAX_SETUP_APPENDS - 1}: setup row ids come from "
+            "the same id space the target rows use"
+        )
+
     names, required = read_boundaries()
     args.workdir.mkdir(parents=True, exist_ok=True)
     seed = args.seed if args.seed is not None else random.SystemRandom().randrange(2**31)
@@ -914,7 +1038,8 @@ def main() -> int:
     print(f"[prepare] {prepared['status']} baseVersion={prepared.get('baseVersion')}")
     records: list[dict] = []
     base = prepared.get("baseVersion")
-    if prepared["status"] != "PASS" or base is None:
+    baseline = prepared.get("baselineState")
+    if prepared["status"] != "PASS" or base is None or baseline is None:
         setup_status = "INVALID" if prepared.get("staleDisk") else "FAILED"
         results = {
             "formatVersion": 1,
@@ -938,11 +1063,13 @@ def main() -> int:
 
     for index in range(1, args.rounds + 1):
         record = run_inject_round(
-            args, args.image, size, args.workdir, index, plan[index - 1], base
+            args, args.image, size, args.workdir, index, plan[index - 1], base, baseline
         )
         records.append(record)
         if record.get("observedVersion") is not None:
             base = record["observedVersion"]
+        if record["status"] == "PASS" and record.get("baselineState") is not None:
+            baseline = record["baselineState"]
         print(
             f"[round {index:03d}] {record['status']:<7} boundary={record.get('boundaryAnnounced')} "
             f"version={record.get('observedVersion')} (base was {record.get('baseVersion')})"

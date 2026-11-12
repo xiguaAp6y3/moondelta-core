@@ -132,6 +132,65 @@ def main() -> int:
     check(not missing, f"a {rounds}-round plan reaches every required boundary",
           f"plan never reaches: {missing}", problems)
 
+    print("content-expectation contract")
+    verifier_text = (HERE / "verify_round.py").read_text(encoding="utf-8")
+    check(
+        "capture_baseline=True" in runner_text and "expected=expected" in runner_text,
+        "the runner records a baseline and compares every cut round against it",
+        "the runner no longer passes an expectation to the verifier; a content edit "
+        "inside a Parquet payload would pass unnoticed",
+        problems,
+    )
+    check(
+        "no expected content" in runner_text,
+        "a round without a content comparison cannot be judged PASS",
+        "judge_round no longer rejects rounds with no content comparison",
+        problems,
+    )
+    check(
+        "def record_baseline" in verifier_text and "def compare_content" in verifier_text,
+        "the verifier owns baseline capture and two-engine content comparison",
+        "verify_round.py lost its content comparison",
+        problems,
+    )
+    # The host predicts the target row from the payload size and the round number
+    # alone; the guest must derive the same id, or the expectation is wrong and
+    # every round fails for the wrong reason.
+    sys.path.insert(0, str(HERE))
+    import run_powerloss  # noqa: E402  (same directory)
+    predicted = run_powerloss.expected_append_row(8192, 7)
+    check(
+        predicted["id"] == 8192 + run_powerloss.TARGET_ID_OFFSET + 7
+        and predicted["payload"] == "x" * 8192
+        and "PAYLOAD + 1000 + ROUND" in init_text
+        and run_powerloss.TARGET_ID_OFFSET == 1000,
+        "the guest derives the target row id exactly as the host predicts it",
+        "the guest's target row id formula and the host's prediction disagree",
+        problems,
+    )
+
+    print("S3 recover-interrupt matrix")
+    s3_path = HERE / "test_recover_interrupts.py"
+    if s3_path.is_file():
+        s3_text = s3_path.read_text(encoding="utf-8")
+        used = sorted(set(re.findall(r'"(cleanup-[a-z-]+)"', s3_text)))
+        check(
+            bool(used) and all(name in names for name in used),
+            f"the recover-interrupt matrix interrupts only real probe boundaries ({used})",
+            f"the recover-interrupt matrix names boundaries the probe cannot emit: "
+            f"{[name for name in used if name not in names]}",
+            problems,
+        )
+        check(
+            '"recover"' in s3_text and '"1" if apply else "0"' in s3_text,
+            "the recover-interrupt matrix drives the shipped `recover --apply` path",
+            "the recover-interrupt matrix no longer drives `recover --apply`",
+            problems,
+        )
+    else:
+        check(False, "the recover-interrupt matrix exists",
+              "test_recover_interrupts.py is missing", problems)
+
     print("verdict discipline")
     gate = (HERE / "check_environment.py").read_text(encoding="utf-8")
     check('"PASS"' not in gate, "the environment gate cannot print PASS",

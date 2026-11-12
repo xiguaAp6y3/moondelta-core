@@ -1,6 +1,6 @@
 # S5 掉电持久性 harness：可执行装置与验收规则
 
-状态：**PASSED_ON_CI（2026-11-12，100 轮）**。手动 CI（run 43157333594，固定 `ubuntu-24.04`）在 KVM 加速的 QEMU guest + 可丢弃 ext4 + 易失 NBD 模型上完成 100 轮有效切断，100/100 轮满足不变量，并由本项目 reader 与 delta-rs 逐轮读回。记录见 [ci-2026-11-12](ci-2026-11-12/README.md)。结论**只覆盖该记录的精确配置**；Windows 仍标记「强持久性不支持 / 未验证」。
+状态：**已实跑、内容门槛修正后待重跑（2026-11-12）**。手动 CI（run 43157333594，固定 `ubuntu-24.04`）在 KVM 加速的 QEMU guest + 可丢弃 ext4 + 易失 NBD 模型上完成 100 轮有效切断，100/100 轮满足**当时**的断言，并由本项目 reader 与 delta-rs 逐轮读回。记录见 [ci-2026-11-12](ci-2026-11-12/README.md)。2026-11-12 复验发现这些断言只核对版本/结构/引用长度，没有核对 Schema、行值与数据文件摘要，因此**不能**声明“内容一致”；验收器已补齐内容一致性（见 §5），修正后的 100 轮尚未重跑，完整事务验收仍为 `NOT_PASSED`（[复验记录](../transaction-2026-11-12-review/README.md)）。结论**只覆盖该记录的精确配置**；Windows 仍标记「强持久性不支持 / 未验证」。
 
 ## 1. 为什么单独设门禁
 
@@ -31,9 +31,11 @@ S1–S4 的 SIGKILL、I/O 注入、目录同步顺序与竞争测试只证明进
 | `guest/init` | guest 内一次性 agent：挂载数据盘（即 ext4 journal replay = “重启”）→ 建表 → 干净 append → 目标 append（探针定点阻塞），事件全部走 `ttyS1` |
 | `boundaries.json` | 17 个边界名称的单一事实来源；`required` 是 S5 必须覆盖的 9 个 |
 | `src/powerloss_probe.c` | 边界探针：`MOONDELTA_POWERLOSS_AT` 命中时向 `ttyS1` 通告 `BOUNDARY name=…` 并**阻塞**，让 host 定点切断而不是与 guest 赛跑。未设置环境变量时完全空转 |
-| `run_powerloss.py` | 100 轮编排器：正向控制 → 干净基线 → 每轮（起 NBD/QEMU、等边界、按序 SIGKILL、拷贝镜像、fsck、只读挂载、校验）→ `results-100.json` |
-| `verify_round.py` | 主机侧结构校验：日志连续、每条 commit 可解析、引用文件存在且长度一致、遗留 intent 与 commit 摘要互证、`delta inspect/read/recover` 一致、可选 delta-rs 交叉读取 |
-| `selfcheck.py` | 离线静态自检：C 侧能发出的边界名与 `boundaries.json` 完全一致、guest/编排器的 cmdline 契约一致、切断顺序正确、100 轮计划覆盖全部必需边界、门禁脚本永不输出 PASS |
+| `run_powerloss.py` | 100 轮编排器：正向控制 → 干净基线（记录基线 Schema/行摘要/文件摘要）→ 每轮（起 NBD/QEMU、等边界、按序 SIGKILL、拷贝镜像、fsck、只读挂载、校验）→ `results-100.json` |
+| `verify_round.py` | 主机侧校验：日志连续、每条 commit 可解析、引用文件存在且长度一致、遗留 intent 与 commit 摘要互证、`delta inspect/read/recover` 一致；给了预期基线时再做**内容对照**——Schema 逐字段、两引擎逐行内容摘要、数据文件摘要，任一缺失或差异即拒绝 |
+| `test_verifier.py` | 验收器自测：干净表（结构/内容两种模式）、结构类损坏反例、**同长度 payload 篡改 / Schema 变更 / 数据文件摘要不符**、合法残留形状，以及伪造 delta-rs 行数与“无内容对照轮次”必须判 FAILED |
+| `test_recover_interrupts.py` | S3 恢复器自身中断矩阵（仅 POSIX）：在 `cleanup-unlinked`/`cleanup-dir-fsynced` 边界 SIGKILL `recover --apply`，重复 apply 收敛并断言只删归属明确的垃圾、既有文件逐字节不变、双引擎读回一致、二次 apply 无删除、恢复后仍可写入 |
+| `selfcheck.py` | 离线静态自检：C 侧能发出的边界名与 `boundaries.json` 完全一致、guest/编排器的 cmdline 契约一致、切断顺序正确、100 轮计划覆盖全部必需边界、内容期望契约（基线对照 + guest 目标行 id 公式）一致、门禁脚本永不输出 PASS |
 | `check_environment.py` | 独立前置门禁；环境不满足时输出 `BLOCKED`，永不输出 PASS |
 
 `src/powerloss_probe.c` 的插入点（`src/atomic_file_native.c` 的发布/删除原语内部，因此是真正的系统调用边界）：
@@ -115,6 +117,7 @@ python3 artifacts/acceptance/powerloss/run_powerloss.py \
 | 正向控制用例未证明缓存丢弃 | 整组 `INVALID`，不可写成 PASS |
 | 某轮没有在通告的边界被切断 / 通告的边界不是请求的边界 / 主机校验无法执行 | 该轮 `INVALID`，整组不得为 PASS |
 | 恢复后版本不是「原版本」或「恰好一个完整新版本」、行数与存活 append 数不符、引用文件缺失/长度不符、`fsck` 判废、delta-rs 交叉读取失败 | 该轮 `FAILED`，停止并修复根因 |
+| Schema 与切断前基线不符、任一引擎的行内容摘要与预期不符、数据文件摘要变化、引擎读不出或输出无法解析、**该轮没有内容对照** | 该轮 `FAILED`（内容类缺口不允许以“结构仍然自洽”通过） |
 | 100 次有效运行全部满足不变量 | 仅可声明该**精确 VM / kernel / ext4 / 设备配置**的强持久性 |
 | 其他文件系统、macOS、WSL `/mnt/*`、NFS/SMB/FUSE、真实硬件缓存 | 不因上述结果自动纳入支持范围 |
 
@@ -124,6 +127,7 @@ python3 artifacts/acceptance/powerloss/run_powerloss.py \
 - 每个 `add` 引用的文件存在且长度与 `add.size` 一致；
 - 遗留 intent 若指向已存在的版本，其 `commitDigest` 必须与该 commit 内容一致；
 - 恢复版本 ∈ {上一轮版本, 上一轮版本 + 1}；行数 == 版本号（版本 0 建表 0 行，其后每次 append 1 行）；
+- **内容一致（2026-11-12 起强制）**：切段前 host 端记录基线版本、Schema、逐行规范化内容摘要与数据文件摘要，并按 `--payload` 与轮次预测目标事务必须新增的那一行（`id = payload + 1000 + round`）。恢复后按“提交存活/丢失”选取预期结果，要求：恢复日志的 Schema 与基线逐字段一致；项目 reader 与 delta-rs 给出**相同**的行数与逐行内容摘要，且两者都等于预期；两份输出都可解析、必需字段齐全；既有数据文件摘要不变。任一环节缺失、无法解析或出现差异即判该轮 FAILED——结构自洽不再足以通过；
 - 本项目 reader（`delta inspect`/`delta read`/`delta recover` 与 `verify_round.py`）读回一致；装有 `deltalake` 时另做 delta-rs 交叉读取，缺失记为 `SKIPPED` 而不是通过。
 
 ## 6. 已完成的验证 / 仍未验证
@@ -137,8 +141,9 @@ python3 artifacts/acceptance/powerloss/run_powerloss.py \
 - guest 实跑：`/proc/cmdline` 参数生效 → 挂载 `/dev/vda`（ext4）→ 建表 + managed 策略 → 执行 append；
 - `--trace` 一轮内通告 **23 个边界**，9 个必需边界全部命中，且持久化顺序按阶段正确（intent → data → commit → cleanup，data 目录同步先于 JSON 发布）；
 - **20 轮真实切断矩阵**：20/20 轮 `PASS`（切断 → `fsck` → 只读挂载 → `delta inspect/read`），17 个边界全部被覆盖至少一次，观测到 `commitSurvived=1` 与 `commitLost=19` 两种合法结果，行数/版本不变量全部成立；整体仍因 smoke/WSL 判 `INVALID`；
-- `test_verifier.py`：正例（干净表）+ 4 个反例（截断 JSON、删除被引用 parquet、自有 intent 摘要冲突、日志缺口）+ 2 个“合法残留”形状（未发布的 intent 临时文件、输给其它事务的 intent）全部符合预期；
-- `selfcheck.py` 全绿：C 侧可发出的 17 个边界名与 `boundaries.json` 完全一致、guest/编排器 cmdline 契约一致、切断顺序 QEMU→NBD、100 轮计划覆盖全部必需边界。
+- `test_verifier.py`：正例（干净表，结构模式与内容模式各一）+ 4 个结构类反例（截断 JSON、删除被引用 parquet、自有 intent 摘要冲突、日志缺口）+ 3 个**内容类**反例（同长度 payload 篡改、Schema 变更、数据文件摘要不符）+ 2 个“合法残留”形状（未发布的 intent 临时文件、输给其它事务的 intent）+ 2 个判决反例（伪造 delta-rs 行数、缺少内容对照的轮次必须 FAILED）；
+- `selfcheck.py` 全绿：C 侧可发出的 17 个边界名与 `boundaries.json` 完全一致、guest/编排器 cmdline 契约一致、切断顺序 QEMU→NBD、100 轮计划覆盖全部必需边界；
+- **2026-11-12 内容门槛修正（本机 Windows Native + 项目 reader/delta-rs）**：`verify_round.py` 现在要求基线 Schema/行摘要/数据文件摘要与双引擎逐行对照。`check_verifier_gaps_closed.py` 证明两处漏检已关闭（同长度篡改：结构模式仍 `ok=true`，内容模式被拒；伪造 delta-rs 行数：判 `FAILED`），`test_verifier.py` 13 项全过，`selfcheck.py` 全绿，`moon test --target native` 56/56；同进程真实多线程锁矩阵在 Windows 上 5 组竞争全过（`../transaction-2026-11-12-review/lock-threads-windows.log`）。
 
 已在 CI 实跑通过（2026-11-12，run 43157333594）：
 
@@ -151,12 +156,14 @@ python3 artifacts/acceptance/powerloss/run_powerloss.py \
 
 仍未验证 / 不在范围内：
 
-- Windows / NTFS：本结果不提供任何断电保证，仍标记「不支持 / 未验证」；
+- **内容一致性尚未在 100 轮矩阵上重跑**：2026-11-12 复验用同长度 payload 篡改与伪造 delta-rs 行数复现了两处漏检，验收器已补齐（`artifacts/acceptance/transaction-2026-11-12-review/verifier-gap-closure.json` 证明反例现已被拒），但修正后的 100 轮尚未执行，因此不得引用旧的 100 轮结果声称“内容一致”；
+- Windows / NTFS：本结果不提供任何断电保证，仍标记「不支持 / 未验证」（`lock_threads.c` 的 Windows 记录只覆盖进程内锁竞争，不是掉电证据）；
 - 其它 host 镜像、内核、文件系统（macOS、WSL `/mnt/*`、NFS/SMB/FUSE）、对象存储与真实硬件缓存行为；
 - `ubuntu-24.04` 镜像滚动后属于新配置，需要重新取证。
 
 ## 7. 与项目状态的关系
 
-- S5 已于 2026-11-12 在指定 CI 配置下通过 100 轮；声明范围严格限定在 `ci-2026-11-12/README.md` 记录的 host 镜像 / guest kernel / ext4 选项 / QEMU / NBD 设备模型，换任一要素都需重跑；
+- S5 的 2026-11-12 实跑证明的是**当时断言**覆盖的性质（版本、结构、引用长度、双引擎可读、指定同步边界存活）；声明范围严格限定在 `ci-2026-11-12/README.md` 记录的 host 镜像 / guest kernel / ext4 选项 / QEMU / NBD 设备模型；
+- 2026-11-12 复验发现这些断言不核对 Schema/行值/数据文件摘要，属可复现的验收器漏检（不是已观测到的 writer 损坏）。内容一致性已补齐并在小规模上被反例验证（`../transaction-2026-11-12-review/verifier-gap-closure.json`），但**完整事务验收仍为 `NOT_PASSED`，直到修正后的 100 轮矩阵重跑**；
 - `artifacts/acceptance/transaction-2026-11-11/results-100.json` 记录当时的状态（`power_loss: NOT_TESTED`），属历史证据，不被新结果改写；
-- 本目录同时保留 WSL2 冒烟记录（`smoke-wsl-2026-11-12/`，恒为 `INVALID`）与 CI 通过记录；Windows 仍只声明进程崩溃一致性。
+- 本目录同时保留 WSL2 冒烟记录（`smoke-wsl-2026-11-12/`，恒为 `INVALID`）与 CI 运行记录；Windows 仍只声明进程崩溃一致性。

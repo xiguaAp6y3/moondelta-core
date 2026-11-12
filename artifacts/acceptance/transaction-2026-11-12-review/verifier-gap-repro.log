@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "E:\Project\Moonbit Hackson\P1 RE\artifacts\acceptance\transaction-2026-11-12-review\reproduce_verifier_gaps.py", line 60, in <module>
+    main()
+  File "E:\Project\Moonbit Hackson\P1 RE\artifacts\acceptance\transaction-2026-11-12-review\reproduce_verifier_gaps.py", line 53, in main
+    assert forged["status"] == "PASS"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError

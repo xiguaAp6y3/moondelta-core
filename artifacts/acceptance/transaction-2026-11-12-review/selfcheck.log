@@ -1,0 +1,29 @@
+boundaries
+  ok    no duplicate boundary names
+  ok    every required boundary is declared
+  ok    publication probe calls found (5 operations)
+  ok    declared boundaries are exactly the ones the probe can emit
+  ok    phase "intent-publish" is still used by the writer
+  ok    phase "data-publish" is still used by the writer
+  ok    phase "commit-publish" is still used by the writer
+guest cmdline contract
+  ok    guest reads only parameters the runner supplies (8 keys)
+  ok    runner supplies only parameters the guest reads (8 keys)
+injection points
+  ok    guest arms the probe through its documented environment
+  ok    cut kills QEMU before the NBD device cache
+plan coverage
+  ok    a 100-round plan reaches every required boundary
+content-expectation contract
+  ok    the runner records a baseline and compares every cut round against it
+  ok    a round without a content comparison cannot be judged PASS
+  ok    the verifier owns baseline capture and two-engine content comparison
+  ok    the guest derives the target row id exactly as the host predicts it
+S3 recover-interrupt matrix
+  ok    the recover-interrupt matrix interrupts only real probe boundaries (['cleanup-dir-fsynced', 'cleanup-unlinked'])
+  ok    the recover-interrupt matrix drives the shipped `recover --apply` path
+verdict discipline
+  ok    the environment gate cannot print PASS
+  ok    runner distinguishes INVALID/BLOCKED from FAILED
+
+SELFCHECK: harness pieces agree (this is not power-loss evidence)

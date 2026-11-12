@@ -126,7 +126,7 @@ for entry in preview.entries {
 | 删除向量 | JSON 与 checkpoint 的 `add.deletionVector` 均拒绝 | column mapping、v2 checkpoint、CDF、MERGE/UPDATE/DELETE |
 | 存储 | 本地文件系统 | 对象存储（S3/R2） |
 | 事务与恢复 | OS 随机 txn ID、持久 intent、`query_transaction`、dry-run / 显式受管 apply 清理、POSIX `flock` 与 Windows `LockFileEx` 维护锁 | 跨请求 exactly-once operation ID、历史 VACUUM / 日志过期、分区表 append |
-| 断电持久性 | 已在指定 CI 配置下验证（100 轮有效切断，见 `artifacts/acceptance/powerloss/ci-2026-11-12/`）；结论仅覆盖该记录的 host 镜像/内核/ext4/设备模型 | 不宣称 Windows NTFS、WSL `/mnt/*`、NFS/SMB/FUSE 的强持久性 |
+| 断电持久性 | 已在指定 CI 配置下跑完 100 轮有效切断（`artifacts/acceptance/powerloss/ci-2026-11-12/`），但该轮断言未核对内容一致性；补齐内容门槛后需重跑，当前完整事务验收为 `NOT_PASSED`（见 `artifacts/acceptance/transaction-2026-11-12-review/`）；结论仅覆盖该记录的 host 镜像/内核/ext4/设备模型 | 不宣称 Windows NTFS、WSL `/mnt/*`、NFS/SMB/FUSE 的强持久性 |
 
 分区值回填覆盖 11 种 primitive；date 同时接受 `YYYY-MM-DD` 与 epoch 天数，timestamp 分区值使用 epoch 微秒。`add.stats` 必须是 JSON 编码字符串；非字符串或损坏内容直接报错。CLI 成功退出 0，错误走 stderr 并以非 0 退出。
 
@@ -147,8 +147,8 @@ for entry in preview.entries {
 
 完整路线图见 [docs/ROADMAP.md](docs/ROADMAP.md)，事务阶段验收见 [docs/S1-S5事务验收路线图.md](docs/S1-S5事务验收路线图.md)。0.4.0 已完成 M1–M4、S1–S3 的代码与本机验收，当前剩余重点：
 
-- S5 掉电持久性：已在手动 CI（`.github/workflows/s5-powerloss.yml`，run 43157333594）的 100 轮有效切断矩阵中通过，证据与精确配置见 `artifacts/acceptance/powerloss/ci-2026-11-12/`；结论只覆盖该记录的组合，Windows NTFS 仍未验证；
-- 远端 CI 实际运行一次并保存 artifacts（本地 Linux/Windows 矩阵已通过，但不能替代）；
+- S5 掉电持久性：手动 CI（`.github/workflows/s5-powerloss.yml`，run 43157333594）已跑完 100 轮有效切断，但该轮断言只核对版本/结构/引用长度与双引擎可读，未核对 Schema、行值与数据文件摘要；验收器已补内容一致性（基线 Schema/行摘要/文件摘要 + 双引擎逐行对照）并有两处漏检的闭合回归，**修正后的 100 轮尚未重跑**，因此完整事务验收仍为 `NOT_PASSED`；证据与精确配置见 `artifacts/acceptance/powerloss/ci-2026-11-12/` 与 `artifacts/acceptance/transaction-2026-11-12-review/`；Windows NTFS 仍未验证；
+- 远端 CI 已实际运行（run 43160975199 两平台成功），后续改动需保持绿；
 - 发布包含本轮事务加固的新版本并复核 registry 安装；
 - 补带时区/精度语义的 `timestamp_ntz`、timestamp millis/nanos；
 - ZSTD/GZIP/BROTLI 解压、分区表 append、对象存储（S3/R2）、CDF、Float/Timestamp 写入；

@@ -54,10 +54,45 @@ jobs:
       - name: Build transaction test worker
         run: moon build --target native src/examples/atomic_commit_worker
 
+      # The verifier is the only thing between a corrupted table and a recorded
+      # PASS, so it runs on every push with both engines installed: the negative
+      # cases include a same-length Parquet payload edit and a forged second-engine
+      # row count, neither of which structure checks can see.
+      - name: Verify the table verifier rejects structure and content damage
+        run: |
+          python -u artifacts/acceptance/powerloss/test_verifier.py \
+            --worker _build/native/debug/build/examples/atomic_commit_worker/atomic_commit_worker.exe \
+            --delta-cli _build/native/debug/build/cmd/delta/delta.exe
+
+      - name: Check the reported verifier gaps stay closed
+        run: |
+          python -u artifacts/acceptance/transaction-2026-11-12-review/check_verifier_gaps_closed.py \
+            --worker _build/native/debug/build/examples/atomic_commit_worker/atomic_commit_worker.exe \
+            --delta-cli _build/native/debug/build/cmd/delta/delta.exe
+
+      # S2 asks for one process with independent handles driven by several
+      # threads. The harness calls the shipped C lock functions, not a model.
+      - name: Same-process lock contention with real threads (POSIX)
+        run: |
+          cc -O2 -I"$HOME/.moon/include" -Isrc -o _build/lock-threads \
+             artifacts/acceptance/lock_threads.c -pthread
+          _build/lock-threads
+
       - name: Verify native transaction failure and race behavior
         run: |
           mkdir -p _build/transaction-acceptance
           python -u artifacts/acceptance/test_atomic_commit_wsl.py --iterations 100 --output _build/transaction-acceptance/results.json | tee _build/transaction-acceptance/integration.out
+
+      # S3: interrupt the recoverer itself at its deletion boundaries, then let
+      # it converge. Process-crash evidence only, not power-loss evidence.
+      - name: Recover-interrupt matrix (POSIX boundaries)
+        run: |
+          mkdir -p _build/transaction-acceptance
+          python -u artifacts/acceptance/powerloss/test_recover_interrupts.py \
+            --worker _build/native/debug/build/examples/atomic_commit_worker/atomic_commit_worker.exe \
+            --delta-cli _build/native/debug/build/cmd/delta/delta.exe \
+            --json _build/transaction-acceptance/recover-interrupts.json \
+            | tee _build/transaction-acceptance/recover-interrupts.out
 
       - name: Preserve transaction acceptance evidence
         if: always()
@@ -95,6 +130,27 @@ jobs:
 
       - name: Build transaction test worker
         run: moon build --target native src/examples/atomic_commit_worker
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install transaction test oracles
+        run: python -m pip install deltalake==1.6.6 pyarrow==26.0.0
+
+      - name: Verify the table verifier rejects structure and content damage
+        shell: pwsh
+        run: |
+          python -u artifacts/acceptance/powerloss/test_verifier.py `
+            --worker _build/native/debug/build/examples/atomic_commit_worker/atomic_commit_worker.exe `
+            --delta-cli _build/native/debug/build/cmd/delta/delta.exe
+
+      - name: Check the reported verifier gaps stay closed
+        shell: pwsh
+        run: |
+          python -u artifacts/acceptance/transaction-2026-11-12-review/check_verifier_gaps_closed.py `
+            --worker _build/native/debug/build/examples/atomic_commit_worker/atomic_commit_worker.exe `
+            --delta-cli _build/native/debug/build/cmd/delta/delta.exe
 
       - name: Verify Windows intent, recovery, query and LockFileEx behavior
         shell: pwsh

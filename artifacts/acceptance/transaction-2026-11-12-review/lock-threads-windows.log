@@ -1,0 +1,35 @@
+gcc.exe (Rev2, Built by MSYS2 project) 14.2.0
+build: D:\msys64\mingw64\bin\gcc.exe -O2 -Wall -I %USERPROFILE%\.moon\include -I src -o lock_threads.exe artifacts/acceptance/lock_threads.c
+In file included from artifacts/acceptance/lock_threads.c:46:
+src/atomic_file_native.c:31:13: warning: 'moondelta_boundary' defined but not used [-Wunused-function]
+   31 | static void moondelta_boundary(const char *phase, const char *operation,
+      |             ^~~~~~~~~~~~~~~~~~
+--- run ---
+table maintenance lock, same process, real threads
+root: C:\Users\Gua3\AppData\Local\Temp\md-lock-threads-13556
+exclusive lock serializes threads of one process
+        acquired=160 released=160 overlaps=0
+  ok    no two threads held the exclusive lock at the same time
+  ok    every acquisition was matched by a release
+a held lock is busy for another thread of the same process
+  ok    the writer thread holds the exclusive lock
+  ok    the recoverer's non-blocking exclusive attempt reports busy
+  ok    the writer releases the lock
+  ok    after the release the recoverer acquires the lock
+shared holders coexist while an exclusive recoverer is refused
+  ok    every thread acquired the shared lock
+  ok    all shared holders hold it at the same time
+  ok    an exclusive attempt is refused while shared holders exist
+  ok    the exclusive lock is available once the readers are gone
+repeated threaded acquire/release does not leak lock handles
+  ok    every churn acquisition succeeded
+  ok    the lock is still acquirable after the churn
+writer (shared) excludes the recoverer, which wins after it finishes
+  ok    the writer holds the shared lock
+  ok    the recoverer is refused while a writer is active
+  ok    the writer finishes and releases
+  ok    the recoverer acquires the lock once no writer is active
+  ok    the fixed lock file still exists at the documented path
+
+LOCK THREADS: PASS (5 contention cases, same process)
+exit=0

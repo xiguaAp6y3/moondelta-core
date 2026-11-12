@@ -4,7 +4,7 @@ fn main {
   let args = @env.args()
   if args.length() < 3 {
     println(
-      "usage: atomic_commit_worker <init|append|empty|read|recover|query|manage> <table-root> <value-or-version-or-txn-id>",
+      "usage: atomic_commit_worker <init|append|empty|read|recover|query|manage> <table-root> <value-or-version-or-txn-id> [id]",
     )
     return
   }
@@ -130,6 +130,19 @@ fn main {
     return
   }
   let payload_size = value.to_int()
+  // Optional 4th argument: an explicit value for the `id` cell, so a caller can
+  // make every appended row content-unique while keeping the payload size fixed.
+  // Defaults to the payload size, which is what every existing caller expects.
+  let row_id = if args.length() >= 5 {
+    @string.parse_int64(args[4], base=10) catch {
+      _ => {
+        println("id must be an integer")
+        return
+      }
+    }
+  } else {
+    value
+  }
   let payload_builder = StringBuilder()
   let chunk = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
   let mut remaining = payload_size
@@ -142,7 +155,7 @@ fn main {
     remaining = remaining - 1
   }
   let columns : Array[@delta.ReadColumn] = [
-    { name: "id", type_: @delta.Int64Type, cells: if mode == "empty" { [] } else { [@delta.CellI64(value)] } },
+    { name: "id", type_: @delta.Int64Type, cells: if mode == "empty" { [] } else { [@delta.CellI64(row_id)] } },
     { name: "payload", type_: @delta.StringType, cells: if mode == "empty" { [] } else { [@delta.CellStr(payload_builder.to_string())] } },
   ]
   let (version, txn) = @delta.append_rows_with_txn(root, columns, value) catch {

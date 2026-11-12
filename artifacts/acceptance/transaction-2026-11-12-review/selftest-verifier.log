@@ -1,0 +1,31 @@
+building a real table
+positive case (structure only)
+  ok    clean table verifies  []
+  ok    latest version is 2  got 2
+  ok    reader agrees on row count  got 2
+  ok    delta-rs cross-read attempted  PASSED
+  ok    structure-only verification does not claim content  got None
+baseline capture (the state a cut must start from)
+  ok    baseline is recorded and cross-checked  []
+  ok    baseline version is 1  got 1
+positive case (content, commit survived)
+  ok    clean table matches the recorded expectation  []
+  ok    content branch is 'survived'  got 'survived'
+  ok    both engines report the same row content  project a0560f2ad3c76ad3e06c77691eeb2b5a77cefeea876ffaf79f147d63ac10dce8 vs delta-rs a0560f2ad3c76ad3e06c77691eeb2b5a77cefeea876ffaf79f147d63ac10dce8
+negative cases (each must be rejected)
+  ok    truncated commit JSON  problems=['version 2: line is not valid JSON (Expecting value: line 1 column 16 (char 15))', 'delta inspect failed: error: parse error: invalid JSON in _delta_log version 2', 'delta read failed: error: parse e
+  ok    referenced data file deleted  problems=['version 1: referenced data file is missing: part-4096-1-a5e931eb38d735ecce21147b749a2c57.parquet', "delta read failed: error: io error: cannot read 'part-4096-1-a5e931eb38d735ecce21147b749a2c57.parq
+  ok    owning intent contradicts its commit  problems=['published intent 7e600acdf944b00100e3a45bf4efbe64.json owns version 2 but its digest does not match that commit']
+  ok    log gap  problems=['log is not contiguous: 0 then 2', 'delta inspect failed: error: not found: log version 1 is missing (log gap or truncated log; this kernel replays the full JSON log and does not fall back to checkpo
+  ok    same-length payload edit  problems=['content mismatch (survived): project reader returned 2 rows with digest set 68053a2bceac7527, expected 2 rows with a0560f2ad3c76ad3', 'content mismatch (survived): delta-rs returned 2 rows with dige
+  ok    schema changed after the cut  problems=["delta read failed: error: unsupported: column 'extra' is missing from parquet file 'part-4096-1-a5e931eb38d735ecce21147b749a2c57.parquet'", 'schema changed: the recovered log declares a different sc
+  ok    data file digest no longer matches  problems=['data file changed content after the cut: part-4096-1-a5e931eb38d735ecce21147b749a2c57.parquet was 0000000000000000 (4301 bytes) and is now b2c7a2f1196cf872 (4301 bytes)']
+legal residue (must not be reported as damage)
+  ok    unpublished intent temporary  problems=[]
+  ok    published intent that lost the version  problems=[]
+round verdict (run_powerloss.judge_round)
+  ok    a sound round with matching content passes  PASS: []
+  ok    a forged delta-rs row count is rejected  FAILED: ["row counts disagree across engines/expectation: {'project': 2, 'deltaRs': 2, 'expected': 2, 'inspect': 2, 'reportedDeltaRs': 999999}"]
+  ok    a round with no content comparison is rejected  FAILED: ['no expected content was compared for this round, so schema, row values and data-file digests are unproven (the round has no host-recorded baseline)']
+
+VERIFIER SELFTEST: PASS (clean table accepted with and without an expectation, 7 damages rejected, 2 legal-residue shapes accepted, forged round verdicts rejected)

@@ -330,17 +330,17 @@ fn cmd_read(root : String, rest : Array[String]) -> Bool {
     header.push(c.name + " (" + @delta.delta_type_name(c.type_) + ")")
   }
   println(join(header, " | "))
+  // Every row that was actually read is printed: `--limit` already bounds the
+  // read, so the acceptance harness can ask for the whole table and compare it
+  // row by row against a second engine. `--limit 10` still prints 10 rows.
   let mut r = 0
-  while r < result.row_count && r < 10 {
+  while r < result.row_count {
     let cells : Array[String] = []
     for c in result.columns {
       cells.push(@delta.cell_to_display(c.cells[r]))
     }
     println(join(cells, " | "))
     r = r + 1
-  }
-  if result.row_count > 10 {
-    println("... (" + (result.row_count - 10).to_string() + " more rows)")
   }
   true
 }

@@ -83,3 +83,52 @@ S5 的已证明范围仍严格限定为记录中的 CI 镜像、QEMU/KVM、guest
 ```
 
 该诊断脚本退出 0 表示漏检反例成功复现，绝不代表事务或 S5 通过。修正验收器后，其“漏检仍存在”断言应失败；届时应将反例转入正式的负向回归，并保留本次原始结果。
+
+---
+
+## 续做：验收器内容门槛补齐（2026-11-12 下午）
+
+上面记录的问题已按“P1”要求修正，并补齐了 P2 中两项可执行缺口的装置。**完整事务验收仍为 `NOT_PASSED`，原因已从“验收器漏检”变成“修正后的 100 轮矩阵尚未重跑”。**
+
+### 改了什么
+
+1. **主机端基线（独立控制端）**：`run_powerloss.py` 在干净基线 boot 后用 `verify_round.record_baseline()` 记录该状态的版本、Schema、逐行规范化内容摘要（每行 canonical JSON 的 SHA-256，多重集比较）与每个数据文件的 SHA-256；此后每轮都用上一轮通过验证的状态作为本轮的预期基线，不从 guest 读取任何预期值。
+2. **目标事务的预期内容先于切断确定**：目标行的 `id = payload + 1000 + round`、`payload = 'x' * payload`，由 `run_powerloss.expected_append_row()` 在 host 端算出（`guest/init` 用同一公式，`selfcheck.py` 校验两侧一致）。`worker append` 因此新增可选第 4 个参数（显式 id），使每行内容唯一——不再是“一堆完全相同的行”。
+3. **恢复后强制内容对照**：`verify_round.compare_content()` 按“提交存活/丢失”选取预期结果，要求 ①日志 Schema 与基线逐字段一致；②项目 reader（`delta read`，现在会打印全部读到的行）与 delta-rs 返回**相同**的行数与逐行摘要；③两者都等于预期；④既有数据文件摘要不变。任一读取失败、输出无法解析、必需字段缺失或差异即记为该轮问题。
+4. **判决不再只看 `deltaRs.status`**：`judge_round` 现在要求该轮存在内容对照，且 project / deltaRs / expected / inspect 四处的行数与内容摘要互相一致；缺内容或数字互相矛盾一律 `FAILED`。`verify_round.py` 只做结构校验时显式标注 `content.ok = null`，并提示“内容未比对”。
+5. **反例转为正式负向回归**：`test_verifier.py` 增加同长度 payload 篡改、Schema 变更、数据文件摘要不符，以及“伪造 delta-rs 行数”“缺少内容对照的轮次”两个判决反例；新增 `check_verifier_gaps_closed.py`，把本文件报告的两处漏检做成闭合回归（结果 `verifier-gap-closure.json`，`gapsClosed: true`）。原 `reproduce_verifier_gaps.py` 与 `verifier-gap-results.json` 原样保留；该脚本现在按设计失败（`assert forged["status"] == "PASS"` 不再成立）。
+
+### 补的其它缺口
+
+- **S2 同进程真实多线程**：`artifacts/acceptance/lock_threads.c` 用真实线程并发调用 writer/恢复器所用的同一对锁原语（`moondelta_lock_table` / `moondelta_unlock_table`），覆盖独占互斥、共享共存、busy 可见、释放后获取、句柄不泄漏与固定锁文件不被替换。Windows 侧已编译运行并记录（`lock-threads-windows.log`，5 组全过）；POSIX 侧由 `ci.yml` 编译运行。**范围说明**：这证明锁原语与其 FFI 层的线程竞争语义，不等于“多线程并发执行完整 append 流程”已被支持。
+- **S3 恢复器自身中断矩阵**：`artifacts/acceptance/powerloss/test_recover_interrupts.py` 复用 `src/powerloss_probe.c`，在 `cleanup-unlinked` 与 `cleanup-dir-fsynced` 两个删除边界定点阻塞并 SIGKILL `recover --apply`（可连续中断两次），随后重复 apply 收敛，断言只删归属明确的临时文件与 intent、既有文件逐字节不变、双引擎读回一致、二次 apply 无删除、恢复后仍可写入。仅 POSIX，由 `ci.yml` 运行；**尚未在本机实际执行**（本机无 WSL/Linux，探针在 Windows 上是 no-op），其非中断部分（残留分类、幂等收敛、双引擎读回、恢复后写入）已在本机逐项跑通。
+
+### 本轮实测（Windows Native，项目 reader + delta-rs 1.6.6）
+
+| 检查 | 结果 |
+|---|---|
+| `moon test --target native` | 56/56，0 failed |
+| `test_verifier.py` | 13 项全过：干净表（结构/内容两模式）、4 个结构类反例、3 个内容类反例、2 个合法残留、2 个判决反例 |
+| `check_verifier_gaps_closed.py` | `gapsClosed: true`；同长度篡改在结构模式仍 `ok=true`，在内容模式被拒；伪造行数判 `FAILED` |
+| `selfcheck.py` | 全绿（新增内容期望契约与 S3 矩阵边界一致性检查） |
+| `lock_threads.c`（Windows） | 5 组竞争全过；此前记录仅有多进程与顺序多句柄 |
+
+原始输出：`selftest-verifier.log`、`selfcheck.log`、`verifier-gap-closure.json`、`lock-threads-windows.log`、`verifier-gap-repro.log`（后者为“旧脚本已失效”的记录）。
+
+### 还没闭合的
+
+- **修正后的 100 轮 S5 矩阵尚未重跑**，因此 `Schema/行值/数据文件摘要全部正确` 这一 S5 门槛目前只有小规模反例证据，没有矩阵证据。重跑入口：`s5-powerloss.yml`（`workflow_dispatch`），跑完后新结果必须覆盖本文件开头引用的旧记录，不能混用。
+- S3 中断矩阵与 POSIX 线程矩阵的**首次真实执行**在 CI 上完成；本机（Windows）无法替代。
+- 旧记录 `ci-2026-11-12/results-100.json` 保持原样，其结论范围现在应读作“版本/结构/引用长度/双引擎可读性通过”，不再读作“内容一致”。
+
+复现本轮检查：
+
+```bash
+python artifacts/acceptance/powerloss/test_verifier.py \
+  --worker _build/native/debug/build/examples/atomic_commit_worker/atomic_commit_worker.exe \
+  --delta-cli _build/native/debug/build/cmd/delta/delta.exe
+python artifacts/acceptance/transaction-2026-11-12-review/check_verifier_gaps_closed.py \
+  --worker _build/native/debug/build/examples/atomic_commit_worker/atomic_commit_worker.exe \
+  --delta-cli _build/native/debug/build/cmd/delta/delta.exe
+python artifacts/acceptance/powerloss/selfcheck.py
+```

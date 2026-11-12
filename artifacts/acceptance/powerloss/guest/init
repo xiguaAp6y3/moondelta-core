@@ -99,7 +99,9 @@ fi
 if [ "$MODE" = "prepare" ]; then
   i=0
   while [ "$i" -lt "$SETUP" ]; do
-    out=$("$WORKER" append "$TABLE" "$PAYLOAD" 2>&1)
+    # Every appended row gets a distinct id so that the host can tell rows apart
+    # instead of comparing a multiset of identical ones.
+    out=$("$WORKER" append "$TABLE" "$PAYLOAD" "$((PAYLOAD + i))" 2>&1)
     rc=$?
     say "SETUP_APPEND index=$i rc=$rc out=$(one_line "$out")"
     i=$((i + 1))
@@ -126,8 +128,11 @@ fi
 MOONDELTA_POWERLOSS_SIGNAL=$EV
 export MOONDELTA_POWERLOSS_AT MOONDELTA_POWERLOSS_PAUSE MOONDELTA_POWERLOSS_SIGNAL
 
-say "TARGET_BEGIN round=$ROUND boundary=$BOUNDARY mode=$MODE"
-out=$("$WORKER" append "$TABLE" "$PAYLOAD" 2>&1)
+say "TARGET_BEGIN round=$ROUND boundary=$BOUNDARY mode=$MODE id=$((PAYLOAD + 1000 + ROUND))"
+# The target row's id is derived only from the round number and the payload size,
+# so the host can predict the exact row content before the cut and compare it
+# against what the recovered table actually contains.
+out=$("$WORKER" append "$TABLE" "$PAYLOAD" "$((PAYLOAD + 1000 + ROUND))" 2>&1)
 rc=$?
 # In inject mode the probe blocks before this line can be reached, so seeing it
 # means the requested boundary was never hit and the round is not evidence.
