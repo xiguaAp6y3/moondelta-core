@@ -103,7 +103,7 @@ jobs:
           echo "loop mount: OK"
           sudo umount /mnt/loop-probe
           sudo losetup -f >/dev/null && echo "free loop device: available"
-          rm -f "$img"
+          sudo rm -f "$img"
 
       - name: Install MoonBit
         run: |
