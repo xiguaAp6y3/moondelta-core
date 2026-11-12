@@ -13,7 +13,7 @@
 - Windows 维护锁：固定 `.moondelta.lock` 句柄 + `LockFileEx`（共享/独占/非阻塞独占、句柄不继承、进程退出释放），与 POSIX `flock` 对齐
 - 保守恢复门禁：多部分 checkpoint、checkpoint-only、reader v2+ / 未知 action / 状态不可判定的表一律只报告不删除；受影响路径会单独列出原因
 - S5 掉电前置门禁 `artifacts/acceptance/powerloss/`：环境不满足时输出 `BLOCKED`，脚本永不输出 PASS
-- S5 掉电矩阵在 CI 实跑通过（2026-11-12，run 43157333594）：KVM 加速 QEMU guest + 可丢弃 ext4 + 易失 NBD 模型，100/100 轮有效切断满足不变量并由本项目 reader 与 delta-rs 逐轮读回；`commit-publish-dir-fsynced` 之后切断的 6 轮提交全部存活、此前切断的提交全部丢失。证据见 `artifacts/acceptance/powerloss/ci-2026-11-12/`；强持久性只对该记录配置声明，Windows 仍不支持
+- S5 掉电矩阵在 CI 实跑通过（2026-11-12，run 43157333594）：KVM 加速 QEMU guest + 可丢弃 ext4 + 易失 NBD 模型，100/100 轮有效切断满足不变量并由本项目 reader 与 delta-rs 逐轮读回；`commit-publish-dir-fsynced` 之后切断的 6 轮提交全部存活、此前切断的提交全部丢失。证据见 `artifacts/acceptance/powerloss/ci-2026-11-12/`；强持久性只对该记录配置声明，Windows 仍不支持。同一 seed 在提交 `9c4988f` 上重跑（run 43160174168）结果逐项一致，切断计划与逐边界存活/丢失分布完全相同
 - S5 掉电装置（在 CI 实跑之前的历史记录）：边界探针 `src/powerloss_probe.c`（`MOONDELTA_POWERLOSS_AT` 命中时向串口通告并阻塞，插在 `moondelta_publish_pinned`/`moondelta_unlink_sync` 的系统调用边界，未启用时空转）、最小 guest 构建 `mk_initramfs.py` + `guest/init`、17 个边界的单一事实来源 `boundaries.json`、100 轮编排器 `run_powerloss.py`（QEMU→NBD 顺序 SIGKILL、逐轮拷贝 + `fsck` + 只读挂载 + 校验）、主机侧结构校验 `verify_round.py`（日志连续/引用文件长度/遗留 intent 摘要互证/双引擎读回）、离线自检 `selfcheck.py`
 - 手动触发 workflow `.github/workflows/s5-powerloss.yml`（`workflow_dispatch`，固定 `ubuntu-24.04`）：装依赖 → 构建 → 取 guest kernel/modules → 构建 initramfs → 自检 → 门禁 → 边界 trace → 100 轮矩阵 → 产物上传；`rounds < 100` 降级为 `INVALID`，`check_environment.py` 的 KVM 改为 advisory（TCG 语义相同）
 - S5 装置冒烟验证（WSL2，`smokeTest: true`，恒为 `INVALID`，非证据）：边界 trace 一轮通告 23 个边界、9 个必需边界全部命中且顺序符合持久化语义；20 轮真实切断矩阵 20/20 通过（切断 → `fsck` → 只读挂载 → `delta inspect/read`），17 个边界全覆盖，观测到提交存活与提交丢失两种合法结果；新增 `test_verifier.py`（正例 + 4 反例 + 2 个合法残留形状）

@@ -44,4 +44,10 @@
 gh workflow run s5-powerloss.yml --ref main -f rounds=100 -f seed=1748647336
 ```
 
-同一 `ImageVersion` 下应得到同一组切断计划；runner 镜像滚动后属于新配置，需要重新取证。
+已做过的可复现性检查：同一 seed 在提交 `9c4988f`（仅文档与 `ci.yml` 变化）上重跑，结果**逐项一致**——
+
+- run 43157333594（`8eff403`）与 run 43160174168（`9c4988f`）都是 `PASS`，`100/100` 轮、`failed=0`、`invalid=0`；
+- 切断计划（100 个边界名序列）完全相同，`commitSurvived=6`、`commitLost=94` 完全相同；
+- 逐边界结果完全相同：`commit-publish-dir-fsynced` 6 轮全部存活，其余边界全部丢失。
+
+runner 镜像滚动（`ImageVersion` 变化）后属于新配置，需要重新取证。
