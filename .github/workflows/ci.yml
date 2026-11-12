@@ -75,7 +75,10 @@ jobs:
       - name: Install MoonBit
         shell: pwsh
         run: |
-          iwr https://cli.moonbitlang.com/install/windows.ps1 -useb | iex
+          # Upstream renamed the Windows installer to powershell.ps1; the old
+          # windows.ps1 path now answers 403, which failed this job before a
+          # single test ran.
+          iwr https://cli.moonbitlang.com/install/powershell.ps1 -useb | iex
           "$env:USERPROFILE\.moon\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
 
       - name: Show toolchain
