@@ -13,7 +13,8 @@
 - Windows 维护锁：固定 `.moondelta.lock` 句柄 + `LockFileEx`（共享/独占/非阻塞独占、句柄不继承、进程退出释放），与 POSIX `flock` 对齐
 - 保守恢复门禁：多部分 checkpoint、checkpoint-only、reader v2+ / 未知 action / 状态不可判定的表一律只报告不删除；受影响路径会单独列出原因
 - S5 掉电前置门禁 `artifacts/acceptance/powerloss/`：环境不满足时输出 `BLOCKED`，脚本永不输出 PASS
-- S5 掉电装置补齐（仍未运行，不构成持久性证据）：边界探针 `src/powerloss_probe.c`（`MOONDELTA_POWERLOSS_AT` 命中时向串口通告并阻塞，插在 `moondelta_publish_pinned`/`moondelta_unlink_sync` 的系统调用边界，未启用时空转）、最小 guest 构建 `mk_initramfs.py` + `guest/init`、17 个边界的单一事实来源 `boundaries.json`、100 轮编排器 `run_powerloss.py`（QEMU→NBD 顺序 SIGKILL、逐轮拷贝 + `fsck` + 只读挂载 + 校验）、主机侧结构校验 `verify_round.py`（日志连续/引用文件长度/遗留 intent 摘要互证/双引擎读回）、离线自检 `selfcheck.py`
+- S5 掉电矩阵在 CI 实跑通过（2026-11-12，run 43157333594）：KVM 加速 QEMU guest + 可丢弃 ext4 + 易失 NBD 模型，100/100 轮有效切断满足不变量并由本项目 reader 与 delta-rs 逐轮读回；`commit-publish-dir-fsynced` 之后切断的 6 轮提交全部存活、此前切断的提交全部丢失。证据见 `artifacts/acceptance/powerloss/ci-2026-11-12/`；强持久性只对该记录配置声明，Windows 仍不支持
+- S5 掉电装置（在 CI 实跑之前的历史记录）：边界探针 `src/powerloss_probe.c`（`MOONDELTA_POWERLOSS_AT` 命中时向串口通告并阻塞，插在 `moondelta_publish_pinned`/`moondelta_unlink_sync` 的系统调用边界，未启用时空转）、最小 guest 构建 `mk_initramfs.py` + `guest/init`、17 个边界的单一事实来源 `boundaries.json`、100 轮编排器 `run_powerloss.py`（QEMU→NBD 顺序 SIGKILL、逐轮拷贝 + `fsck` + 只读挂载 + 校验）、主机侧结构校验 `verify_round.py`（日志连续/引用文件长度/遗留 intent 摘要互证/双引擎读回）、离线自检 `selfcheck.py`
 - 手动触发 workflow `.github/workflows/s5-powerloss.yml`（`workflow_dispatch`，固定 `ubuntu-24.04`）：装依赖 → 构建 → 取 guest kernel/modules → 构建 initramfs → 自检 → 门禁 → 边界 trace → 100 轮矩阵 → 产物上传；`rounds < 100` 降级为 `INVALID`，`check_environment.py` 的 KVM 改为 advisory（TCG 语义相同）
 - S5 装置冒烟验证（WSL2，`smokeTest: true`，恒为 `INVALID`，非证据）：边界 trace 一轮通告 23 个边界、9 个必需边界全部命中且顺序符合持久化语义；20 轮真实切断矩阵 20/20 通过（切断 → `fsck` → 只读挂载 → `delta inspect/read`），17 个边界全覆盖，观测到提交存活与提交丢失两种合法结果；新增 `test_verifier.py`（正例 + 4 反例 + 2 个合法残留形状）
 - 修掉冒烟中暴露的装置缺陷：NBD simple reply 字段顺序应为 `magic,error,handle`（原先写成 `magic,handle,error`，QEMU 报 `unexpected cookie value`）、未知选项需回 `NBD_REP_ERR_UNSUP` 继续协商、`cpio` 未喂文件列表且二进制流误用文本模式、initramfs 缺 `/proc` 导致 cmdline 参数被静默忽略、guest 调 `append` 少传表路径、`mk_initramfs` 把 `modprobe` 的 `builtin` 行误判为“没有模块”、`verify_round` 把 intent 临时文件与“输给其它事务”的 intent 误判为损坏
@@ -36,7 +37,7 @@
 ### Notes
 
 - 本版本尚未发布到 mooncakes.io；registry 最新仍为 0.3.1
-- S5 掉电持久性（专用 Linux VM + 可丢弃 ext4 盘）与远端 CI 实际运行仍未完成；Windows 仅声明进程崩溃一致性，不声明 NTFS 断电持久性
+- S5 掉电持久性已于 2026-11-12 在指定 CI 配置下通过 100 轮（证据见 `artifacts/acceptance/powerloss/ci-2026-11-12/`）；Windows 仍仅声明进程崩溃一致性，不声明 NTFS 断电持久性
 
 ## [0.3.1] - 2026-10-31
 

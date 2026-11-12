@@ -1,6 +1,6 @@
 # S5 掉电持久性 harness：可执行装置与验收规则
 
-状态：**HARNESS_VALIDATED_ON_WSL / NOT_RUN_ON_QUALIFIED_HOST**。装置已齐，并在本机通过离线自检与 WSL2 端到端冒烟（边界 trace + 20 轮真实切断，产物一律记 `smokeTest: true`、结论恒为 `INVALID`）。但**没有**在合格 Linux host 上跑过 100 轮矩阵，因此 S5 仍是 **BLOCKED / NOT_PASSED**，任何文档都不得据此声明断电持久性。
+状态：**PASSED_ON_CI（2026-11-12，100 轮）**。手动 CI（run 43157333594，固定 `ubuntu-24.04`）在 KVM 加速的 QEMU guest + 可丢弃 ext4 + 易失 NBD 模型上完成 100 轮有效切断，100/100 轮满足不变量，并由本项目 reader 与 delta-rs 逐轮读回。记录见 [ci-2026-11-12](ci-2026-11-12/README.md)。结论**只覆盖该记录的精确配置**；Windows 仍标记「强持久性不支持 / 未验证」。
 
 ## 1. 为什么单独设门禁
 
@@ -140,14 +140,23 @@ python3 artifacts/acceptance/powerloss/run_powerloss.py \
 - `test_verifier.py`：正例（干净表）+ 4 个反例（截断 JSON、删除被引用 parquet、自有 intent 摘要冲突、日志缺口）+ 2 个“合法残留”形状（未发布的 intent 临时文件、输给其它事务的 intent）全部符合预期；
 - `selfcheck.py` 全绿：C 侧可发出的 17 个边界名与 `boundaries.json` 完全一致、guest/编排器 cmdline 契约一致、切断顺序 QEMU→NBD、100 轮计划覆盖全部必需边界。
 
-仍未验证（需要合格 Linux host）：
+已在 CI 实跑通过（2026-11-12，run 43157333594）：
 
-- 合格 host（非 WSL）上的 **100 轮**矩阵，以及 delta-rs 交叉读取（当前环境未安装 `deltalake`，记为 `SKIPPED`）；
-- `.github/workflows/s5-powerloss.yml` 未实际触发过：CI 里的 KVM、内核模块安装、loop 挂载仍需首次实跑确认；
-- 首次实跑中修掉的装置缺陷（NBD 应答字段顺序、未知选项处理、`cpio` 未喂文件列表、initramfs 缺 `/proc`、guest 少传表路径、intent 临时文件误判）说明：**“装置写完了”和“装置能跑”是两件事**，S5 的 100 轮结论仍必须先在本机或 CI 里跑通再谈。
+- 手动 workflow 在 GitHub 托管 `ubuntu-24.04`（`ImageVersion 20261101.360.1`）上跑完 **100 轮有效切断**，100/100 `PASS`，`failed=0`、`invalid=0`；KVM 加速可用，guest 内核 7.0.0-1017-azure（ext4/virtio builtin），数据盘 256 MiB raw ext4；
+- 每轮都是真实 `SIGKILL`（`qemuExit=-9`、`nbdExit=-9`，切断延迟 29–59 ms），`fsck` 每轮都恢复 journal（说明镜像确为断电后的脏盘），随后只读挂载并由**本项目 reader 与 delta-rs 两套引擎**分别读回（100/100 `deltaRs=PASSED`）；
+- 强不变量被断言：`commit-publish-dir-fsynced` 之后切断的 6 轮提交 **6/6 存活**，`commit-publish-linked`（目录项未同步）切断的 6 轮 **0/6 存活**；
+- 记录：`ci-2026-11-12/`（`results-100.json` + 说明），含 run URL、种子 `1748647336`、镜像版本与逐轮证据。
+
+首次实跑中修掉的装置缺陷（NBD 应答字段顺序、未知选项处理、`cpio` 未喂文件列表、initramfs 缺 `/proc`、guest 少传表路径、trace 与矩阵共用数据盘、intent 临时文件误判、delta-rs 退出期 abort 被误判为失败）说明：**“装置写完了”和“装置能跑”是两件事**。
+
+仍未验证 / 不在范围内：
+
+- Windows / NTFS：本结果不提供任何断电保证，仍标记「不支持 / 未验证」；
+- 其它 host 镜像、内核、文件系统（macOS、WSL `/mnt/*`、NFS/SMB/FUSE）、对象存储与真实硬件缓存行为；
+- `ubuntu-24.04` 镜像滚动后属于新配置，需要重新取证。
 
 ## 7. 与项目状态的关系
 
-- S5 未通过前，README、路线图、申报书均不得声明断电持久性；
-- `artifacts/acceptance/transaction-2026-11-11/results-100.json` 明确记录 `power_loss: NOT_TESTED`；
-- 本目录的存在与自检通过只表示“已经定义如何取证、且装置自洽”，不表示“已经取证”。Windows 仍只声明进程崩溃一致性。
+- S5 已于 2026-11-12 在指定 CI 配置下通过 100 轮；声明范围严格限定在 `ci-2026-11-12/README.md` 记录的 host 镜像 / guest kernel / ext4 选项 / QEMU / NBD 设备模型，换任一要素都需重跑；
+- `artifacts/acceptance/transaction-2026-11-11/results-100.json` 记录当时的状态（`power_loss: NOT_TESTED`），属历史证据，不被新结果改写；
+- 本目录同时保留 WSL2 冒烟记录（`smoke-wsl-2026-11-12/`，恒为 `INVALID`）与 CI 通过记录；Windows 仍只声明进程崩溃一致性。
