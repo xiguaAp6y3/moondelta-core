@@ -1,0 +1,215 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "xiguaAp6y3/moondelta-core/vendor/parquet"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub let converted_type_list : Int32
+
+pub let converted_type_map : Int32
+
+pub fn new_column(String, ColumnType, Repetition) -> Column
+
+pub fn new_parquet_columnar_file(Array[Column], Array[ParquetColumnData], Int32, String?) -> ParquetColumnarFile
+
+pub fn new_parquet_file(Array[Column], Array[Array[Value]], String?) -> ParquetFile
+
+pub fn read_bytes(Bytes) -> ParquetFile raise ParquetError
+
+pub fn read_bytes_columnar(Bytes) -> ParquetColumnarFile raise ParquetError
+
+pub fn read_bytes_shredded(Bytes) -> (Array[LeafColumn], Int32) raise ParquetError
+
+pub fn read_file(String) -> ParquetFile raise ParquetError
+
+pub fn read_file_columnar(String) -> ParquetColumnarFile raise ParquetError
+
+pub fn write_bytes(ParquetFile) -> Bytes raise ParquetError
+
+pub fn write_bytes_shredded(Array[WriteNode], Array[WriteLeaf], Int32) -> Bytes raise ParquetError
+
+pub fn write_file(String, ParquetFile) -> Unit raise ParquetError
+
+// Errors
+#derive(Eq, @debug.Debug)
+pub(all) suberror ParquetError {
+  InvalidData(String)
+  Unsupported(String)
+  Io(String)
+}
+pub fn ParquetError::equal(Self, Self) -> Bool
+pub fn ParquetError::not_equal(Self, Self) -> Bool
+pub fn ParquetError::output(Self, &Logger) -> Unit
+pub fn ParquetError::to_repr(Self) -> @debug.Repr
+pub fn ParquetError::to_string(Self) -> String
+pub impl Show for ParquetError
+
+// Types and methods
+#derive(Eq, @debug.Debug)
+pub struct Column {
+  name : String
+  column_type : ColumnType
+  repetition : Repetition
+}
+pub fn Column::column_type(Self) -> ColumnType
+pub fn Column::equal(Self, Self) -> Bool
+pub fn Column::name(Self) -> String
+pub fn Column::not_equal(Self, Self) -> Bool
+pub fn Column::output(Self, &Logger) -> Unit
+pub fn Column::repetition(Self) -> Repetition
+pub fn Column::to_repr(Self) -> @debug.Repr
+pub fn Column::to_string(Self) -> String
+pub impl Show for Column
+
+#derive(Eq, @debug.Debug)
+pub(all) enum ColumnType {
+  Boolean
+  Int32
+  Date
+  Int64
+  TimestampMicros
+  TimestampMicros64
+  Float
+  Double
+  String
+  Binary
+}
+pub fn ColumnType::equal(Self, Self) -> Bool
+pub fn ColumnType::not_equal(Self, Self) -> Bool
+pub fn ColumnType::output(Self, &Logger) -> Unit
+pub fn ColumnType::to_repr(Self) -> @debug.Repr
+pub fn ColumnType::to_string(Self) -> String
+pub impl Show for ColumnType
+
+pub(all) struct LeafColumn {
+  path : Array[String]
+  column_type : ColumnType
+  max_definition_level : Int32
+  max_repetition_level : Int32
+  values : Array[Value]
+  def_levels : Array[Int32]
+  rep_levels : Array[Int32]
+}
+
+#derive(Eq, @debug.Debug)
+pub(all) enum ParquetColumnData {
+  Values(Array[Value])
+  BooleanValues(Array[Bool])
+  Int32Values(Array[Int32])
+  NullableInt32Values(Array[Int32?])
+  Int64Values(Array[Int64])
+  NullableInt64Values(Array[Int64?])
+  TimestampMicrosValues(Array[Int64])
+  NullableTimestampMicrosValues(Array[Int64?])
+  FloatValues(Array[Float])
+  DoubleValues(Array[Double])
+  Utf8Values(Array[Bytes])
+  NullableUtf8Values(Array[Bytes?])
+  BinaryValues(Array[Bytes])
+  NullableBinaryValues(Array[Bytes?])
+}
+pub fn ParquetColumnData::equal(Self, Self) -> Bool
+pub fn ParquetColumnData::length(Self) -> Int32
+pub fn ParquetColumnData::not_equal(Self, Self) -> Bool
+pub fn ParquetColumnData::output(Self, &Logger) -> Unit
+pub fn ParquetColumnData::to_repr(Self) -> @debug.Repr
+pub fn ParquetColumnData::to_string(Self) -> String
+pub impl Show for ParquetColumnData
+
+#derive(@debug.Debug)
+pub struct ParquetColumnarFile {
+  columns : Array[Column]
+  column_data : Array[ParquetColumnData]
+  row_count : Int32
+  mut column_values_cache : Array[Array[Value]]?
+  created_by : String?
+}
+pub fn ParquetColumnarFile::column_data(Self) -> Array[ParquetColumnData]
+pub fn ParquetColumnarFile::column_values(Self) -> Array[Array[Value]]
+pub fn ParquetColumnarFile::columns(Self) -> Array[Column]
+pub fn ParquetColumnarFile::created_by(Self) -> String?
+pub fn ParquetColumnarFile::equal(Self, Self) -> Bool
+pub fn ParquetColumnarFile::not_equal(Self, Self) -> Bool
+pub fn ParquetColumnarFile::output(Self, &Logger) -> Unit
+pub fn ParquetColumnarFile::row_count(Self) -> Int32
+pub fn ParquetColumnarFile::to_repr(Self) -> @debug.Repr
+pub fn ParquetColumnarFile::to_string(Self) -> String
+pub impl Eq for ParquetColumnarFile
+pub impl Show for ParquetColumnarFile
+
+#derive(@debug.Debug)
+pub struct ParquetFile {
+  columns : Array[Column]
+  row_count : Int32
+  column_data : Array[ParquetColumnData]
+  mut rows_cache : Array[Array[Value]]?
+  created_by : String?
+}
+pub fn ParquetFile::column_data(Self) -> Array[ParquetColumnData]
+pub fn ParquetFile::columns(Self) -> Array[Column]
+pub fn ParquetFile::created_by(Self) -> String?
+pub fn ParquetFile::equal(Self, Self) -> Bool
+pub fn ParquetFile::not_equal(Self, Self) -> Bool
+pub fn ParquetFile::output(Self, &Logger) -> Unit
+pub fn ParquetFile::row_count(Self) -> Int32
+pub fn ParquetFile::rows(Self) -> Array[Array[Value]]
+pub fn ParquetFile::to_repr(Self) -> @debug.Repr
+pub fn ParquetFile::to_string(Self) -> String
+pub impl Eq for ParquetFile
+pub impl Show for ParquetFile
+
+#derive(Eq, @debug.Debug)
+pub(all) enum Repetition {
+  Required
+  Optional
+  Repeated
+}
+pub fn Repetition::equal(Self, Self) -> Bool
+pub fn Repetition::not_equal(Self, Self) -> Bool
+pub fn Repetition::output(Self, &Logger) -> Unit
+pub fn Repetition::to_repr(Self) -> @debug.Repr
+pub fn Repetition::to_string(Self) -> String
+pub impl Show for Repetition
+
+#derive(Eq, @debug.Debug)
+pub(all) enum Value {
+  Boolean(Bool)
+  Int32(Int32)
+  Int64(Int64)
+  TimestampMicros(Int64)
+  Float(Float)
+  Double(Double)
+  String(String)
+  Binary(Bytes)
+  Null
+}
+pub fn Value::equal(Self, Self) -> Bool
+pub fn Value::not_equal(Self, Self) -> Bool
+pub fn Value::output(Self, &Logger) -> Unit
+pub fn Value::to_repr(Self) -> @debug.Repr
+pub fn Value::to_string(Self) -> String
+pub impl Show for Value
+
+pub(all) struct WriteLeaf {
+  path : Array[String]
+  column_type : ColumnType
+  max_definition_level : Int32
+  max_repetition_level : Int32
+  values : Array[Value]
+  def_levels : Array[Int32]
+  rep_levels : Array[Int32]
+}
+
+pub(all) struct WriteNode {
+  name : String
+  repetition : Repetition
+  column_type : ColumnType?
+  converted_type : Int32?
+  children : Array[WriteNode]
+}
+
+// Type aliases
+
+// Traits

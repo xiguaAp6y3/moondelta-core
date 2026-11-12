@@ -20,7 +20,11 @@ NBD_MAGIC = 0x4E42444D41474943
 NBD_OPTIONS_MAGIC = 0x49484156454F5054
 NBD_REQUEST_MAGIC = 0x25609513
 NBD_REPLY_MAGIC = 0x67446698
+NBD_REP_MAGIC = 0x0003E889045565A9
 NBD_OPT_EXPORT_NAME = 1
+NBD_OPT_ABORT = 2
+NBD_REP_ACK = 1
+NBD_REP_ERR_UNSUP = 0x80000001
 NBD_CMD_READ = 0
 NBD_CMD_WRITE = 1
 NBD_CMD_DISC = 2
@@ -55,6 +59,7 @@ class VolatileExport:
             raise ValueError(f"backing size mismatch: expected {size}")
         self.pages: dict[int, bytearray] = {}
         self.trace_path = trace
+        self.requests_seen = 0
 
     def event(self, name: str, offset: int = 0, length: int = 0) -> None:
         if self.trace_path is not None:
@@ -110,29 +115,45 @@ class VolatileExport:
         os.close(self.fd)
 
 
+def reply_option(conn: socket.socket, option: int, reply_type: int,
+                 data: bytes = b"") -> None:
+    conn.sendall(struct.pack(">QIII", NBD_REP_MAGIC, option, reply_type, len(data)) + data)
+
+
 def serve_client(conn: socket.socket, export: VolatileExport) -> None:
     conn.sendall(struct.pack(">QQH", NBD_MAGIC, NBD_OPTIONS_MAGIC, 3))
     client_flags = struct.unpack(">I", recvall(conn, 4))[0]
+    export.event(f"client-flags:{client_flags:#x}")
     no_zeroes = bool(client_flags & 2)
     while True:
         magic, option, length = struct.unpack(">QII", recvall(conn, 16))
         if magic != NBD_OPTIONS_MAGIC:
             raise ValueError("invalid NBD option magic")
         payload = recvall(conn, length)
+        export.event(f"option-{option} payload={length}")
         if option == NBD_OPT_EXPORT_NAME:
             if payload not in (b"", b"powerloss"):
                 raise ValueError("unknown NBD export name")
             response = struct.pack(">QH", export.size, NBD_TRANSMISSION_FLAGS)
             conn.sendall(response if no_zeroes else response + bytes(124))
+            export.event("export-negotiated")
             break
-        raise ValueError(f"unsupported NBD option {option}; use EXPORT_NAME")
+        if option == NBD_OPT_ABORT:
+            reply_option(conn, option, NBD_REP_ACK)
+            raise EOFError("client aborted the negotiation")
+        # A real client (QEMU) probes STRUCTURED_REPLY, GO and LIST before it
+        # falls back to EXPORT_NAME. Answering with the protocol error keeps the
+        # negotiation alive; closing the socket here made QEMU fail with
+        # "Unexpected end-of-file before all data were read".
+        reply_option(conn, option, NBD_REP_ERR_UNSUP)
 
     while True:
         request = recvall(conn, 28)
         magic, flags, command, handle, offset, length = struct.unpack(">IHH8sQI", request)
         if magic != NBD_REQUEST_MAGIC:
+            export.event(f"bad-request-magic:{magic:#x}")
             raise ValueError("invalid NBD request magic")
-        error = 0
+        reply_error = 0
         body = b""
         try:
             if offset + length > export.size:
@@ -151,9 +172,19 @@ def serve_client(conn: socket.socket, export: VolatileExport) -> None:
                 return
             else:
                 raise OSError(f"unsupported NBD command {command}")
-        except OSError:
-            error = 5
-        conn.sendall(struct.pack(">I8sI", NBD_REPLY_MAGIC, handle, error) + body)
+        except OSError as failure:
+            reply_error = 5
+            export.event(f"failed-command-{command}:{failure}", offset, length)
+        if export.requests_seen < 4:
+            export.requests_seen += 1
+            export.event(
+                f"request-{command} offset={offset} length={length} "
+                f"reply-body={len(body)} error={reply_error}"
+            )
+        # NBD simple reply is magic(4), error(4), handle(8) -- error comes BEFORE
+        # the handle. Packing handle first makes QEMU read the handle+error pair
+        # as one 64-bit cookie and fail with "unexpected cookie value".
+        conn.sendall(struct.pack(">II8s", NBD_REPLY_MAGIC, reply_error, handle) + body)
 
 
 def run_server(args: argparse.Namespace) -> int:
@@ -167,11 +198,20 @@ def run_server(args: argparse.Namespace) -> int:
     listener.listen(1)
     print(f"READY {socket_path} size={args.size}", flush=True)
     try:
-        conn, _ = listener.accept()
-        with conn:
-            serve_client(conn, export)
-    except (EOFError, ConnectionError):
-        pass
+        # QEMU opens a connection to probe the export and then opens another one
+        # for I/O, so the server has to keep accepting. The volatile page cache
+        # belongs to the *device*, not to a connection, and must survive across
+        # connections: that is exactly the cache we lose when this process dies.
+        while True:
+            conn, _ = listener.accept()
+            export.event("client-accepted")
+            with conn:
+                try:
+                    serve_client(conn, export)
+                except (EOFError, ConnectionError) as failure:
+                    export.event(f"client-disconnected:{failure}")
+                except Exception as failure:  # noqa: BLE001 - recorded, then keep serving
+                    export.event(f"server-error:{failure!r}")
     finally:
         listener.close()
         export.close()
@@ -218,6 +258,19 @@ def self_test(directory: Path) -> None:
             raise TimeoutError("NBD self-test could not connect to export")
         recvall(conn, 18)
         conn.sendall(struct.pack(">I", 3))
+        # QEMU probes structured replies (option 8) before falling back to
+        # EXPORT_NAME. The server must answer with a protocol error and keep the
+        # negotiation open; this is the exact failure mode that broke a real
+        # QEMU client, so the self-test now covers it.
+        conn.sendall(struct.pack(">QII", NBD_OPTIONS_MAGIC, 8, 0))
+        reply_magic, reply_option, reply_type, reply_length = struct.unpack(
+            ">QIII", recvall(conn, 20)
+        )
+        assert reply_magic == NBD_REP_MAGIC, hex(reply_magic)
+        assert reply_option == 8, reply_option
+        assert reply_type == NBD_REP_ERR_UNSUP, hex(reply_type)
+        if reply_length:
+            recvall(conn, reply_length)
         conn.sendall(struct.pack(">QII", NBD_OPTIONS_MAGIC, NBD_OPT_EXPORT_NAME, 0))
         size_wire, _flags = struct.unpack(">QH", recvall(conn, 10))
         assert size_wire == size
@@ -231,8 +284,12 @@ def self_test(directory: Path) -> None:
                                 handle, offset, amount) + data)
         if command == NBD_CMD_DISC:
             return b""
-        magic, response_handle, error = struct.unpack(">I8sI", recvall(conn, 16))
-        assert magic == NBD_REPLY_MAGIC and response_handle == handle and error == 0
+        # NBD simple reply: magic, error, handle. Reading it in the same order the
+        # server writes it would hide a wrong layout, so assert the spec order.
+        magic, error, response_handle = struct.unpack(">II8s", recvall(conn, 16))
+        assert magic == NBD_REPLY_MAGIC, hex(magic)
+        assert response_handle == handle, (response_handle.hex(), handle.hex())
+        assert error == 0, error
         return recvall(conn, amount) if command == NBD_CMD_READ else b""
 
     server = start_server()
@@ -253,6 +310,7 @@ def self_test(directory: Path) -> None:
     assert page[64:78] == bytes(14)
     request(conn, NBD_CMD_DISC)
     conn.close()
+    server.kill()  # the server keeps listening for more connections by design
     server.wait(timeout=5)
     print("PASS: volatile writes disappear; completed FLUSH survives restart")
 

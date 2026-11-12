@@ -21,3 +21,6 @@ target/
 
 # Python 字节码缓存
 __pycache__/
+
+# 本机验收用 Python 虚拟环境
+.venv-acceptance/

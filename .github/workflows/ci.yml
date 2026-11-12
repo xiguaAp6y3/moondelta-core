@@ -24,6 +24,17 @@ jobs:
       - name: Check
         run: moon check --target native
 
+      - name: Check JS target
+        run: moon check --target js
+
+      - name: Check Wasm target
+        run: moon check --target wasm
+
+      # Offline only: keeps boundaries.json, the C probe and the runner in step.
+      # It is not power-loss evidence and never prints PASS.
+      - name: Check S5 harness self-consistency
+        run: python3 artifacts/acceptance/powerloss/selfcheck.py
+
       - name: Test
         run: moon test --target native
 
@@ -32,3 +43,67 @@ jobs:
 
       - name: Build example
         run: moon build --target native src/examples/read_covid
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install transaction test oracles
+        run: python -m pip install deltalake==1.6.6 pyarrow==26.0.0
+
+      - name: Build transaction test worker
+        run: moon build --target native src/examples/atomic_commit_worker
+
+      - name: Verify native transaction failure and race behavior
+        run: |
+          mkdir -p _build/transaction-acceptance
+          python -u artifacts/acceptance/test_atomic_commit_wsl.py --iterations 100 --output _build/transaction-acceptance/results.json | tee _build/transaction-acceptance/integration.out
+
+      - name: Preserve transaction acceptance evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-transaction-acceptance
+          path: _build/transaction-acceptance/
+          if-no-files-found: ignore
+
+  windows-check-test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install MoonBit
+        shell: pwsh
+        run: |
+          iwr https://cli.moonbitlang.com/install/windows.ps1 -useb | iex
+          "$env:USERPROFILE\.moon\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
+
+      - name: Show toolchain
+        run: moon version --all
+
+      - name: Update registry
+        run: moon update
+
+      - name: Check
+        run: moon check --target native
+
+      - name: Test
+        run: moon test --target native
+
+      - name: Build transaction test worker
+        run: moon build --target native src/examples/atomic_commit_worker
+
+      - name: Verify Windows intent, recovery, query and LockFileEx behavior
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path _build/windows-acceptance | Out-Null
+          python artifacts/acceptance/test_transactions_windows.py --output _build/windows-acceptance/results.json *> _build/windows-acceptance/integration.out
+          Get-Content _build/windows-acceptance/integration.out
+
+      - name: Preserve Windows transaction acceptance evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-transaction-acceptance
+          path: _build/windows-acceptance/
+          if-no-files-found: ignore

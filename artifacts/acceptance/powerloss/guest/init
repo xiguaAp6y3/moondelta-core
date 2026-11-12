@@ -1,0 +1,145 @@
+#!/bin/sh
+# S5 power-loss guest agent.
+#
+# Runs exactly one experiment round and then waits to be killed. It deliberately
+# never decides whether the round passed: the host owns the cut, the control log
+# and the verification.
+#
+# Machine-readable lines go to ttyS1 (a host socket). ttyS0 is the console and
+# carries kernel messages only, so a host that loses the console still has the
+# authoritative event stream.
+#
+# Kernel cmdline parameters (all supplied by run_powerloss.py):
+#   moondelta.mode=prepare|inject|trace
+#   moondelta.disk=/dev/vda          data disk (virtio-blk over volatile NBD)
+#   moondelta.mount=/mnt/data        mount point inside the guest
+#   moondelta.table=/mnt/data/table  Delta table root
+#   moondelta.payload=<bytes>        payload size for one appended row
+#   moondelta.setup=<n>              clean appends before the target append
+#   moondelta.boundary=<name>        boundary for the target append (inject)
+#   moondelta.round=<i>
+
+PATH=/bin:/sbin:/usr/bin:/usr/sbin
+export PATH
+EV=/dev/ttyS1
+WORKER=/bin/atomic_commit_worker
+
+say() {
+  echo "$*" > "$EV" 2>/dev/null
+}
+
+arg() {
+  sed -n "s/.*$1=\([^ ]*\).*/\1/p" /proc/cmdline | head -n 1
+}
+
+one_line() {
+  echo "$*" | tr '\n' '|' | tr -d '\r'
+}
+
+# The initramfs has no /proc or /sys yet, and every parameter lives in
+# /proc/cmdline, so the mount points must exist before anything is parsed.
+# (The kernel creates /dev and mounts devtmpfs itself, so serial output works
+# even here.)
+mkdir -p /proc /sys /dev
+mount -t proc proc /proc 2>/dev/null
+mount -t sysfs sysfs /sys 2>/dev/null
+mount -t devtmpfs devtmpfs /dev 2>/dev/null
+
+say "CMDLINE $(one_line "$(cat /proc/cmdline 2>/dev/null)")"
+
+MODE=$(arg moondelta.mode)
+DISK=$(arg moondelta.disk)
+MPOINT=$(arg moondelta.mount)
+TABLE=$(arg moondelta.table)
+PAYLOAD=$(arg moondelta.payload)
+SETUP=$(arg moondelta.setup)
+BOUNDARY=$(arg moondelta.boundary)
+ROUND=$(arg moondelta.round)
+
+[ -n "$MODE" ] || MODE=inject
+[ -n "$DISK" ] || DISK=/dev/vda
+[ -n "$MPOINT" ] || MPOINT=/mnt/data
+[ -n "$TABLE" ] || TABLE=$MPOINT/table
+[ -n "$PAYLOAD" ] || PAYLOAD=8192
+[ -n "$SETUP" ] || SETUP=2
+[ -n "$ROUND" ] || ROUND=0
+
+mkdir -p "$MPOINT"
+
+# Linux kernel + ext4 modules; harmless when the kernel has them built in.
+modprobe virtio_blk 2>/dev/null
+modprobe ext4 2>/dev/null
+
+say "GUEST_READY round=$ROUND mode=$MODE boundary=$BOUNDARY"
+
+# Mounting a freshly cut ext4 replays its journal: this is the reboot.
+if ! out=$(mount -t ext4 -o data=ordered,barrier=1 "$DISK" "$MPOINT" 2>&1); then
+  say "GUEST_ERROR reason=mount_failed disk=$DISK devices=$(one_line "$(ls /dev/vd* 2>/dev/null)") error=$(one_line "$out")"
+  say "DMESG $(one_line "$(dmesg 2>/dev/null | tail -n 10)")"
+  say "HALT round=$ROUND"
+  sync
+  while true; do sleep 1; done
+fi
+
+say "MOUNT_OK round=$ROUND"
+
+if [ ! -d "$TABLE/_delta_log" ]; then
+  # atomic_commit_worker needs its value argument even for `init`.
+  out=$("$WORKER" init "$TABLE" 1 2>&1)
+  rc=$?
+  say "WORKER_INIT rc=$rc out=$(one_line "$out")"
+  if [ "$rc" -ne 0 ]; then
+    say "GUEST_ERROR reason=init_failed"
+  fi
+  out=$("$WORKER" manage "$TABLE" 1 2>&1)
+  rc=$?
+  say "WORKER_MANAGE rc=$rc out=$(one_line "$out")"
+fi
+
+if [ "$MODE" = "prepare" ]; then
+  i=0
+  while [ "$i" -lt "$SETUP" ]; do
+    out=$("$WORKER" append "$TABLE" "$PAYLOAD" 2>&1)
+    rc=$?
+    say "SETUP_APPEND index=$i rc=$rc out=$(one_line "$out")"
+    i=$((i + 1))
+  done
+  # Unmount so the baseline image is clean; the host kills QEMU only afterwards.
+  if umount "$MPOINT"; then
+    say "UNMOUNTED round=$ROUND ok=true"
+  else
+    say "UNMOUNTED round=$ROUND ok=false"
+  fi
+  sync
+  say "ROUND_COMPLETE round=$ROUND mode=prepare commit=clean"
+  say "HALT round=$ROUND"
+  while true; do sleep 1; done
+fi
+
+if [ "$MODE" = "trace" ]; then
+  MOONDELTA_POWERLOSS_AT=all
+  MOONDELTA_POWERLOSS_PAUSE=0
+else
+  MOONDELTA_POWERLOSS_AT=$BOUNDARY
+  MOONDELTA_POWERLOSS_PAUSE=1
+fi
+MOONDELTA_POWERLOSS_SIGNAL=$EV
+export MOONDELTA_POWERLOSS_AT MOONDELTA_POWERLOSS_PAUSE MOONDELTA_POWERLOSS_SIGNAL
+
+say "TARGET_BEGIN round=$ROUND boundary=$BOUNDARY mode=$MODE"
+out=$("$WORKER" append "$TABLE" "$PAYLOAD" 2>&1)
+rc=$?
+# In inject mode the probe blocks before this line can be reached, so seeing it
+# means the requested boundary was never hit and the round is not evidence.
+say "TARGET_APPEND rc=$rc out=$(one_line "$out")"
+
+# Only trace mode reaches this point with the guest still alive and healthy.
+if umount "$MPOINT"; then
+  say "UNMOUNTED round=$ROUND ok=true"
+else
+  say "UNMOUNTED round=$ROUND ok=false"
+fi
+sync
+say "ROUND_COMPLETE round=$ROUND mode=$MODE commit=returned"
+say "HALT round=$ROUND"
+while true; do sleep 1; done

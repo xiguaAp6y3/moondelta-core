@@ -1,0 +1,34 @@
+{
+  "formatVersion": 1,
+  "note": "Names emitted by src/powerloss_probe.c as '<phase>-<operation>'. `required` is the subset S5 must exercise; the rest are extra observations that cost nothing to collect.",
+  "required": [
+    "data-publish-written",
+    "data-publish-fsynced",
+    "data-publish-linked",
+    "data-publish-dir-fsynced",
+    "commit-publish-written",
+    "commit-publish-fsynced",
+    "commit-publish-linked",
+    "commit-publish-dir-fsynced",
+    "cleanup-unlinked"
+  ],
+  "boundaries": [
+    {"name": "intent-publish-temp-created", "phase": "intent-publish", "operation": "temp-created", "state": "intent temporary file exists, empty or partially written"},
+    {"name": "intent-publish-written", "phase": "intent-publish", "operation": "written", "state": "intent content in page cache, not durable"},
+    {"name": "intent-publish-fsynced", "phase": "intent-publish", "operation": "fsynced", "state": "intent file durable, name not yet visible"},
+    {"name": "intent-publish-linked", "phase": "intent-publish", "operation": "linked", "state": "intent visible, directory entry not durable"},
+    {"name": "intent-publish-dir-fsynced", "phase": "intent-publish", "operation": "dir-fsynced", "state": "intent fully durable, no managed file created yet"},
+    {"name": "data-publish-temp-created", "phase": "data-publish", "operation": "temp-created", "state": "parquet temporary file exists, empty or partially written"},
+    {"name": "data-publish-written", "phase": "data-publish", "operation": "written", "state": "full parquet bytes in page cache, not durable"},
+    {"name": "data-publish-fsynced", "phase": "data-publish", "operation": "fsynced", "state": "parquet content durable, name not yet visible"},
+    {"name": "data-publish-linked", "phase": "data-publish", "operation": "linked", "state": "parquet visible, directory entry not durable"},
+    {"name": "data-publish-dir-fsynced", "phase": "data-publish", "operation": "dir-fsynced", "state": "parquet fully durable, JSON commit not started"},
+    {"name": "commit-publish-temp-created", "phase": "commit-publish", "operation": "temp-created", "state": "commit temporary file exists, empty or partially written"},
+    {"name": "commit-publish-written", "phase": "commit-publish", "operation": "written", "state": "full JSON commit in page cache, not durable"},
+    {"name": "commit-publish-fsynced", "phase": "commit-publish", "operation": "fsynced", "state": "JSON commit durable, version name not yet visible"},
+    {"name": "commit-publish-linked", "phase": "commit-publish", "operation": "linked", "state": "version visible, _delta_log directory entry not durable"},
+    {"name": "commit-publish-dir-fsynced", "phase": "commit-publish", "operation": "dir-fsynced", "state": "commit fully durable, cleanup not started"},
+    {"name": "cleanup-unlinked", "phase": "cleanup", "operation": "unlinked", "state": "a temporary or intent file is gone from the namespace but its deletion is not durable"},
+    {"name": "cleanup-dir-fsynced", "phase": "cleanup", "operation": "dir-fsynced", "state": "one deletion durable"}
+  ]
+}

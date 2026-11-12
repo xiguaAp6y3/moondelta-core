@@ -1,6 +1,6 @@
 ///|
 fn usage() -> Unit {
-  println("moondelta-core 0.3.0 — MoonBit Delta Lake table-format kernel")
+  println("moondelta-core 0.4.0 — MoonBit Delta Lake table-format kernel")
   println("")
   println("Usage:")
   println("  delta inspect <table-root>")
@@ -13,6 +13,9 @@ fn usage() -> Unit {
     "  delta create  <table-root> <schema.json|schemaString> [--partition k1,k2]",
   )
   println("  delta version")
+  println("  delta recover <table-root> [--apply]")
+  println("  delta query   <table-root> <txn-id>")
+  println("  delta manage  <table-root> [--disable]")
 }
 
 ///|
@@ -389,6 +392,97 @@ fn cmd_create(root : String, rest : Array[String]) -> Bool {
 }
 
 ///|
+/// `recover`：默认 dry-run；只有显式受管表才允许 `--apply` 真正删除。
+fn cmd_recover(root : String, rest : Array[String]) -> Bool {
+  let mut apply = false
+  for arg in rest {
+    if arg == "--apply" {
+      apply = true
+    } else {
+      fail("unknown argument '\{arg}'")
+      return false
+    }
+  }
+  let report = @delta.recover_table(root, not(apply)) catch {
+    err => {
+      fail("\{err}")
+      return false
+    }
+  }
+  println("table            : " + root)
+  println("mode             : " + (if apply { "apply" } else { "dry-run" }))
+  println(
+    "managed policy   : " +
+    (if report.managed { "yes (explicitly managed)" } else { "no (preview only)" }),
+  )
+  println(
+    "maintenance lock : " +
+    (if report.lock_busy { "busy" } else { "acquired" }),
+  )
+  println(
+    "log continuity   : " +
+    (if report.log_complete { "complete" } else { "incomplete" }),
+  )
+  match report.blocked {
+    Some(message) => println("blocked          : " + message)
+    None => ()
+  }
+  println("deleted          : " + report.deleted.to_string())
+  println("kept             : " + report.kept.to_string())
+  for entry in report.entries {
+    println(
+      "  " + entry.action + " " + entry.path + "  (" + entry.reason + ")",
+    )
+  }
+  not(report.lock_busy)
+}
+
+///|
+/// `query`：只读事务结果查询，不删除、不回滚。
+fn cmd_query(root : String, txn_id : String) -> Bool {
+  let status = @delta.query_transaction(root, txn_id) catch {
+    err => {
+      fail("\{err}")
+      return false
+    }
+  }
+  println("txn              : " + status.txn_id)
+  println("target version   : " + status.version.to_string())
+  println("state            : " + @delta.txn_state_name(status.state))
+  println("phase            : " + status.phase)
+  println("data path        : " + status.data_path)
+  println("commit path      : " + status.commit_path)
+  println("detail           : " + status.detail)
+  true
+}
+
+///|
+/// `manage`：显式声明/撤销“该表全部 writer 遵守 moondelta 维护锁”的受管策略。
+fn cmd_manage(root : String, rest : Array[String]) -> Bool {
+  let mut managed = true
+  for arg in rest {
+    if arg == "--disable" {
+      managed = false
+    } else {
+      fail("unknown argument '\{arg}'")
+      return false
+    }
+  }
+  @delta.set_managed_table(root, managed) catch {
+    err => {
+      fail("\{err}")
+      return false
+    }
+  }
+  println(
+    (if managed { "enabled" } else { "disabled" }) +
+    " managed-maintenance policy for " +
+    root,
+  )
+  true
+}
+
+///|
 fn main {
   let args = @env.args()
   if args.length() < 2 {
@@ -399,7 +493,7 @@ fn main {
   let cmd = args[1]
   let rest = tail(args, 2)
   let ok = if cmd == "version" {
-    println("moondelta-core 0.3.0")
+    println("moondelta-core 0.4.0")
     true
   } else if cmd == "inspect" {
     if rest.length() < 1 {
@@ -428,6 +522,48 @@ fn main {
       false
     } else {
       cmd_read(rest[0], tail(rest, 1))
+    }
+  } else if cmd == "recover" {
+    if rest.length() < 1 {
+      usage()
+      false
+    } else {
+      cmd_recover(rest[0], tail(rest, 1))
+    }
+  } else if cmd == "query" {
+    if rest.length() < 2 {
+      usage()
+      false
+    } else {
+      cmd_query(rest[0], rest[1])
+    }
+  } else if cmd == "manage" {
+    if rest.length() < 1 {
+      usage()
+      false
+    } else {
+      cmd_manage(rest[0], tail(rest, 1))
+    }
+  } else if cmd == "recover" {
+    if rest.length() < 1 {
+      usage()
+      false
+    } else {
+      cmd_recover(rest[0], tail(rest, 1))
+    }
+  } else if cmd == "query" {
+    if rest.length() < 2 {
+      usage()
+      false
+    } else {
+      cmd_query(rest[0], rest[1])
+    }
+  } else if cmd == "manage" {
+    if rest.length() < 1 {
+      usage()
+      false
+    } else {
+      cmd_manage(rest[0], tail(rest, 1))
     }
   } else if cmd == "create" {
     if rest.length() < 2 {

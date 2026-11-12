@@ -1,5 +1,6 @@
 import {
   "xiguaAp6y3/moondelta-core" @delta,
+  "moonbitlang/core/env" @env,
 }
 
 pkgtype(kind: "executable")

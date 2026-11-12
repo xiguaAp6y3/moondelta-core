@@ -1,0 +1,16 @@
+{
+  "status": "BLOCKED",
+  "host": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "kernel": "6.6.114.1-microsoft-standard-WSL2",
+  "checks": {
+    "qemu_present": false,
+    "kvm_device_present": true,
+    "image_is_regular_file": false,
+    "image_outside_wsl_mounts": false,
+    "guest_kernel_file_recorded": false,
+    "image_not_mounted": true,
+    "host_is_not_wsl": false
+  },
+  "note": "This gate never certifies S5; power-loss evidence requires the documented matrix."
+}
+BLOCKED: S5 power-loss evidence cannot be produced in this environment; no PASS is implied.

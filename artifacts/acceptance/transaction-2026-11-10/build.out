@@ -1,0 +1,9 @@
+Warning: Duplicate alias `delta` at "/root/moondelta-wsl/src/cmd/delta/moon.pkg". "test-import" will automatically add "import" and current package as dependency so you don't need to add it manually. If you're test-importing a dependency with the same default alias as your current package, considering give it a different alias than the current package. Violating import: `xiguaAp6y3/moondelta-core`
+Finished. moon: ran 8 tasks, now up to date
+Artifacts:
+  xiguaAp6y3/moondelta-core/cmd/delta                      native  /root/moondelta-wsl/_build/native/debug/build/cmd/delta/delta.exe
+  xiguaAp6y3/moondelta-core/examples/atomic_commit_worker  native  /root/moondelta-wsl/_build/native/debug/build/examples/atomic_commit_worker/atomic_commit_worker.exe
+  xiguaAp6y3/moondelta-core/examples/interop_flat_writer   native  /root/moondelta-wsl/_build/native/debug/build/examples/interop_flat_writer/interop_flat_writer.exe
+  xiguaAp6y3/moondelta-core/examples/read_covid            native  /root/moondelta-wsl/_build/native/debug/build/examples/read_covid/read_covid.exe
+  xiguaAp6y3/moondelta-core/examples/write_all_types       native  /root/moondelta-wsl/_build/native/debug/build/examples/write_all_types/write_all_types.exe
+  xiguaAp6y3/moondelta-core/examples/write_nested          native  /root/moondelta-wsl/_build/native/debug/build/examples/write_nested/write_nested.exe

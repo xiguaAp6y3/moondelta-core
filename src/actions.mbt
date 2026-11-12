@@ -103,6 +103,40 @@ pub fn decode_action_path(encoded : String) -> String raise DeltaError {
 }
 
 ///|
+/// Delta 规范要求 `add.path` / `remove.path` 按 URI path 成分做 percent-encoding。
+/// 这里采用 RFC 3986 的最小编码：只转义 unreserved（`A-Z a-z 0-9 - _ . ~`）之外的
+/// UTF-8 字节。不能把 `-` / `.` 转成 `%2D` / `%2E`——其它引擎会用字面路径匹配
+/// remove，过度编码会让它们看不到我们的 add。
+pub fn encode_action_path(path : String) -> String {
+  let hex : Array[Char] = [
+    '0', '1', '2', '3', '4', '5', '6', '7',
+    '8', '9', 'A', 'B', 'C', 'D', 'E', 'F',
+  ]
+  let sb = StringBuilder()
+  for byte in @utf8.encode(path) {
+    let code = byte.to_int()
+    let unreserved = (code >= 0x41 && code <= 0x5A) ||
+      (code >= 0x61 && code <= 0x7A) ||
+      (code >= 0x30 && code <= 0x39) ||
+      code == 0x2D ||
+      code == 0x5F ||
+      code == 0x2E ||
+      code == 0x7E
+    if unreserved {
+      match code.to_char() {
+        Some(c) => sb.write_char(c)
+        None => ()
+      }
+    } else {
+      sb.write_char('%')
+      sb.write_char(hex[code / 16])
+      sb.write_char(hex[code % 16])
+    }
+  }
+  sb.to_string()
+}
+
+///|
 pub fn parse_add(j : Json) -> AddFile raise DeltaError {
   let path = decode_action_path(require_string(j, "path", "add"))
   let partition_values = match json_field(j, "partitionValues") {

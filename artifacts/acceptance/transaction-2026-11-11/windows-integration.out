@@ -1,0 +1,7 @@
+PASS: intent-backed create/append, txn-id file naming and success cleanup
+PASS: dry-run preview, managed-policy gate, apply and idempotent recovery
+PASS: transaction query states (committed / not-committed / conflict / unresolved)
+PASS: legacy/unknown names preserved and reported, no wildcard deletion
+PASS: cross-process LockFileEx coordination (writer blocked, recoverer busy)
+PASS: concurrent processes with identical payload produce unique OS-random txn ids
+PASS: Windows transaction acceptance matrix

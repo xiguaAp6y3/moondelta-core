@@ -1,0 +1,219 @@
+name: S5 power-loss matrix
+
+# Manual only, on purpose: this job boots a QEMU guest 100 times and cuts power
+# at persistence boundaries, so it is far too expensive to run on every push.
+#
+# What it produces: results-<rounds>.json plus per-round logs, uploaded as an
+# artifact. A green run certifies ONLY the configuration recorded inside that
+# JSON (runner image version, guest kernel, QEMU build, ext4 options, the
+# volatile-NBD device model, and the writer commit). It never certifies NTFS,
+# macOS, WSL /mnt/*, NFS/SMB/FUSE, or real hardware caches.
+#
+# It is a manual acceptance step, not a regression test.
+
+on:
+  workflow_dispatch:
+    inputs:
+      rounds:
+        description: "Valid power cuts to run (the S5 exit gate needs at least 100)"
+        required: true
+        default: "100"
+      seed:
+        description: "RNG seed for the cut plan (blank = random, always recorded)"
+        required: false
+        default: ""
+
+concurrency:
+  group: s5-powerloss-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  s5-powerloss:
+    # Pinned, never -latest: the claim is scoped to a recorded runner image.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Record the CI context
+        run: |
+          mkdir -p _build/s5-run
+          {
+            echo "workflow=$GITHUB_WORKFLOW"
+            echo "runId=$GITHUB_RUN_ID"
+            echo "runAttempt=$GITHUB_RUN_ATTEMPT"
+            echo "sha=$GITHUB_SHA"
+            echo "ref=$GITHUB_REF_NAME"
+            echo "runnerName=$RUNNER_NAME"
+            echo "imageOS=${ImageOS:-}"
+            echo "imageVersion=${ImageVersion:-}"
+          } > _build/s5-run/ci-context.txt
+          cat _build/s5-run/ci-context.txt
+
+      - name: Record the host inventory
+        run: |
+          {
+            echo "--- uname ---"; uname -a
+            echo "--- virtualization ---"; systemd-detect-virt || true
+            echo "--- /dev/kvm ---"; ls -la /dev/kvm 2>&1 || echo "(absent)"
+            echo "--- cpu virt flags ---"; grep -oE 'vmx|svm' /proc/cpuinfo | sort -u || true
+            echo "--- filesystems ---"; df -hT / /var/tmp
+          } | tee _build/s5-run/host-inventory.txt
+
+      # Official snippet from the GitHub changelog that enabled hardware
+      # acceleration on 2-vCPU Linux runners. Without it /dev/kvm exists but is
+      # not writable by the runner user.
+      - name: Enable KVM group permissions
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          ls -la /dev/kvm || true
+          # Fast feedback: unusable KVM only costs wall clock, but knowing it now
+          # beats discovering it from a slow matrix.
+          if sudo head -c0 /dev/kvm 2>/dev/null; then
+            echo "kvm: node is openable, hardware acceleration available"
+          else
+            echo "::warning::kvm is not usable on this runner; the matrix falls back to TCG and will be slower"
+          fi
+
+      - name: Install the power-loss harness dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends \
+            qemu-system-x86 qemu-utils e2fsprogs busybox-static cpio gzip kmod util-linux python3
+          qemu-system-x86_64 --version | head -n 1
+          ldd "$(command -v busybox)" 2>&1 | head -n 1
+
+      - name: Probe loop mount capability
+        run: |
+          set -euo pipefail
+          img=/var/tmp/loop-probe.img
+          sudo dd if=/dev/zero of="$img" bs=1M count=8 status=none
+          sudo mkfs.ext4 -q -F "$img"
+          sudo mkdir -p /mnt/loop-probe
+          if ! sudo mount -o loop,ro "$img" /mnt/loop-probe; then
+            echo "::error::loop mount failed on this runner; per-round verification cannot run"
+            exit 1
+          fi
+          echo "loop mount: OK"
+          sudo umount /mnt/loop-probe
+          sudo losetup -f >/dev/null && echo "free loop device: available"
+          rm -f "$img"
+
+      - name: Install MoonBit
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+
+      - name: Update registry and build native binaries
+        run: |
+          moon version --all
+          moon update
+          moon build --target native
+          ls -l _build/native/debug/build/examples/atomic_commit_worker/atomic_commit_worker.exe
+          ls -l _build/native/debug/build/cmd/delta/delta.exe
+
+      # The guest needs its own kernel + matching modules. Prefer the runner's
+      # running kernel when /boot has it; otherwise install a generic kernel and
+      # pick the newest release that has BOTH /boot/vmlinuz-<ver> and
+      # /lib/modules/<ver>.
+      - name: Provide a guest kernel and its modules
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          pick_release() {
+            for version in $(ls -1 /lib/modules 2>/dev/null | sort -Vr); do
+              if [ -f "/boot/vmlinuz-$version" ]; then
+                printf '%s\n' "$version"
+                return 0
+              fi
+            done
+            return 1
+          }
+          release="$(pick_release || true)"
+          if [ -z "$release" ]; then
+            echo "no matching /boot/vmlinuz-* and /lib/modules/* pair; installing a generic kernel"
+            sudo apt-get install -y -qq --no-install-recommends linux-image-generic
+            release="$(pick_release)"
+          fi
+          echo "guest kernel release: $release"
+          echo "GUEST_KERNEL_RELEASE=$release" >> "$GITHUB_ENV"
+          ls -l "/boot/vmlinuz-$release"
+
+      - name: Prepare the disposable raw ext4 data disk
+        run: |
+          sudo mkdir -p /var/tmp/moondelta-s5
+          # 256 MiB keeps the per-round verification copy cheap; the S5 model does
+          # not depend on disk size.
+          sudo python3 artifacts/acceptance/powerloss/prepare_raw_ext4.py \
+            --image /var/tmp/moondelta-s5/data.raw --size-mib 256
+
+      - name: Build the minimal guest initramfs
+        run: |
+          set -eo pipefail
+          sudo python3 artifacts/acceptance/powerloss/mk_initramfs.py \
+            --kernel "/boot/vmlinuz-$GUEST_KERNEL_RELEASE" \
+            --release "$GUEST_KERNEL_RELEASE" \
+            --worker _build/native/debug/build/examples/atomic_commit_worker/atomic_commit_worker.exe \
+            --out /var/tmp/moondelta-s5/initramfs.cpio.gz \
+            2>&1 | tee _build/s5-run/initramfs-build.log
+
+      - name: Harness self-check (offline)
+        run: |
+          set -eo pipefail
+          python3 artifacts/acceptance/powerloss/selfcheck.py | tee _build/s5-run/selfcheck.log
+
+      - name: Precondition gate
+        run: |
+          set -eo pipefail
+          sudo python3 artifacts/acceptance/powerloss/check_environment.py \
+            --image /var/tmp/moondelta-s5/data.raw \
+            --kernel "/boot/vmlinuz-$GUEST_KERNEL_RELEASE" \
+            | tee _build/s5-run/powerloss-gate.out
+
+      # Proves every required boundary is reachable and announced in order. No
+      # cut happens here, so a failure means "do not spend 30 minutes on the
+      # matrix yet", not "the storage layer is broken".
+      - name: Boundary reachability trace
+        run: |
+          set -eo pipefail
+          sudo -E python3 artifacts/acceptance/powerloss/run_powerloss.py \
+            --image /var/tmp/moondelta-s5/data.raw \
+            --kernel "/boot/vmlinuz-$GUEST_KERNEL_RELEASE" \
+            --initramfs /var/tmp/moondelta-s5/initramfs.cpio.gz \
+            --delta-cli _build/native/debug/build/cmd/delta/delta.exe \
+            --workdir _build/s5-run \
+            --trace 2>&1 | tee _build/s5-run/boundary-trace.log
+
+      - name: Run the power-loss matrix
+        run: |
+          args=(
+            --image /var/tmp/moondelta-s5/data.raw
+            --kernel "/boot/vmlinuz-$GUEST_KERNEL_RELEASE"
+            --initramfs /var/tmp/moondelta-s5/initramfs.cpio.gz
+            --delta-cli _build/native/debug/build/cmd/delta/delta.exe
+            --workdir _build/s5-run
+            --rounds "${{ inputs.rounds }}"
+          )
+          if [ -n "${{ inputs.seed }}" ]; then
+            args+=(--seed "${{ inputs.seed }}")
+          fi
+          echo "matrix arguments: ${args[*]}"
+          sudo -E python3 artifacts/acceptance/powerloss/run_powerloss.py "${args[@]}"
+
+      - name: Preserve the power-loss evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: s5-powerloss-run-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            _build/s5-run/
+            _build/native/debug/build/cmd/delta/delta.exe
+            _build/native/debug/build/examples/atomic_commit_worker/atomic_commit_worker.exe
+          if-no-files-found: warn
+          retention-days: 90

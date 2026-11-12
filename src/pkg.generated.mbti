@@ -1,0 +1,377 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "xiguaAp6y3/moondelta-core"
+
+import {
+  "moonbitlang/core/debug",
+  "moonbitlang/core/json",
+  "xiguaAp6y3/moondelta-core/vendor/parquet",
+}
+
+// Values
+pub fn append_rows(String, Array[ReadColumn], Int64) -> Int32 raise DeltaError
+
+pub fn append_rows_with_txn(String, Array[ReadColumn], Int64) -> (Int32, String) raise DeltaError
+
+pub fn cell_to_display(Cell) -> String
+
+pub fn checkpoint_info(String) -> CheckpointInfo? raise DeltaError
+
+pub fn create_table(String, String, Array[String]) -> Int32 raise DeltaError
+
+pub fn create_table_with_txn(String, String, Array[String]) -> (Int32, String) raise DeltaError
+
+pub fn decode_action_path(String) -> String raise DeltaError
+
+pub fn delta_type_name(DeltaType) -> String
+
+pub fn describe_error(DeltaError) -> String
+
+pub fn encode_action_path(String) -> String
+
+pub fn ensure_dir(String) -> Unit raise DeltaError
+
+pub fn ensure_readable_schema(DeltaSchema) -> Unit raise DeltaError
+
+pub fn has_checkpoint_file(String) -> Bool
+
+pub fn is_writable_type(DeltaType) -> Bool
+
+pub fn json_as_array(@json.Json) -> Array[@json.Json]?
+
+pub fn json_as_bool(@json.Json) -> Bool?
+
+pub fn json_as_double(@json.Json) -> Double?
+
+pub fn json_as_int(@json.Json) -> Int32?
+
+pub fn json_as_int64(@json.Json) -> Int64?
+
+pub fn json_as_object(@json.Json) -> Map[String, @json.Json]?
+
+pub fn json_as_string(@json.Json) -> String?
+
+pub fn json_field(@json.Json, String) -> @json.Json?
+
+pub fn json_field_array(@json.Json, String) -> Array[@json.Json]?
+
+pub fn json_field_bool(@json.Json, String) -> Bool?
+
+pub fn json_field_int(@json.Json, String) -> Int32?
+
+pub fn json_field_int64(@json.Json, String) -> Int64?
+
+pub fn json_field_string(@json.Json, String) -> String?
+
+pub fn json_object_pairs_string(@json.Json) -> Array[(String, String)]
+
+pub fn list_checkpoint_versions(String) -> Array[Int32] raise DeltaError
+
+pub fn list_versions(String) -> Array[Int32] raise DeltaError
+
+pub fn log_dir(String) -> String
+
+pub fn managed_table(String) -> Bool
+
+pub fn parse_action(StringView, Int32) -> Action raise DeltaError
+
+pub fn parse_add(@json.Json) -> AddFile raise DeltaError
+
+pub fn parse_checkpoint(String) -> (Protocol?, TableInfo?, Array[AddFile]) raise DeltaError
+
+pub fn parse_commit_info(@json.Json, Int32) -> CommitInfo
+
+pub fn parse_metadata(@json.Json) -> TableInfo raise DeltaError
+
+pub fn parse_remove(@json.Json) -> RemoveFile raise DeltaError
+
+pub fn parse_schema(String) -> DeltaSchema raise DeltaError
+
+pub fn parse_schema_fields(@json.Json) -> Array[DeltaField] raise DeltaError
+
+pub fn query_transaction(String, String) -> TransactionStatus raise DeltaError
+
+pub fn read_actions(String, Int32) -> Array[Action] raise DeltaError
+
+pub fn read_snapshot(String, Snapshot, Int32?) -> ReadResult raise DeltaError
+
+pub fn read_snapshot_shredded(String, Snapshot, Int32?) -> ReadResult raise DeltaError
+
+pub fn read_text(String) -> String raise DeltaError
+
+pub fn recover_table(String, Bool) -> RecoveryReport raise DeltaError
+
+pub fn scan(Snapshot, ScanFilter) -> ScanReport raise DeltaError
+
+pub fn set_managed_table(String, Bool) -> Unit raise DeltaError
+
+pub fn shred_rows(DeltaSchema, Array[@parquet.LeafColumn], Int32) -> Array[Array[Cell]] raise DeltaError
+
+pub fn txn_state_name(TxnState) -> String
+
+pub fn version_file_name(Int32) -> String
+
+pub fn write_nested_parquet_bytes(DeltaSchema, Array[ReadColumn], Int32) -> Bytes raise DeltaError
+
+pub fn write_text(String, String) -> Unit raise DeltaError
+
+pub fn write_text_new(String, String) -> Unit raise DeltaError
+
+// Errors
+#derive(Eq, @debug.Debug)
+pub(all) suberror DeltaError {
+  IoError(String)
+  AlreadyExists(String)
+  CommitConflict(String)
+  PublishOutcomeUnknown(String, Int32, String, String, Int32)
+  CommitOutcomeUnknown(String, Int32, String, String, Int32)
+  ParseError(String)
+  Unsupported(String)
+  NotFound(String)
+}
+pub impl Show for DeltaError
+
+// Types and methods
+#derive(Eq, @debug.Debug)
+pub(all) enum Action {
+  ProtocolAction(Protocol)
+  MetaDataAction(TableInfo)
+  AddAction(AddFile)
+  RemoveAction(RemoveFile)
+  CommitInfoAction(CommitInfo)
+  TxnAction(Txn)
+  IgnoredAction(String)
+}
+
+#derive(Eq, @debug.Debug)
+pub(all) struct AddFile {
+  path : String
+  partition_values : Array[(String, String)]
+  size : Int64
+  modification_time : Int64
+  data_change : Bool
+  stats : String?
+  has_deletion_vector : Bool
+}
+
+#derive(@debug.Debug)
+pub(all) enum Cell {
+  CellI32(Int32)
+  CellI64(Int64)
+  CellF32(Float)
+  CellF64(Double)
+  CellBool(Bool)
+  CellStr(String)
+  CellBin(Bytes)
+  CellTs(Int64)
+  CellNull
+  CellStruct(Array[(String, Cell)])
+  CellList(Array[Cell])
+  CellMap(Array[(Cell, Cell)])
+}
+
+#derive(Eq, @debug.Debug)
+pub(all) struct CheckpointInfo {
+  version : Int32
+  size : Int32?
+  parts : Int32?
+}
+
+#derive(Eq, @debug.Debug)
+pub(all) struct ColumnPredicate {
+  column : String
+  op : CompareOp
+  value : Double
+}
+
+#derive(Eq, @debug.Debug)
+pub(all) struct CommitInfo {
+  version : Int32
+  timestamp : Int64?
+  operation : String?
+  operation_parameters : Array[(String, String)]
+}
+
+#derive(Eq, @debug.Debug)
+pub(all) enum CompareOp {
+  EqV
+  GtV
+  GeV
+  LtV
+  LeV
+}
+
+#derive(Eq, @debug.Debug)
+pub(all) struct DeltaField {
+  name : String
+  type_ : DeltaType
+  nullable : Bool
+}
+
+#derive(Eq, @debug.Debug)
+pub(all) struct DeltaSchema {
+  fields : Array[DeltaField]
+  raw_json : String
+}
+
+pub(all) struct DeltaTable {
+  root : String
+}
+pub fn DeltaTable::current_version(Self) -> Int32 raise DeltaError
+pub fn DeltaTable::history(Self) -> Array[HistoryEntry] raise DeltaError
+pub fn DeltaTable::inspect(Self) -> (Snapshot, CheckpointInfo?, Bool) raise DeltaError
+pub fn DeltaTable::open(String) -> Self raise DeltaError
+pub fn DeltaTable::snapshot(Self) -> Snapshot raise DeltaError
+pub fn DeltaTable::snapshot_at(Self, Int32) -> Snapshot raise DeltaError
+pub fn DeltaTable::versions(Self) -> Array[Int32] raise DeltaError
+
+#derive(Eq, @debug.Debug)
+pub(all) enum DeltaType {
+  Int32Type
+  Int64Type
+  FloatType
+  DoubleType
+  BooleanType
+  StringType
+  BinaryType
+  ByteType
+  ShortType
+  DateType
+  TimestampType
+  DecimalType(precision~ : Int32, scale~ : Int32)
+  NestedType(kind~ : String, fields~ : Array[DeltaField])
+  UnknownType(raw~ : String)
+}
+
+#derive(Eq, @debug.Debug)
+pub(all) struct HistoryEntry {
+  version : Int32
+  timestamp : Int64?
+  operation : String?
+}
+
+type NestWriteCtx
+
+#derive(Eq, @debug.Debug)
+pub(all) struct Protocol {
+  min_reader_version : Int32
+  min_writer_version : Int32
+  reader_features : Array[String]
+  writer_features : Array[String]
+}
+
+#derive(@debug.Debug)
+pub(all) struct ReadColumn {
+  name : String
+  type_ : DeltaType
+  cells : Array[Cell]
+}
+
+#derive(@debug.Debug)
+pub(all) struct ReadResult {
+  columns : Array[ReadColumn]
+  row_count : Int32
+  files_read : Int32
+}
+
+#derive(Eq, @debug.Debug)
+pub(all) struct RecoveryEntry {
+  txn_id : String
+  version : Int32
+  path : String
+  action : String
+  reason : String
+}
+
+#derive(Eq, @debug.Debug)
+pub(all) struct RecoveryReport {
+  dry_run : Bool
+  managed : Bool
+  applied : Bool
+  lock_busy : Bool
+  log_complete : Bool
+  blocked : String?
+  entries : Array[RecoveryEntry]
+  deleted : Int32
+  kept : Int32
+}
+
+type RecoverySink
+
+#derive(Eq, @debug.Debug)
+pub(all) struct RemoveFile {
+  path : String
+  deletion_timestamp : Int64?
+  data_change : Bool
+}
+
+type ReplayState
+
+#derive(Eq, @debug.Debug)
+pub(all) struct ScanFilter {
+  partitions : Array[(String, String)]
+  predicate : ColumnPredicate?
+}
+
+#derive(Eq, @debug.Debug)
+pub(all) struct ScanReport {
+  files : Array[AddFile]
+  skipped_partition : Int32
+  skipped_stats : Int32
+  matched_rows : Int64
+  matched_bytes : Int64
+}
+
+#derive(Eq, @debug.Debug)
+pub(all) struct Snapshot {
+  version : Int32
+  protocol : Protocol
+  metadata : TableInfo
+  files : Array[AddFile]
+  total_rows : Int64
+  total_bytes : Int64
+  ignored_actions : Array[String]
+}
+
+#derive(Eq, @debug.Debug)
+pub(all) struct TableInfo {
+  id : String
+  name : String?
+  schema : DeltaSchema
+  partition_columns : Array[String]
+  format_provider : String
+  configuration : Array[(String, String)]
+}
+
+#derive(Eq, @debug.Debug)
+pub(all) struct TransactionStatus {
+  txn_id : String
+  version : Int32
+  state : TxnState
+  phase : String
+  data_path : String
+  commit_path : String
+  detail : String
+}
+
+#derive(Eq, @debug.Debug)
+pub(all) struct Txn {
+  app_id : String
+  version : Int64
+}
+
+type TxnFault
+
+type TxnIntent
+
+#derive(Eq, @debug.Debug)
+pub(all) enum TxnState {
+  TxnCommitted
+  TxnCommittedUnconfirmed
+  TxnConflict
+  TxnNotCommitted
+  TxnUnresolved
+}
+
+// Type aliases
+
+// Traits

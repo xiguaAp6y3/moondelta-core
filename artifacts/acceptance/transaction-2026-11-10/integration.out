@@ -1,0 +1,9 @@
+PASS: SIGKILL during staged Parquet write leaves version 0 and no published data
+PASS: SIGKILL during staged JSON commit preserves the previous snapshot and permits retry
+PASS: 15 syscall failure, uncertain-outcome and cleanup cases
+PASS: table/log directory creation failure and version-0 uncertain outcome
+PASS: data-file sync -> data link -> data-directory sync -> log-file sync -> log link -> log-directory sync
+PASS: append waits while the fixed table maintenance lock is held exclusively
+PASS: symlink maintenance locks are rejected without touching their target
+PASS: absolute-path initialization and empty append without files
+PASS: 100 deterministic version-publication races, continuous readers, immutable commits and conflict retries

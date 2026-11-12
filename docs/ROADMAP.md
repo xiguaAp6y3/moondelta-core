@@ -39,7 +39,7 @@
 | E2 | Parquet 数据层 | `add.path` percent-decoding；数据文件缺失结构化错误（含文件名） |
 | F1 | 统计 | flat min/max 剪枝、`numRecords`（现状已有）；nested 字段 stats 不误用为 flat，无法安全剪枝时放弃剪枝继续正确读取 |
 | F2 | 统计 | stats 解析失败显式告警或拒绝，不得静默返 0 |
-| G1 | 写路径 | `create_table` 拒绝已存在的表；`append_rows` 校验列名与类型同 `metaData.schema` 一致；commit 原子性（目标版本存在即失败，put-if-absent） |
+| G1 | 写路径 | `create_table` 原子拒绝已存在的表；`append_rows` 校验列名与类型同 `metaData.schema` 一致；数据与 JSON commit 先写临时文件再完整发布；正式 commit 原子且不可覆盖地发布，作为唯一可见性边界；失败恢复维持旧快照并允许重试；空批次不产生伪提交 |
 | G2 | 写路径 | 写出表 protocol 字段恒为 `minReaderVersion=1, minWriterVersion=2`（现状已满足） |
 | H1 | 对拍 | 案例 A（flat，scope 文档 §4）：双引擎双向，逐行逐字段一致（现状已通过） |
 | H2 | 对拍 | 案例 B（nested，同协议同口径）：双引擎双向，含 `profile=NULL`、`tags=[]`、`attrs={}` 等边界（现状失败，本冲刺关闭） |

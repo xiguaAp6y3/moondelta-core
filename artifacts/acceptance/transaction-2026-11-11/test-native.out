@@ -1,0 +1,748 @@
+Warning: Duplicate alias `delta` at "/root/moondelta-wsl/src/cmd/delta/moon.pkg". "test-import" will automatically add "import" and current package as dependency so you don't need to add it manually. If you're test-importing a dependency with the same default alias as your current package, considering give it a different alias than the current package. Violating import: `xiguaAp6y3/moondelta-core`
+Warning: [0020]
+     ╭─[ /root/moondelta-wsl/src/cmd/delta/main.mbt:406:43 ]
+     │
+ 406 │   let report = @delta.recover_table(root, not(apply)) catch {
+     │                                           ─┬─  
+     │                                            ╰─── Warning (deprecated): Use !expr instead
+─────╯
+Warning: [0020]
+     ╭─[ /root/moondelta-wsl/src/cmd/delta/main.mbt:437:3 ]
+     │
+ 437 │   not(report.lock_busy)
+     │   ─┬─  
+     │    ╰─── Warning (deprecated): Use !expr instead
+─────╯
+Warning: [0020]
+     ╭─[ /root/moondelta-wsl/src/cmd/delta/main.mbt:579:6 ]
+     │
+ 579 │   if not(ok) {
+     │      ─┬─  
+     │       ╰─── Warning (deprecated): Use !expr instead
+─────╯
+Warning: [0002]
+     ╭─[ /root/moondelta-wsl/src/delta_wbtest.mbt:340:5 ]
+     │
+ 340 │     err => {
+     │     ─┬─  
+     │      ╰─── Warning (unused_value): Unused variable 'err'
+─────╯
+Warning: [0002]
+     ╭─[ /root/moondelta-wsl/src/delta_wbtest.mbt:347:5 ]
+     │
+ 347 │     err => {
+     │     ─┬─  
+     │      ╰─── Warning (unused_value): Unused variable 'err'
+─────╯
+Warning: [0002]
+     ╭─[ /root/moondelta-wsl/src/delta_wbtest.mbt:354:5 ]
+     │
+ 354 │     err => {
+     │     ─┬─  
+     │      ╰─── Warning (unused_value): Unused variable 'err'
+─────╯
+Warning: [0002]
+     ╭─[ /root/moondelta-wsl/src/delta_wbtest.mbt:364:5 ]
+     │
+ 364 │     err => {
+     │     ─┬─  
+     │      ╰─── Warning (unused_value): Unused variable 'err'
+─────╯
+Warning: [0002]
+     ╭─[ /root/moondelta-wsl/src/delta_wbtest.mbt:376:5 ]
+     │
+ 376 │     err => {
+     │     ─┬─  
+     │      ╰─── Warning (unused_value): Unused variable 'err'
+─────╯
+Warning: [0002]
+     ╭─[ /root/moondelta-wsl/src/delta_wbtest.mbt:395:5 ]
+     │
+ 395 │     err => {
+     │     ─┬─  
+     │      ╰─── Warning (unused_value): Unused variable 'err'
+─────╯
+Warning: [0002]
+     ╭─[ /root/moondelta-wsl/src/delta_wbtest.mbt:401:5 ]
+     │
+ 401 │     err => {
+     │     ─┬─  
+     │      ╰─── Warning (unused_value): Unused variable 'err'
+─────╯
+Warning: [0002]
+     ╭─[ /root/moondelta-wsl/src/delta_wbtest.mbt:415:5 ]
+     │
+ 415 │     err => {
+     │     ─┬─  
+     │      ╰─── Warning (unused_value): Unused variable 'err'
+─────╯
+Warning: [0002]
+     ╭─[ /root/moondelta-wsl/src/delta_wbtest.mbt:421:5 ]
+     │
+ 421 │     err => {
+     │     ─┬─  
+     │      ╰─── Warning (unused_value): Unused variable 'err'
+─────╯
+Warning: [0020]
+      ╭─[ /root/moondelta-wsl/src/delta_wbtest.mbt:1656:24 ]
+      │
+ 1656 │   let txn = intents[0].substring(start=0, end=32)
+      │                        ────┬────  
+      │                            ╰────── Warning (deprecated): Use `str[:]` or `str[:].to_string()` instead
+──────╯
+Warning: [0020]
+      ╭─[ /root/moondelta-wsl/src/delta_wbtest.mbt:1681:13 ]
+      │
+ 1681 │     if name.substring(start=0, end=32) != txn {
+      │             ────┬────  
+      │                 ╰────── Warning (deprecated): Use `str[:]` or `str[:].to_string()` instead
+──────╯
+Warning: [0020]
+      ╭─[ /root/moondelta-wsl/src/delta_wbtest.mbt:1682:26 ]
+      │
+ 1682 │       pending_txn = name.substring(start=0, end=32)
+      │                          ────┬────  
+      │                              ╰────── Warning (deprecated): Use `str[:]` or `str[:].to_string()` instead
+──────╯
+Warning: [0020]
+    ╭─[ /root/moondelta-wsl/src/examples/atomic_commit_worker/main.mbt:37:45 ]
+    │
+ 37 │     let report = @delta.recover_table(root, not(apply)) catch {
+    │                                             ─┬─  
+    │                                              ╰─── Warning (deprecated): Use !expr instead
+────╯
+Warning: [0029]
+   ╭─[ /root/moondelta-wsl/src/moon.pkg:5:3 ]
+   │
+ 5 │   "moonbitlang/core/env" @env,
+   │   ───────────┬──────────  
+   │              ╰──────────── Warning (unused_package): Unused package 'moonbitlang/core/env'
+───╯
+Warning: [0029]
+   ╭─[ /root/moondelta-wsl/src/moon.pkg:5:26 ]
+   │
+ 5 │   "moonbitlang/core/env" @env,
+   │                          ──┬─  
+   │                            ╰─── Warning (unused_package): Unused package alias 'env'
+───╯
+Warning: [0027]
+    ╭─[ /root/moondelta-wsl/src/read.mbt:17:10 ]
+    │
+ 17 │ } derive(Debug)
+    │          ──┬──  
+    │            ╰──── Warning (deprecated_syntax): The syntax `derive(...)` for deriving trait implementations is deprecated. Use `#derive(...)` before the type declaration instead.
+────╯
+Warning: [0079]
+    ╭─[ /root/moondelta-wsl/src/read.mbt:17:10 ]
+    │
+ 17 │ } derive(Debug)
+    │          ──┬──  
+    │            ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for Cell` are implicit promoted as regular method for `Cell`. This behavior is deprecated and will be removed in the future. Add a `pub extend Cell with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `Cell` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0027]
+    ╭─[ /root/moondelta-wsl/src/read.mbt:24:10 ]
+    │
+ 24 │ } derive(Debug)
+    │          ──┬──  
+    │            ╰──── Warning (deprecated_syntax): The syntax `derive(...)` for deriving trait implementations is deprecated. Use `#derive(...)` before the type declaration instead.
+────╯
+Warning: [0079]
+    ╭─[ /root/moondelta-wsl/src/read.mbt:24:10 ]
+    │
+ 24 │ } derive(Debug)
+    │          ──┬──  
+    │            ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for ReadColumn` are implicit promoted as regular method for `ReadColumn`. This behavior is deprecated and will be removed in the future. Add a `pub extend ReadColumn with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `ReadColumn` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0027]
+    ╭─[ /root/moondelta-wsl/src/read.mbt:31:10 ]
+    │
+ 31 │ } derive(Debug)
+    │          ──┬──  
+    │            ╰──── Warning (deprecated_syntax): The syntax `derive(...)` for deriving trait implementations is deprecated. Use `#derive(...)` before the type declaration instead.
+────╯
+Warning: [0079]
+    ╭─[ /root/moondelta-wsl/src/read.mbt:31:10 ]
+    │
+ 31 │ } derive(Debug)
+    │          ──┬──  
+    │            ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for ReadResult` are implicit promoted as regular method for `ReadResult`. This behavior is deprecated and will be removed in the future. Add a `pub extend ReadResult with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `ReadResult` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0004]
+    ╭─[ /root/moondelta-wsl/src/recover.mbt:14:8 ]
+    │
+ 14 │ struct RecoverySink {
+    │        ──────┬─────  
+    │              ╰─────── Warning (missing_priv): The type 'RecoverySink' does not occur in public signature of current package, consider marking it as `priv`.
+────╯
+Warning: [0020]
+     ╭─[ /root/moondelta-wsl/src/recover.mbt:484:23 ]
+     │
+ 484 │     let txn_id = name.substring(start=0, end=32)
+     │                       ────┬────  
+     │                           ╰────── Warning (deprecated): Use `str[:]` or `str[:].to_string()` instead
+─────╯
+Warning: [0092]
+     ╭─[ /root/moondelta-wsl/src/recover.mbt:659:47 ]
+     │
+ 659 │       let report = plan_recovery(root, apply) catch {
+     │                                               ───┬───  
+     │                                                  ╰───── Warning (fragile_catch_all): 
+Found code that can be simplified:
+
+  try <expr> catch {
+    err => {
+      <cleanup code>
+      raise err
+    }
+  }
+
+If <cleanup code> does not mention `err` or perform `return`/`break`/`continue`, rewrite to:
+
+  errdefer <cleanup code>
+  <expr>
+
+Note: `try ... catch` will no longer capture async cancellation in the future, so using `catch` for cleanup is dangerous for async code.
+If your handler need to manipulate or inspect `err`, but contain cleanup code as well,
+it is still recommended to move the cleanup part to `errdefer` as well, leaving only the error inspecting part in `catch`.
+      
+─────╯
+Warning: [0027]
+   ╭─[ /root/moondelta-wsl/src/scan.mbt:9:10 ]
+   │
+ 9 │ } derive(Eq, Debug)
+   │          ─┬  
+   │           ╰── Warning (deprecated_syntax): The syntax `derive(...)` for deriving trait implementations is deprecated. Use `#derive(...)` before the type declaration instead.
+───╯
+Warning: [0079]
+   ╭─[ /root/moondelta-wsl/src/scan.mbt:9:10 ]
+   │
+ 9 │ } derive(Eq, Debug)
+   │          ─┬  
+   │           ╰── Warning (implicit_impl_as_method): The methods not_equal, equal from `impl Eq for CompareOp` are implicit promoted as regular method for `CompareOp`. This behavior is deprecated and will be removed in the future. Add a `pub extend CompareOp with Eq::{not_equal, equal}` declaration or manually define regular methods for type `CompareOp` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+───╯
+Warning: [0079]
+   ╭─[ /root/moondelta-wsl/src/scan.mbt:9:14 ]
+   │
+ 9 │ } derive(Eq, Debug)
+   │              ──┬──  
+   │                ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for CompareOp` are implicit promoted as regular method for `CompareOp`. This behavior is deprecated and will be removed in the future. Add a `pub extend CompareOp with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `CompareOp` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+───╯
+Warning: [0027]
+    ╭─[ /root/moondelta-wsl/src/scan.mbt:16:10 ]
+    │
+ 16 │ } derive(Eq, Debug)
+    │          ─┬  
+    │           ╰── Warning (deprecated_syntax): The syntax `derive(...)` for deriving trait implementations is deprecated. Use `#derive(...)` before the type declaration instead.
+────╯
+Warning: [0079]
+    ╭─[ /root/moondelta-wsl/src/scan.mbt:16:10 ]
+    │
+ 16 │ } derive(Eq, Debug)
+    │          ─┬  
+    │           ╰── Warning (implicit_impl_as_method): The methods not_equal, equal from `impl Eq for ColumnPredicate` are implicit promoted as regular method for `ColumnPredicate`. This behavior is deprecated and will be removed in the future. Add a `pub extend ColumnPredicate with Eq::{not_equal, equal}` declaration or manually define regular methods for type `ColumnPredicate` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+    ╭─[ /root/moondelta-wsl/src/scan.mbt:16:14 ]
+    │
+ 16 │ } derive(Eq, Debug)
+    │              ──┬──  
+    │                ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for ColumnPredicate` are implicit promoted as regular method for `ColumnPredicate`. This behavior is deprecated and will be removed in the future. Add a `pub extend ColumnPredicate with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `ColumnPredicate` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+    ╭─[ /root/moondelta-wsl/src/scan.mbt:23:10 ]
+    │
+ 23 │ } derive(Eq, Debug)
+    │          ─┬  
+    │           ╰── Warning (implicit_impl_as_method): The methods not_equal, equal from `impl Eq for ScanFilter` are implicit promoted as regular method for `ScanFilter`. This behavior is deprecated and will be removed in the future. Add a `pub extend ScanFilter with Eq::{not_equal, equal}` declaration or manually define regular methods for type `ScanFilter` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+    ╭─[ /root/moondelta-wsl/src/scan.mbt:23:14 ]
+    │
+ 23 │ } derive(Eq, Debug)
+    │              ──┬──  
+    │                ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for ScanFilter` are implicit promoted as regular method for `ScanFilter`. This behavior is deprecated and will be removed in the future. Add a `pub extend ScanFilter with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `ScanFilter` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0027]
+    ╭─[ /root/moondelta-wsl/src/scan.mbt:33:10 ]
+    │
+ 33 │ } derive(Eq, Debug)
+    │          ─┬  
+    │           ╰── Warning (deprecated_syntax): The syntax `derive(...)` for deriving trait implementations is deprecated. Use `#derive(...)` before the type declaration instead.
+────╯
+Warning: [0079]
+    ╭─[ /root/moondelta-wsl/src/scan.mbt:33:10 ]
+    │
+ 33 │ } derive(Eq, Debug)
+    │          ─┬  
+    │           ╰── Warning (implicit_impl_as_method): The methods not_equal, equal from `impl Eq for ScanReport` are implicit promoted as regular method for `ScanReport`. This behavior is deprecated and will be removed in the future. Add a `pub extend ScanReport with Eq::{not_equal, equal}` declaration or manually define regular methods for type `ScanReport` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+    ╭─[ /root/moondelta-wsl/src/scan.mbt:33:14 ]
+    │
+ 33 │ } derive(Eq, Debug)
+    │              ──┬──  
+    │                ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for ScanReport` are implicit promoted as regular method for `ScanReport`. This behavior is deprecated and will be removed in the future. Add a `pub extend ScanReport with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `ScanReport` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0004]
+     ╭─[ /root/moondelta-wsl/src/snapshot.mbt:166:8 ]
+     │
+ 166 │ struct ReplayState {
+     │        ─────┬─────  
+     │             ╰─────── Warning (missing_priv): The type 'ReplayState' does not occur in public signature of current package, consider marking it as `priv`.
+─────╯
+Warning: [0004]
+    ╭─[ /root/moondelta-wsl/src/txn.mbt:90:8 ]
+    │
+ 90 │ struct TxnIntent {
+    │        ────┬────  
+    │            ╰────── Warning (missing_priv): The type 'TxnIntent' does not occur in public signature of current package, consider marking it as `priv`.
+────╯
+Warning: [0035]
+     ╭─[ /root/moondelta-wsl/src/txn.mbt:224:9 ]
+     │
+ 224 │     let final = match data_path {
+     │         ──┬──  
+     │           ╰──── Warning (reserved_keyword): The word `final` is reserved for possible future use. Please consider using another name.
+─────╯
+Warning: [0035]
+     ╭─[ /root/moondelta-wsl/src/txn.mbt:232:63 ]
+     │
+ 232 │     if !is_safe_relative_path(temp) || !is_safe_relative_path(final) {
+     │                                                               ──┬──  
+     │                                                                 ╰──── Warning (reserved_keyword): The word `final` is reserved for possible future use. Please consider using another name.
+─────╯
+Warning: [0035]
+     ╭─[ /root/moondelta-wsl/src/txn.mbt:235:16 ]
+     │
+ 235 │     if temp != final + temp_name(txn_id) {
+     │                ──┬──  
+     │                  ╰──── Warning (reserved_keyword): The word `final` is reserved for possible future use. Please consider using another name.
+─────╯
+Warning: [0027]
+    ╭─[ /root/moondelta-wsl/src/types.mbt:23:10 ]
+    │
+ 23 │ } derive(Eq, Debug)
+    │          ─┬  
+    │           ╰── Warning (deprecated_syntax): The syntax `derive(...)` for deriving trait implementations is deprecated. Use `#derive(...)` before the type declaration instead.
+────╯
+Warning: [0079]
+    ╭─[ /root/moondelta-wsl/src/types.mbt:23:10 ]
+    │
+ 23 │ } derive(Eq, Debug)
+    │          ─┬  
+    │           ╰── Warning (implicit_impl_as_method): The methods not_equal, equal from `impl Eq for DeltaType` are implicit promoted as regular method for `DeltaType`. This behavior is deprecated and will be removed in the future. Add a `pub extend DeltaType with Eq::{not_equal, equal}` declaration or manually define regular methods for type `DeltaType` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+    ╭─[ /root/moondelta-wsl/src/types.mbt:23:14 ]
+    │
+ 23 │ } derive(Eq, Debug)
+    │              ──┬──  
+    │                ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for DeltaType` are implicit promoted as regular method for `DeltaType`. This behavior is deprecated and will be removed in the future. Add a `pub extend DeltaType with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `DeltaType` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0027]
+    ╭─[ /root/moondelta-wsl/src/types.mbt:30:10 ]
+    │
+ 30 │ } derive(Eq, Debug)
+    │          ─┬  
+    │           ╰── Warning (deprecated_syntax): The syntax `derive(...)` for deriving trait implementations is deprecated. Use `#derive(...)` before the type declaration instead.
+────╯
+Warning: [0079]
+    ╭─[ /root/moondelta-wsl/src/types.mbt:30:10 ]
+    │
+ 30 │ } derive(Eq, Debug)
+    │          ─┬  
+    │           ╰── Warning (implicit_impl_as_method): The methods not_equal, equal from `impl Eq for DeltaField` are implicit promoted as regular method for `DeltaField`. This behavior is deprecated and will be removed in the future. Add a `pub extend DeltaField with Eq::{not_equal, equal}` declaration or manually define regular methods for type `DeltaField` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+    ╭─[ /root/moondelta-wsl/src/types.mbt:30:14 ]
+    │
+ 30 │ } derive(Eq, Debug)
+    │              ──┬──  
+    │                ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for DeltaField` are implicit promoted as regular method for `DeltaField`. This behavior is deprecated and will be removed in the future. Add a `pub extend DeltaField with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `DeltaField` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0027]
+    ╭─[ /root/moondelta-wsl/src/types.mbt:36:10 ]
+    │
+ 36 │ } derive(Eq, Debug)
+    │          ─┬  
+    │           ╰── Warning (deprecated_syntax): The syntax `derive(...)` for deriving trait implementations is deprecated. Use `#derive(...)` before the type declaration instead.
+────╯
+Warning: [0079]
+    ╭─[ /root/moondelta-wsl/src/types.mbt:36:10 ]
+    │
+ 36 │ } derive(Eq, Debug)
+    │          ─┬  
+    │           ╰── Warning (implicit_impl_as_method): The methods not_equal, equal from `impl Eq for DeltaSchema` are implicit promoted as regular method for `DeltaSchema`. This behavior is deprecated and will be removed in the future. Add a `pub extend DeltaSchema with Eq::{not_equal, equal}` declaration or manually define regular methods for type `DeltaSchema` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+    ╭─[ /root/moondelta-wsl/src/types.mbt:36:14 ]
+    │
+ 36 │ } derive(Eq, Debug)
+    │              ──┬──  
+    │                ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for DeltaSchema` are implicit promoted as regular method for `DeltaSchema`. This behavior is deprecated and will be removed in the future. Add a `pub extend DeltaSchema with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `DeltaSchema` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0027]
+    ╭─[ /root/moondelta-wsl/src/types.mbt:44:10 ]
+    │
+ 44 │ } derive(Eq, Debug)
+    │          ─┬  
+    │           ╰── Warning (deprecated_syntax): The syntax `derive(...)` for deriving trait implementations is deprecated. Use `#derive(...)` before the type declaration instead.
+────╯
+Warning: [0079]
+    ╭─[ /root/moondelta-wsl/src/types.mbt:44:10 ]
+    │
+ 44 │ } derive(Eq, Debug)
+    │          ─┬  
+    │           ╰── Warning (implicit_impl_as_method): The methods not_equal, equal from `impl Eq for Protocol` are implicit promoted as regular method for `Protocol`. This behavior is deprecated and will be removed in the future. Add a `pub extend Protocol with Eq::{not_equal, equal}` declaration or manually define regular methods for type `Protocol` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+    ╭─[ /root/moondelta-wsl/src/types.mbt:44:14 ]
+    │
+ 44 │ } derive(Eq, Debug)
+    │              ──┬──  
+    │                ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for Protocol` are implicit promoted as regular method for `Protocol`. This behavior is deprecated and will be removed in the future. Add a `pub extend Protocol with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `Protocol` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0027]
+    ╭─[ /root/moondelta-wsl/src/types.mbt:54:10 ]
+    │
+ 54 │ } derive(Eq, Debug)
+    │          ─┬  
+    │           ╰── Warning (deprecated_syntax): The syntax `derive(...)` for deriving trait implementations is deprecated. Use `#derive(...)` before the type declaration instead.
+────╯
+Warning: [0079]
+    ╭─[ /root/moondelta-wsl/src/types.mbt:54:10 ]
+    │
+ 54 │ } derive(Eq, Debug)
+    │          ─┬  
+    │           ╰── Warning (implicit_impl_as_method): The methods not_equal, equal from `impl Eq for TableInfo` are implicit promoted as regular method for `TableInfo`. This behavior is deprecated and will be removed in the future. Add a `pub extend TableInfo with Eq::{not_equal, equal}` declaration or manually define regular methods for type `TableInfo` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+    ╭─[ /root/moondelta-wsl/src/types.mbt:54:14 ]
+    │
+ 54 │ } derive(Eq, Debug)
+    │              ──┬──  
+    │                ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for TableInfo` are implicit promoted as regular method for `TableInfo`. This behavior is deprecated and will be removed in the future. Add a `pub extend TableInfo with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `TableInfo` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0027]
+    ╭─[ /root/moondelta-wsl/src/types.mbt:65:10 ]
+    │
+ 65 │ } derive(Eq, Debug)
+    │          ─┬  
+    │           ╰── Warning (deprecated_syntax): The syntax `derive(...)` for deriving trait implementations is deprecated. Use `#derive(...)` before the type declaration instead.
+────╯
+Warning: [0079]
+    ╭─[ /root/moondelta-wsl/src/types.mbt:65:10 ]
+    │
+ 65 │ } derive(Eq, Debug)
+    │          ─┬  
+    │           ╰── Warning (implicit_impl_as_method): The methods not_equal, equal from `impl Eq for AddFile` are implicit promoted as regular method for `AddFile`. This behavior is deprecated and will be removed in the future. Add a `pub extend AddFile with Eq::{not_equal, equal}` declaration or manually define regular methods for type `AddFile` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+    ╭─[ /root/moondelta-wsl/src/types.mbt:65:14 ]
+    │
+ 65 │ } derive(Eq, Debug)
+    │              ──┬──  
+    │                ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for AddFile` are implicit promoted as regular method for `AddFile`. This behavior is deprecated and will be removed in the future. Add a `pub extend AddFile with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `AddFile` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0027]
+    ╭─[ /root/moondelta-wsl/src/types.mbt:72:10 ]
+    │
+ 72 │ } derive(Eq, Debug)
+    │          ─┬  
+    │           ╰── Warning (deprecated_syntax): The syntax `derive(...)` for deriving trait implementations is deprecated. Use `#derive(...)` before the type declaration instead.
+────╯
+Warning: [0079]
+    ╭─[ /root/moondelta-wsl/src/types.mbt:72:10 ]
+    │
+ 72 │ } derive(Eq, Debug)
+    │          ─┬  
+    │           ╰── Warning (implicit_impl_as_method): The methods not_equal, equal from `impl Eq for RemoveFile` are implicit promoted as regular method for `RemoveFile`. This behavior is deprecated and will be removed in the future. Add a `pub extend RemoveFile with Eq::{not_equal, equal}` declaration or manually define regular methods for type `RemoveFile` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+    ╭─[ /root/moondelta-wsl/src/types.mbt:72:14 ]
+    │
+ 72 │ } derive(Eq, Debug)
+    │              ──┬──  
+    │                ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for RemoveFile` are implicit promoted as regular method for `RemoveFile`. This behavior is deprecated and will be removed in the future. Add a `pub extend RemoveFile with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `RemoveFile` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0027]
+    ╭─[ /root/moondelta-wsl/src/types.mbt:80:10 ]
+    │
+ 80 │ } derive(Eq, Debug)
+    │          ─┬  
+    │           ╰── Warning (deprecated_syntax): The syntax `derive(...)` for deriving trait implementations is deprecated. Use `#derive(...)` before the type declaration instead.
+────╯
+Warning: [0079]
+    ╭─[ /root/moondelta-wsl/src/types.mbt:80:10 ]
+    │
+ 80 │ } derive(Eq, Debug)
+    │          ─┬  
+    │           ╰── Warning (implicit_impl_as_method): The methods not_equal, equal from `impl Eq for CommitInfo` are implicit promoted as regular method for `CommitInfo`. This behavior is deprecated and will be removed in the future. Add a `pub extend CommitInfo with Eq::{not_equal, equal}` declaration or manually define regular methods for type `CommitInfo` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+    ╭─[ /root/moondelta-wsl/src/types.mbt:80:14 ]
+    │
+ 80 │ } derive(Eq, Debug)
+    │              ──┬──  
+    │                ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for CommitInfo` are implicit promoted as regular method for `CommitInfo`. This behavior is deprecated and will be removed in the future. Add a `pub extend CommitInfo with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `CommitInfo` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0027]
+    ╭─[ /root/moondelta-wsl/src/types.mbt:86:10 ]
+    │
+ 86 │ } derive(Eq, Debug)
+    │          ─┬  
+    │           ╰── Warning (deprecated_syntax): The syntax `derive(...)` for deriving trait implementations is deprecated. Use `#derive(...)` before the type declaration instead.
+────╯
+Warning: [0079]
+    ╭─[ /root/moondelta-wsl/src/types.mbt:86:10 ]
+    │
+ 86 │ } derive(Eq, Debug)
+    │          ─┬  
+    │           ╰── Warning (implicit_impl_as_method): The methods not_equal, equal from `impl Eq for Txn` are implicit promoted as regular method for `Txn`. This behavior is deprecated and will be removed in the future. Add a `pub extend Txn with Eq::{not_equal, equal}` declaration or manually define regular methods for type `Txn` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0079]
+    ╭─[ /root/moondelta-wsl/src/types.mbt:86:14 ]
+    │
+ 86 │ } derive(Eq, Debug)
+    │              ──┬──  
+    │                ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for Txn` are implicit promoted as regular method for `Txn`. This behavior is deprecated and will be removed in the future. Add a `pub extend Txn with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `Txn` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+────╯
+Warning: [0027]
+     ╭─[ /root/moondelta-wsl/src/types.mbt:100:10 ]
+     │
+ 100 │ } derive(Eq, Debug)
+     │          ─┬  
+     │           ╰── Warning (deprecated_syntax): The syntax `derive(...)` for deriving trait implementations is deprecated. Use `#derive(...)` before the type declaration instead.
+─────╯
+Warning: [0079]
+     ╭─[ /root/moondelta-wsl/src/types.mbt:100:10 ]
+     │
+ 100 │ } derive(Eq, Debug)
+     │          ─┬  
+     │           ╰── Warning (implicit_impl_as_method): The methods not_equal, equal from `impl Eq for Action` are implicit promoted as regular method for `Action`. This behavior is deprecated and will be removed in the future. Add a `pub extend Action with Eq::{not_equal, equal}` declaration or manually define regular methods for type `Action` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+─────╯
+Warning: [0079]
+     ╭─[ /root/moondelta-wsl/src/types.mbt:100:14 ]
+     │
+ 100 │ } derive(Eq, Debug)
+     │              ──┬──  
+     │                ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for Action` are implicit promoted as regular method for `Action`. This behavior is deprecated and will be removed in the future. Add a `pub extend Action with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `Action` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+─────╯
+Warning: [0027]
+     ╭─[ /root/moondelta-wsl/src/types.mbt:112:10 ]
+     │
+ 112 │ } derive(Eq, Debug)
+     │          ─┬  
+     │           ╰── Warning (deprecated_syntax): The syntax `derive(...)` for deriving trait implementations is deprecated. Use `#derive(...)` before the type declaration instead.
+─────╯
+Warning: [0079]
+     ╭─[ /root/moondelta-wsl/src/types.mbt:112:10 ]
+     │
+ 112 │ } derive(Eq, Debug)
+     │          ─┬  
+     │           ╰── Warning (implicit_impl_as_method): The methods not_equal, equal from `impl Eq for Snapshot` are implicit promoted as regular method for `Snapshot`. This behavior is deprecated and will be removed in the future. Add a `pub extend Snapshot with Eq::{not_equal, equal}` declaration or manually define regular methods for type `Snapshot` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+─────╯
+Warning: [0079]
+     ╭─[ /root/moondelta-wsl/src/types.mbt:112:14 ]
+     │
+ 112 │ } derive(Eq, Debug)
+     │              ──┬──  
+     │                ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for Snapshot` are implicit promoted as regular method for `Snapshot`. This behavior is deprecated and will be removed in the future. Add a `pub extend Snapshot with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `Snapshot` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+─────╯
+Warning: [0027]
+     ╭─[ /root/moondelta-wsl/src/types.mbt:119:10 ]
+     │
+ 119 │ } derive(Eq, Debug)
+     │          ─┬  
+     │           ╰── Warning (deprecated_syntax): The syntax `derive(...)` for deriving trait implementations is deprecated. Use `#derive(...)` before the type declaration instead.
+─────╯
+Warning: [0079]
+     ╭─[ /root/moondelta-wsl/src/types.mbt:119:10 ]
+     │
+ 119 │ } derive(Eq, Debug)
+     │          ─┬  
+     │           ╰── Warning (implicit_impl_as_method): The methods not_equal, equal from `impl Eq for HistoryEntry` are implicit promoted as regular method for `HistoryEntry`. This behavior is deprecated and will be removed in the future. Add a `pub extend HistoryEntry with Eq::{not_equal, equal}` declaration or manually define regular methods for type `HistoryEntry` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+─────╯
+Warning: [0079]
+     ╭─[ /root/moondelta-wsl/src/types.mbt:119:14 ]
+     │
+ 119 │ } derive(Eq, Debug)
+     │              ──┬──  
+     │                ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for HistoryEntry` are implicit promoted as regular method for `HistoryEntry`. This behavior is deprecated and will be removed in the future. Add a `pub extend HistoryEntry with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `HistoryEntry` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+─────╯
+Warning: [0027]
+     ╭─[ /root/moondelta-wsl/src/types.mbt:126:10 ]
+     │
+ 126 │ } derive(Eq, Debug)
+     │          ─┬  
+     │           ╰── Warning (deprecated_syntax): The syntax `derive(...)` for deriving trait implementations is deprecated. Use `#derive(...)` before the type declaration instead.
+─────╯
+Warning: [0079]
+     ╭─[ /root/moondelta-wsl/src/types.mbt:126:10 ]
+     │
+ 126 │ } derive(Eq, Debug)
+     │          ─┬  
+     │           ╰── Warning (implicit_impl_as_method): The methods not_equal, equal from `impl Eq for CheckpointInfo` are implicit promoted as regular method for `CheckpointInfo`. This behavior is deprecated and will be removed in the future. Add a `pub extend CheckpointInfo with Eq::{not_equal, equal}` declaration or manually define regular methods for type `CheckpointInfo` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+─────╯
+Warning: [0079]
+     ╭─[ /root/moondelta-wsl/src/types.mbt:126:14 ]
+     │
+ 126 │ } derive(Eq, Debug)
+     │              ──┬──  
+     │                ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for CheckpointInfo` are implicit promoted as regular method for `CheckpointInfo`. This behavior is deprecated and will be removed in the future. Add a `pub extend CheckpointInfo with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `CheckpointInfo` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+─────╯
+Warning: [0027]
+     ╭─[ /root/moondelta-wsl/src/types.mbt:162:10 ]
+     │
+ 162 │ } derive(Eq, Debug)
+     │          ─┬  
+     │           ╰── Warning (deprecated_syntax): The syntax `derive(...)` for deriving trait implementations is deprecated. Use `#derive(...)` before the type declaration instead.
+─────╯
+Warning: [0079]
+     ╭─[ /root/moondelta-wsl/src/types.mbt:162:10 ]
+     │
+ 162 │ } derive(Eq, Debug)
+     │          ─┬  
+     │           ╰── Warning (implicit_impl_as_method): The methods not_equal, equal from `impl Eq for TxnState` are implicit promoted as regular method for `TxnState`. This behavior is deprecated and will be removed in the future. Add a `pub extend TxnState with Eq::{not_equal, equal}` declaration or manually define regular methods for type `TxnState` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+─────╯
+Warning: [0079]
+     ╭─[ /root/moondelta-wsl/src/types.mbt:162:14 ]
+     │
+ 162 │ } derive(Eq, Debug)
+     │              ──┬──  
+     │                ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for TxnState` are implicit promoted as regular method for `TxnState`. This behavior is deprecated and will be removed in the future. Add a `pub extend TxnState with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `TxnState` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+─────╯
+Warning: [0027]
+     ╭─[ /root/moondelta-wsl/src/types.mbt:185:10 ]
+     │
+ 185 │ } derive(Eq, Debug)
+     │          ─┬  
+     │           ╰── Warning (deprecated_syntax): The syntax `derive(...)` for deriving trait implementations is deprecated. Use `#derive(...)` before the type declaration instead.
+─────╯
+Warning: [0079]
+     ╭─[ /root/moondelta-wsl/src/types.mbt:185:10 ]
+     │
+ 185 │ } derive(Eq, Debug)
+     │          ─┬  
+     │           ╰── Warning (implicit_impl_as_method): The methods not_equal, equal from `impl Eq for TransactionStatus` are implicit promoted as regular method for `TransactionStatus`. This behavior is deprecated and will be removed in the future. Add a `pub extend TransactionStatus with Eq::{not_equal, equal}` declaration or manually define regular methods for type `TransactionStatus` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+─────╯
+Warning: [0079]
+     ╭─[ /root/moondelta-wsl/src/types.mbt:185:14 ]
+     │
+ 185 │ } derive(Eq, Debug)
+     │              ──┬──  
+     │                ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for TransactionStatus` are implicit promoted as regular method for `TransactionStatus`. This behavior is deprecated and will be removed in the future. Add a `pub extend TransactionStatus with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `TransactionStatus` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+─────╯
+Warning: [0027]
+     ╭─[ /root/moondelta-wsl/src/types.mbt:195:10 ]
+     │
+ 195 │ } derive(Eq, Debug)
+     │          ─┬  
+     │           ╰── Warning (deprecated_syntax): The syntax `derive(...)` for deriving trait implementations is deprecated. Use `#derive(...)` before the type declaration instead.
+─────╯
+Warning: [0079]
+     ╭─[ /root/moondelta-wsl/src/types.mbt:195:10 ]
+     │
+ 195 │ } derive(Eq, Debug)
+     │          ─┬  
+     │           ╰── Warning (implicit_impl_as_method): The methods not_equal, equal from `impl Eq for RecoveryEntry` are implicit promoted as regular method for `RecoveryEntry`. This behavior is deprecated and will be removed in the future. Add a `pub extend RecoveryEntry with Eq::{not_equal, equal}` declaration or manually define regular methods for type `RecoveryEntry` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+─────╯
+Warning: [0079]
+     ╭─[ /root/moondelta-wsl/src/types.mbt:195:14 ]
+     │
+ 195 │ } derive(Eq, Debug)
+     │              ──┬──  
+     │                ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for RecoveryEntry` are implicit promoted as regular method for `RecoveryEntry`. This behavior is deprecated and will be removed in the future. Add a `pub extend RecoveryEntry with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `RecoveryEntry` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+─────╯
+Warning: [0027]
+     ╭─[ /root/moondelta-wsl/src/types.mbt:209:10 ]
+     │
+ 209 │ } derive(Eq, Debug)
+     │          ─┬  
+     │           ╰── Warning (deprecated_syntax): The syntax `derive(...)` for deriving trait implementations is deprecated. Use `#derive(...)` before the type declaration instead.
+─────╯
+Warning: [0079]
+     ╭─[ /root/moondelta-wsl/src/types.mbt:209:10 ]
+     │
+ 209 │ } derive(Eq, Debug)
+     │          ─┬  
+     │           ╰── Warning (implicit_impl_as_method): The methods not_equal, equal from `impl Eq for RecoveryReport` are implicit promoted as regular method for `RecoveryReport`. This behavior is deprecated and will be removed in the future. Add a `pub extend RecoveryReport with Eq::{not_equal, equal}` declaration or manually define regular methods for type `RecoveryReport` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+─────╯
+Warning: [0079]
+     ╭─[ /root/moondelta-wsl/src/types.mbt:209:14 ]
+     │
+ 209 │ } derive(Eq, Debug)
+     │              ──┬──  
+     │                ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for RecoveryReport` are implicit promoted as regular method for `RecoveryReport`. This behavior is deprecated and will be removed in the future. Add a `pub extend RecoveryReport with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `RecoveryReport` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+─────╯
+Warning: [0027]
+     ╭─[ /root/moondelta-wsl/src/types.mbt:223:10 ]
+     │
+ 223 │ } derive(Eq, Debug)
+     │          ─┬  
+     │           ╰── Warning (deprecated_syntax): The syntax `derive(...)` for deriving trait implementations is deprecated. Use `#derive(...)` before the type declaration instead.
+─────╯
+Warning: [0079]
+     ╭─[ /root/moondelta-wsl/src/types.mbt:223:10 ]
+     │
+ 223 │ } derive(Eq, Debug)
+     │          ─┬  
+     │           ╰── Warning (implicit_impl_as_method): The methods not_equal, equal from `impl Eq for DeltaError` are implicit promoted as regular method for `DeltaError`. This behavior is deprecated and will be removed in the future. Add a `pub extend DeltaError with Eq::{not_equal, equal}` declaration or manually define regular methods for type `DeltaError` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+─────╯
+Warning: [0079]
+     ╭─[ /root/moondelta-wsl/src/types.mbt:223:14 ]
+     │
+ 223 │ } derive(Eq, Debug)
+     │              ──┬──  
+     │                ╰──── Warning (implicit_impl_as_method): The methods to_repr from `impl @moonbitlang/core/debug.Debug for DeltaError` are implicit promoted as regular method for `DeltaError`. This behavior is deprecated and will be removed in the future. Add a `pub extend DeltaError with @moonbitlang/core/debug.Debug::{to_repr}` declaration or manually define regular methods for type `DeltaError` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+─────╯
+Warning: [0079]
+     ╭─[ /root/moondelta-wsl/src/types.mbt:242:1 ]
+     │
+ 242 │ pub impl Show for DeltaError with fn output(self, logger) {
+     │ ──────────────┬─────────────  
+     │               ╰─────────────── Warning (implicit_impl_as_method): The methods to_string, output from `impl Show for DeltaError` are implicit promoted as regular method for `DeltaError`. This behavior is deprecated and will be removed in the future. Add a `pub extend DeltaError with Show::{to_string, output}` declaration or manually define regular methods for type `DeltaError` instead. If the promotion is not desirable, add `#deprecated` on the `extend` declaration.
+─────╯
+Warning: [0004]
+    ╭─[ /root/moondelta-wsl/src/write.mbt:46:6 ]
+    │
+ 46 │ enum TxnFault {
+    │      ────┬───  
+    │          ╰───── Warning (missing_priv): The type 'TxnFault' does not occur in public signature of current package, consider marking it as `priv`.
+────╯
+Warning: [0006]
+    ╭─[ /root/moondelta-wsl/src/write.mbt:49:3 ]
+    │
+ 49 │   TxnAbortAfterIntent
+    │   ─────────┬─────────  
+    │            ╰─────────── Warning (unused_constructor): Variant 'TxnAbortAfterIntent' is never constructed
+────╯
+Warning: [0006]
+    ╭─[ /root/moondelta-wsl/src/write.mbt:51:3 ]
+    │
+ 51 │   TxnAbortAfterDataPublish
+    │   ────────────┬───────────  
+    │               ╰───────────── Warning (unused_constructor): Variant 'TxnAbortAfterDataPublish' is never constructed
+────╯
+Warning: [0006]
+    ╭─[ /root/moondelta-wsl/src/write.mbt:53:3 ]
+    │
+ 53 │   TxnAbortAfterCommit
+    │   ─────────┬─────────  
+    │            ╰─────────── Warning (unused_constructor): Variant 'TxnAbortAfterCommit' is never constructed
+────╯
+Warning: [0004]
+    ╭─[ /root/moondelta-wsl/src/writenested.mbt:25:8 ]
+    │
+ 25 │ struct NestWriteCtx {
+    │        ──────┬─────  
+    │              ╰─────── Warning (missing_priv): The type 'NestWriteCtx' does not occur in public signature of current package, consider marking it as `priv`.
+────╯
+Warning: [0020]
+     ╭─[ /root/moondelta-wsl/src/writenested.mbt:438:41 ]
+     │
+ 438 │   let ctx : NestWriteCtx = { acc_index: Map::new(), accs: [] }
+     │                                         ────┬───  
+     │                                             ╰───── Warning (deprecated): Use `Map([], capacity=...)` instead
+─────╯
+Total tests: 56, passed: 56, failed: 0.

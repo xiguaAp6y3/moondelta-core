@@ -146,8 +146,77 @@ pub fn delta_type_name(ty : DeltaType) -> String {
 }
 
 ///|
+/// 事务结果状态（S2 查询 API）。语义边界：
+/// - `TxnCommitted`：intent 摘要与正式 commit 匹配，且重新同步文件/目录成功。
+/// - `TxnCommittedUnconfirmed`：commit 已可见并与 intent 匹配，但重新同步失败，
+///   仍不得当作可安全重放。
+/// - `TxnConflict`：目标版本被其他事务占用（commit 存在但不是本事务写出）。
+/// - `TxnNotCommitted`：目标版本无 commit，且日志从版本 0 连续可解析。
+/// - `TxnUnresolved`：日志不连续、intent 损坏或同事务摘要不匹配——不能推断未提交。
+pub(all) enum TxnState {
+  TxnCommitted
+  TxnCommittedUnconfirmed
+  TxnConflict
+  TxnNotCommitted
+  TxnUnresolved
+} derive(Eq, Debug)
+
+///|
+pub fn txn_state_name(state : TxnState) -> String {
+  match state {
+    TxnCommitted => "committed"
+    TxnCommittedUnconfirmed => "committed-unconfirmed"
+    TxnConflict => "conflict"
+    TxnNotCommitted => "not-committed"
+    TxnUnresolved => "unresolved"
+  }
+}
+
+///|
+/// 单个事务的只读查询结果。`phase` 记录观察到该结果时依据的持久化阶段。
+pub(all) struct TransactionStatus {
+  txn_id : String
+  version : Int32
+  state : TxnState
+  phase : String
+  data_path : String
+  commit_path : String
+  detail : String
+} derive(Eq, Debug)
+
+///|
+/// 恢复报告的一条候选/处置记录。
+pub(all) struct RecoveryEntry {
+  txn_id : String
+  version : Int32
+  path : String
+  action : String
+  reason : String
+} derive(Eq, Debug)
+
+///|
+/// 恢复报告：dry-run 与 apply 共用；`blocked` 说明为何没有执行删除。
+pub(all) struct RecoveryReport {
+  dry_run : Bool
+  managed : Bool
+  applied : Bool
+  lock_busy : Bool
+  log_complete : Bool
+  blocked : String?
+  entries : Array[RecoveryEntry]
+  deleted : Int32
+  kept : Int32
+} derive(Eq, Debug)
+
+///|
 pub(all) suberror DeltaError {
   IoError(String)
+  AlreadyExists(String)
+  CommitConflict(String)
+  /// 目标文件已可见，但目录同步失败；携带 txn ID、目标版本、路径、阶段与平台错误码。
+  PublishOutcomeUnknown(String, Int32, String, String, Int)
+  /// 正式 JSON commit 已可见，但持久性未确认；禁止盲目重放。
+  CommitOutcomeUnknown(String, Int32, String, String, Int)
   ParseError(String)
   Unsupported(String)
   NotFound(String)
@@ -157,6 +226,12 @@ pub(all) suberror DeltaError {
 pub fn describe_error(e : DeltaError) -> String {
   match e {
     IoError(m) => "io error: " + m
+    AlreadyExists(path) => "already exists: " + path
+    CommitConflict(path) => "commit conflict: target already exists: " + path
+    PublishOutcomeUnknown(txn_id, version, path, phase, code) =>
+      "publish outcome unknown: txn " + txn_id + " target version " + version.to_string() + " phase " + phase + ": '" + path + "' is visible but directory sync failed (platform error " + code.to_string() + ")"
+    CommitOutcomeUnknown(txn_id, version, path, phase, code) =>
+      "commit outcome unknown: txn " + txn_id + " target version " + version.to_string() + " phase " + phase + ": '" + path + "' is visible but durability is unconfirmed (platform error " + code.to_string() + "); inspect this commit before retrying"
     ParseError(m) => "parse error: " + m
     Unsupported(m) => "unsupported: " + m
     NotFound(m) => "not found: " + m

@@ -56,16 +56,15 @@ pub fn write_text(path : String, content : String) -> Unit raise DeltaError {
 }
 
 ///|
-/// 写入文本文件（put-if-absent 语义）：目标已存在时直接失败。
-/// 这是 commit 原子性的进程内保证——MoonBit fs 层没有 O_EXCL 原语，
-/// 并发写方之间的真原子性由调用方自行仲裁（当前内核为单进程模型）。
+/// 将完整文本原子发布到新路径；已存在的目标不会被覆盖。
+/// 该入口不带事务 intent，只用于维护元数据等非事务文件。
 pub fn write_text_new(path : String, content : String) -> Unit raise DeltaError {
-  if @fs.path_exists(path) {
-    raise DeltaError::IoError(
-      "refusing to overwrite existing file '\{path}' (commit must be put-if-absent)",
-    )
+  atomic_write_file(path, @utf8.encode(content)) catch {
+    AlreadyExists(_) => raise DeltaError::CommitConflict(path)
+    PublishOutcomeUnknown(txn, version, unknown_path, phase, code) =>
+      raise DeltaError::CommitOutcomeUnknown(txn, version, unknown_path, phase, code)
+    err => raise err
   }
-  write_text(path, content)
 }
 
 ///|
@@ -117,6 +116,9 @@ pub fn read_actions(
       continue
     }
     out.push(parse_action(line, version))
+  }
+  if out.length() == 0 {
+    raise DeltaError::ParseError("log version \{version} contains no actions (empty or interrupted commit)")
   }
   out
 }

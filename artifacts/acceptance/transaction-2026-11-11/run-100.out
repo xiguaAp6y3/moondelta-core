@@ -1,0 +1,24 @@
+PASS: SIGKILL during staged Parquet write leaves version 0 and no published data
+PASS: SIGKILL during staged JSON commit preserves the previous snapshot and permits retry
+PASS: 20 syscall/intent failure, uncertain-outcome and cleanup cases
+PASS: table/log directory creation failure and version-0 uncertain outcome
+PASS: intent sync -> intent link -> intent directory sync -> data-file sync -> data link -> data-directory sync -> log-file sync -> log link -> log-directory sync
+PASS: append waits while the fixed table maintenance lock is held exclusively
+PASS: symlink maintenance locks are rejected without touching their target
+PASS: recovery dry-run, managed-policy gate, apply deletion order and idempotency
+PASS: transaction query states (committed / not-committed / conflict / unresolved)
+PASS: non-blocking recoverer reports busy under an active writer and resumes after release
+PASS: SIGKILL residue is recovered from its intent, then append succeeds unchanged
+PASS: reachable history/checkpoint references are protected and log gaps block deletion
+PASS: unowned legacy names/unknown files are preserved and reported (no wildcard deletion)
+PASS: concurrent processes with identical payload/timestamp produce unique OS-random txn ids
+PASS: recoverer is busy while a writer is paused between data and JSON publication
+PASS: failed unlink keeps the intent; a repeated recovery converges
+PASS: real commit-unknown outcome queries as committed, then recovery keeps the commit
+PASS: a remove action still protects its data for older versions (delta-rs time travel)
+PASS: a single-file checkpoint reference protects its data file from cleanup
+PASS: checkpoint-only history disables deletion and preserves evidence
+PASS: symlink candidates are preserved, never followed, and reported
+PASS: absolute-path initialization and empty append without files
+PASS: 100 deterministic version-publication races, continuous readers, immutable commits and conflict retries
+EXIT=0

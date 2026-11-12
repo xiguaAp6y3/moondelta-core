@@ -1,0 +1,618 @@
+{
+  "status": "PASS",
+  "scope": "process_crash_io_faults_intent_recovery_publication_races_and_maintenance_locks",
+  "overall_transaction_acceptance": "NOT_PASSED",
+  "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "race_iterations": 100,
+  "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+  "deltalake": "1.6.6",
+  "pyarrow": "26.0.0",
+  "filesystem": "ext4",
+  "fault_cases": [
+    {
+      "name": "intent-write-eio",
+      "status": "PASS",
+      "expected": "absent",
+      "stdout": "append failed: io error: pinned publish failed for '/tmp/moondelta-atomic-xpnvjsgu/intent-write-eio/.moondelta/intents/8b7acae1a112e08f2b8504cda48bde44.json' (platform error 5)",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu",
+        "write /tmp/moondelta-atomic-xpnvjsgu/intent-write-eio/.moondelta/intents/8b7acae1a112e08f2b8504cda48bde44.json.moondelta-itmp-8b7acae1a112e08f2b8504cda48bde44",
+        "fail-write /tmp/moondelta-atomic-xpnvjsgu/intent-write-eio/.moondelta/intents/8b7acae1a112e08f2b8504cda48bde44.json.moondelta-itmp-8b7acae1a112e08f2b8504cda48bde44"
+      ]
+    },
+    {
+      "name": "intent-write-enospc",
+      "status": "PASS",
+      "expected": "absent",
+      "stdout": "append failed: io error: pinned publish failed for '/tmp/moondelta-atomic-xpnvjsgu/intent-write-enospc/.moondelta/intents/a2951544c1aeedaed96dd660609cc4a9.json' (platform error 28)",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu",
+        "write /tmp/moondelta-atomic-xpnvjsgu/intent-write-enospc/.moondelta/intents/a2951544c1aeedaed96dd660609cc4a9.json.moondelta-itmp-a2951544c1aeedaed96dd660609cc4a9",
+        "fail-write /tmp/moondelta-atomic-xpnvjsgu/intent-write-enospc/.moondelta/intents/a2951544c1aeedaed96dd660609cc4a9.json.moondelta-itmp-a2951544c1aeedaed96dd660609cc4a9"
+      ]
+    },
+    {
+      "name": "intent-file-sync",
+      "status": "PASS",
+      "expected": "absent",
+      "stdout": "append failed: io error: pinned publish failed for '/tmp/moondelta-atomic-xpnvjsgu/intent-file-sync/.moondelta/intents/af31267b84350ff065054e7c8f2ed802.json' (platform error 5)",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu",
+        "write /tmp/moondelta-atomic-xpnvjsgu/intent-file-sync/.moondelta/intents/af31267b84350ff065054e7c8f2ed802.json.moondelta-itmp-af31267b84350ff065054e7c8f2ed802",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/intent-file-sync/.moondelta/intents/af31267b84350ff065054e7c8f2ed802.json.moondelta-itmp-af31267b84350ff065054e7c8f2ed802",
+        "fail-fsync /tmp/moondelta-atomic-xpnvjsgu/intent-file-sync/.moondelta/intents/af31267b84350ff065054e7c8f2ed802.json.moondelta-itmp-af31267b84350ff065054e7c8f2ed802"
+      ]
+    },
+    {
+      "name": "intent-link",
+      "status": "PASS",
+      "expected": "absent",
+      "stdout": "append failed: io error: pinned publish failed for '/tmp/moondelta-atomic-xpnvjsgu/intent-link/.moondelta/intents/408621b19776ba82c3b1bbd84ab53e43.json' (platform error 5)",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu",
+        "write /tmp/moondelta-atomic-xpnvjsgu/intent-link/.moondelta/intents/408621b19776ba82c3b1bbd84ab53e43.json.moondelta-itmp-408621b19776ba82c3b1bbd84ab53e43",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/intent-link/.moondelta/intents/408621b19776ba82c3b1bbd84ab53e43.json.moondelta-itmp-408621b19776ba82c3b1bbd84ab53e43",
+        "link /tmp/moondelta-atomic-xpnvjsgu/intent-link/.moondelta/intents/408621b19776ba82c3b1bbd84ab53e43.json",
+        "fail-link /tmp/moondelta-atomic-xpnvjsgu/intent-link/.moondelta/intents/408621b19776ba82c3b1bbd84ab53e43.json"
+      ]
+    },
+    {
+      "name": "intent-dir-sync",
+      "status": "PASS",
+      "expected": "absent",
+      "stdout": "append failed: io error: intent publication for txn fd26f1d5edfb68317cb1d658ca09d356 (target version 1, phase intent-publish) is visible but its directory sync failed (platform error 5); no data has been created",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu",
+        "write /tmp/moondelta-atomic-xpnvjsgu/intent-dir-sync/.moondelta/intents/fd26f1d5edfb68317cb1d658ca09d356.json.moondelta-itmp-fd26f1d5edfb68317cb1d658ca09d356",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/intent-dir-sync/.moondelta/intents/fd26f1d5edfb68317cb1d658ca09d356.json.moondelta-itmp-fd26f1d5edfb68317cb1d658ca09d356",
+        "link /tmp/moondelta-atomic-xpnvjsgu/intent-dir-sync/.moondelta/intents/fd26f1d5edfb68317cb1d658ca09d356.json",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/intent-dir-sync/.moondelta/intents",
+        "fail-fsync /tmp/moondelta-atomic-xpnvjsgu/intent-dir-sync/.moondelta/intents"
+      ]
+    },
+    {
+      "name": "data-write-eio",
+      "status": "PASS",
+      "expected": "absent",
+      "stdout": "append failed: io error: pinned publish failed for '/tmp/moondelta-atomic-xpnvjsgu/data-write-eio/part-17-1-e81d3aa32613255635f484b3e6081bf1.parquet' (platform error 5)",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu",
+        "write /tmp/moondelta-atomic-xpnvjsgu/data-write-eio/.moondelta/intents/e81d3aa32613255635f484b3e6081bf1.json.moondelta-itmp-e81d3aa32613255635f484b3e6081bf1",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/data-write-eio/.moondelta/intents/e81d3aa32613255635f484b3e6081bf1.json.moondelta-itmp-e81d3aa32613255635f484b3e6081bf1",
+        "link /tmp/moondelta-atomic-xpnvjsgu/data-write-eio/.moondelta/intents/e81d3aa32613255635f484b3e6081bf1.json",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/data-write-eio/.moondelta/intents",
+        "unlink /tmp/moondelta-atomic-xpnvjsgu/data-write-eio/.moondelta/intents/e81d3aa32613255635f484b3e6081bf1.json.moondelta-itmp-e81d3aa32613255635f484b3e6081bf1",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/data-write-eio/.moondelta/intents",
+        "write /tmp/moondelta-atomic-xpnvjsgu/data-write-eio/part-17-1-e81d3aa32613255635f484b3e6081bf1.parquet.moondelta-tmp-e81d3aa32613255635f484b3e6081bf1",
+        "fail-write /tmp/moondelta-atomic-xpnvjsgu/data-write-eio/part-17-1-e81d3aa32613255635f484b3e6081bf1.parquet.moondelta-tmp-e81d3aa32613255635f484b3e6081bf1"
+      ]
+    },
+    {
+      "name": "data-write-enospc",
+      "status": "PASS",
+      "expected": "absent",
+      "stdout": "append failed: io error: pinned publish failed for '/tmp/moondelta-atomic-xpnvjsgu/data-write-enospc/part-17-1-2aa895fd663bb7e7838fe512efe2e633.parquet' (platform error 28)",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu",
+        "write /tmp/moondelta-atomic-xpnvjsgu/data-write-enospc/.moondelta/intents/2aa895fd663bb7e7838fe512efe2e633.json.moondelta-itmp-2aa895fd663bb7e7838fe512efe2e633",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/data-write-enospc/.moondelta/intents/2aa895fd663bb7e7838fe512efe2e633.json.moondelta-itmp-2aa895fd663bb7e7838fe512efe2e633",
+        "link /tmp/moondelta-atomic-xpnvjsgu/data-write-enospc/.moondelta/intents/2aa895fd663bb7e7838fe512efe2e633.json",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/data-write-enospc/.moondelta/intents",
+        "unlink /tmp/moondelta-atomic-xpnvjsgu/data-write-enospc/.moondelta/intents/2aa895fd663bb7e7838fe512efe2e633.json.moondelta-itmp-2aa895fd663bb7e7838fe512efe2e633",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/data-write-enospc/.moondelta/intents",
+        "write /tmp/moondelta-atomic-xpnvjsgu/data-write-enospc/part-17-1-2aa895fd663bb7e7838fe512efe2e633.parquet.moondelta-tmp-2aa895fd663bb7e7838fe512efe2e633",
+        "fail-write /tmp/moondelta-atomic-xpnvjsgu/data-write-enospc/part-17-1-2aa895fd663bb7e7838fe512efe2e633.parquet.moondelta-tmp-2aa895fd663bb7e7838fe512efe2e633"
+      ]
+    },
+    {
+      "name": "data-file-sync",
+      "status": "PASS",
+      "expected": "absent",
+      "stdout": "append failed: io error: pinned publish failed for '/tmp/moondelta-atomic-xpnvjsgu/data-file-sync/part-17-1-42b667eb0182a59cdc51acf80b5aeb9e.parquet' (platform error 5)",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu",
+        "write /tmp/moondelta-atomic-xpnvjsgu/data-file-sync/.moondelta/intents/42b667eb0182a59cdc51acf80b5aeb9e.json.moondelta-itmp-42b667eb0182a59cdc51acf80b5aeb9e",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/data-file-sync/.moondelta/intents/42b667eb0182a59cdc51acf80b5aeb9e.json.moondelta-itmp-42b667eb0182a59cdc51acf80b5aeb9e",
+        "link /tmp/moondelta-atomic-xpnvjsgu/data-file-sync/.moondelta/intents/42b667eb0182a59cdc51acf80b5aeb9e.json",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/data-file-sync/.moondelta/intents",
+        "unlink /tmp/moondelta-atomic-xpnvjsgu/data-file-sync/.moondelta/intents/42b667eb0182a59cdc51acf80b5aeb9e.json.moondelta-itmp-42b667eb0182a59cdc51acf80b5aeb9e",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/data-file-sync/.moondelta/intents",
+        "write /tmp/moondelta-atomic-xpnvjsgu/data-file-sync/part-17-1-42b667eb0182a59cdc51acf80b5aeb9e.parquet.moondelta-tmp-42b667eb0182a59cdc51acf80b5aeb9e",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/data-file-sync/part-17-1-42b667eb0182a59cdc51acf80b5aeb9e.parquet.moondelta-tmp-42b667eb0182a59cdc51acf80b5aeb9e",
+        "fail-fsync /tmp/moondelta-atomic-xpnvjsgu/data-file-sync/part-17-1-42b667eb0182a59cdc51acf80b5aeb9e.parquet.moondelta-tmp-42b667eb0182a59cdc51acf80b5aeb9e"
+      ]
+    },
+    {
+      "name": "data-link",
+      "status": "PASS",
+      "expected": "absent",
+      "stdout": "append failed: io error: pinned publish failed for '/tmp/moondelta-atomic-xpnvjsgu/data-link/part-17-1-0910c8713fb145040d836704ef2ad5cb.parquet' (platform error 5)",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu",
+        "write /tmp/moondelta-atomic-xpnvjsgu/data-link/.moondelta/intents/0910c8713fb145040d836704ef2ad5cb.json.moondelta-itmp-0910c8713fb145040d836704ef2ad5cb",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/data-link/.moondelta/intents/0910c8713fb145040d836704ef2ad5cb.json.moondelta-itmp-0910c8713fb145040d836704ef2ad5cb",
+        "link /tmp/moondelta-atomic-xpnvjsgu/data-link/.moondelta/intents/0910c8713fb145040d836704ef2ad5cb.json",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/data-link/.moondelta/intents",
+        "unlink /tmp/moondelta-atomic-xpnvjsgu/data-link/.moondelta/intents/0910c8713fb145040d836704ef2ad5cb.json.moondelta-itmp-0910c8713fb145040d836704ef2ad5cb",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/data-link/.moondelta/intents",
+        "write /tmp/moondelta-atomic-xpnvjsgu/data-link/part-17-1-0910c8713fb145040d836704ef2ad5cb.parquet.moondelta-tmp-0910c8713fb145040d836704ef2ad5cb",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/data-link/part-17-1-0910c8713fb145040d836704ef2ad5cb.parquet.moondelta-tmp-0910c8713fb145040d836704ef2ad5cb",
+        "link /tmp/moondelta-atomic-xpnvjsgu/data-link/part-17-1-0910c8713fb145040d836704ef2ad5cb.parquet",
+        "fail-link /tmp/moondelta-atomic-xpnvjsgu/data-link/part-17-1-0910c8713fb145040d836704ef2ad5cb.parquet"
+      ]
+    },
+    {
+      "name": "data-dir-sync",
+      "status": "PASS",
+      "expected": "data-published",
+      "stdout": "append failed: publish outcome unknown: txn 13b719e7671970e48e47a0a43af79879 target version 1 phase data-publish: '/tmp/moondelta-atomic-xpnvjsgu/data-dir-sync/part-17-1-13b719e7671970e48e47a0a43af79879.parquet' is visible but directory sync failed (platform error 5)",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu",
+        "write /tmp/moondelta-atomic-xpnvjsgu/data-dir-sync/.moondelta/intents/13b719e7671970e48e47a0a43af79879.json.moondelta-itmp-13b719e7671970e48e47a0a43af79879",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/data-dir-sync/.moondelta/intents/13b719e7671970e48e47a0a43af79879.json.moondelta-itmp-13b719e7671970e48e47a0a43af79879",
+        "link /tmp/moondelta-atomic-xpnvjsgu/data-dir-sync/.moondelta/intents/13b719e7671970e48e47a0a43af79879.json",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/data-dir-sync/.moondelta/intents",
+        "unlink /tmp/moondelta-atomic-xpnvjsgu/data-dir-sync/.moondelta/intents/13b719e7671970e48e47a0a43af79879.json.moondelta-itmp-13b719e7671970e48e47a0a43af79879",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/data-dir-sync/.moondelta/intents",
+        "write /tmp/moondelta-atomic-xpnvjsgu/data-dir-sync/part-17-1-13b719e7671970e48e47a0a43af79879.parquet.moondelta-tmp-13b719e7671970e48e47a0a43af79879",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/data-dir-sync/part-17-1-13b719e7671970e48e47a0a43af79879.parquet.moondelta-tmp-13b719e7671970e48e47a0a43af79879",
+        "link /tmp/moondelta-atomic-xpnvjsgu/data-dir-sync/part-17-1-13b719e7671970e48e47a0a43af79879.parquet",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/data-dir-sync",
+        "fail-fsync /tmp/moondelta-atomic-xpnvjsgu/data-dir-sync"
+      ]
+    },
+    {
+      "name": "log-write",
+      "status": "PASS",
+      "expected": "absent",
+      "stdout": "append failed: io error: pinned publish failed for '/tmp/moondelta-atomic-xpnvjsgu/log-write/_delta_log/00000000000000000001.json' (platform error 5)",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu",
+        "write /tmp/moondelta-atomic-xpnvjsgu/log-write/.moondelta/intents/6c886dc43da56a645d9ca62adf7cf294.json.moondelta-itmp-6c886dc43da56a645d9ca62adf7cf294",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-write/.moondelta/intents/6c886dc43da56a645d9ca62adf7cf294.json.moondelta-itmp-6c886dc43da56a645d9ca62adf7cf294",
+        "link /tmp/moondelta-atomic-xpnvjsgu/log-write/.moondelta/intents/6c886dc43da56a645d9ca62adf7cf294.json",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-write/.moondelta/intents",
+        "unlink /tmp/moondelta-atomic-xpnvjsgu/log-write/.moondelta/intents/6c886dc43da56a645d9ca62adf7cf294.json.moondelta-itmp-6c886dc43da56a645d9ca62adf7cf294",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-write/.moondelta/intents",
+        "write /tmp/moondelta-atomic-xpnvjsgu/log-write/part-17-1-6c886dc43da56a645d9ca62adf7cf294.parquet.moondelta-tmp-6c886dc43da56a645d9ca62adf7cf294",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-write/part-17-1-6c886dc43da56a645d9ca62adf7cf294.parquet.moondelta-tmp-6c886dc43da56a645d9ca62adf7cf294",
+        "link /tmp/moondelta-atomic-xpnvjsgu/log-write/part-17-1-6c886dc43da56a645d9ca62adf7cf294.parquet",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-write",
+        "write /tmp/moondelta-atomic-xpnvjsgu/log-write/_delta_log/00000000000000000001.json.moondelta-tmp-6c886dc43da56a645d9ca62adf7cf294",
+        "fail-write /tmp/moondelta-atomic-xpnvjsgu/log-write/_delta_log/00000000000000000001.json.moondelta-tmp-6c886dc43da56a645d9ca62adf7cf294"
+      ]
+    },
+    {
+      "name": "log-file-sync",
+      "status": "PASS",
+      "expected": "absent",
+      "stdout": "append failed: io error: pinned publish failed for '/tmp/moondelta-atomic-xpnvjsgu/log-file-sync/_delta_log/00000000000000000001.json' (platform error 5)",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu",
+        "write /tmp/moondelta-atomic-xpnvjsgu/log-file-sync/.moondelta/intents/2d5bdbada532ad2d669efff3ffc887a6.json.moondelta-itmp-2d5bdbada532ad2d669efff3ffc887a6",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-file-sync/.moondelta/intents/2d5bdbada532ad2d669efff3ffc887a6.json.moondelta-itmp-2d5bdbada532ad2d669efff3ffc887a6",
+        "link /tmp/moondelta-atomic-xpnvjsgu/log-file-sync/.moondelta/intents/2d5bdbada532ad2d669efff3ffc887a6.json",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-file-sync/.moondelta/intents",
+        "unlink /tmp/moondelta-atomic-xpnvjsgu/log-file-sync/.moondelta/intents/2d5bdbada532ad2d669efff3ffc887a6.json.moondelta-itmp-2d5bdbada532ad2d669efff3ffc887a6",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-file-sync/.moondelta/intents",
+        "write /tmp/moondelta-atomic-xpnvjsgu/log-file-sync/part-17-1-2d5bdbada532ad2d669efff3ffc887a6.parquet.moondelta-tmp-2d5bdbada532ad2d669efff3ffc887a6",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-file-sync/part-17-1-2d5bdbada532ad2d669efff3ffc887a6.parquet.moondelta-tmp-2d5bdbada532ad2d669efff3ffc887a6",
+        "link /tmp/moondelta-atomic-xpnvjsgu/log-file-sync/part-17-1-2d5bdbada532ad2d669efff3ffc887a6.parquet",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-file-sync",
+        "write /tmp/moondelta-atomic-xpnvjsgu/log-file-sync/_delta_log/00000000000000000001.json.moondelta-tmp-2d5bdbada532ad2d669efff3ffc887a6",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-file-sync/_delta_log/00000000000000000001.json.moondelta-tmp-2d5bdbada532ad2d669efff3ffc887a6",
+        "fail-fsync /tmp/moondelta-atomic-xpnvjsgu/log-file-sync/_delta_log/00000000000000000001.json.moondelta-tmp-2d5bdbada532ad2d669efff3ffc887a6"
+      ]
+    },
+    {
+      "name": "log-link",
+      "status": "PASS",
+      "expected": "absent",
+      "stdout": "append failed: io error: pinned publish failed for '/tmp/moondelta-atomic-xpnvjsgu/log-link/_delta_log/00000000000000000001.json' (platform error 5)",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu",
+        "write /tmp/moondelta-atomic-xpnvjsgu/log-link/.moondelta/intents/22b9e18fcd9066130fcd256d5de4baed.json.moondelta-itmp-22b9e18fcd9066130fcd256d5de4baed",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-link/.moondelta/intents/22b9e18fcd9066130fcd256d5de4baed.json.moondelta-itmp-22b9e18fcd9066130fcd256d5de4baed",
+        "link /tmp/moondelta-atomic-xpnvjsgu/log-link/.moondelta/intents/22b9e18fcd9066130fcd256d5de4baed.json",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-link/.moondelta/intents",
+        "unlink /tmp/moondelta-atomic-xpnvjsgu/log-link/.moondelta/intents/22b9e18fcd9066130fcd256d5de4baed.json.moondelta-itmp-22b9e18fcd9066130fcd256d5de4baed",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-link/.moondelta/intents",
+        "write /tmp/moondelta-atomic-xpnvjsgu/log-link/part-17-1-22b9e18fcd9066130fcd256d5de4baed.parquet.moondelta-tmp-22b9e18fcd9066130fcd256d5de4baed",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-link/part-17-1-22b9e18fcd9066130fcd256d5de4baed.parquet.moondelta-tmp-22b9e18fcd9066130fcd256d5de4baed",
+        "link /tmp/moondelta-atomic-xpnvjsgu/log-link/part-17-1-22b9e18fcd9066130fcd256d5de4baed.parquet",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-link",
+        "write /tmp/moondelta-atomic-xpnvjsgu/log-link/_delta_log/00000000000000000001.json.moondelta-tmp-22b9e18fcd9066130fcd256d5de4baed",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-link/_delta_log/00000000000000000001.json.moondelta-tmp-22b9e18fcd9066130fcd256d5de4baed",
+        "link /tmp/moondelta-atomic-xpnvjsgu/log-link/_delta_log/00000000000000000001.json",
+        "fail-link /tmp/moondelta-atomic-xpnvjsgu/log-link/_delta_log/00000000000000000001.json"
+      ]
+    },
+    {
+      "name": "log-dir-sync",
+      "status": "PASS",
+      "expected": "commit-unknown",
+      "stdout": "append failed: commit outcome unknown: txn e5e856bec5c522454be94cab124211d1 target version 1 phase commit-publish: '/tmp/moondelta-atomic-xpnvjsgu/log-dir-sync/_delta_log/00000000000000000001.json' is visible but durability is unconfirmed (platform error 5); inspect this commit before retrying",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu",
+        "write /tmp/moondelta-atomic-xpnvjsgu/log-dir-sync/.moondelta/intents/e5e856bec5c522454be94cab124211d1.json.moondelta-itmp-e5e856bec5c522454be94cab124211d1",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-dir-sync/.moondelta/intents/e5e856bec5c522454be94cab124211d1.json.moondelta-itmp-e5e856bec5c522454be94cab124211d1",
+        "link /tmp/moondelta-atomic-xpnvjsgu/log-dir-sync/.moondelta/intents/e5e856bec5c522454be94cab124211d1.json",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-dir-sync/.moondelta/intents",
+        "unlink /tmp/moondelta-atomic-xpnvjsgu/log-dir-sync/.moondelta/intents/e5e856bec5c522454be94cab124211d1.json.moondelta-itmp-e5e856bec5c522454be94cab124211d1",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-dir-sync/.moondelta/intents",
+        "write /tmp/moondelta-atomic-xpnvjsgu/log-dir-sync/part-17-1-e5e856bec5c522454be94cab124211d1.parquet.moondelta-tmp-e5e856bec5c522454be94cab124211d1",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-dir-sync/part-17-1-e5e856bec5c522454be94cab124211d1.parquet.moondelta-tmp-e5e856bec5c522454be94cab124211d1",
+        "link /tmp/moondelta-atomic-xpnvjsgu/log-dir-sync/part-17-1-e5e856bec5c522454be94cab124211d1.parquet",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-dir-sync",
+        "write /tmp/moondelta-atomic-xpnvjsgu/log-dir-sync/_delta_log/00000000000000000001.json.moondelta-tmp-e5e856bec5c522454be94cab124211d1",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-dir-sync/_delta_log/00000000000000000001.json.moondelta-tmp-e5e856bec5c522454be94cab124211d1",
+        "link /tmp/moondelta-atomic-xpnvjsgu/log-dir-sync/_delta_log/00000000000000000001.json",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-dir-sync/_delta_log",
+        "fail-fsync /tmp/moondelta-atomic-xpnvjsgu/log-dir-sync/_delta_log"
+      ]
+    },
+    {
+      "name": "log-dir-enospc",
+      "status": "PASS",
+      "expected": "commit-unknown",
+      "stdout": "append failed: commit outcome unknown: txn fc964fa2d9bceaac408e86576802aa91 target version 1 phase commit-publish: '/tmp/moondelta-atomic-xpnvjsgu/log-dir-enospc/_delta_log/00000000000000000001.json' is visible but durability is unconfirmed (platform error 28); inspect this commit before retrying",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu",
+        "write /tmp/moondelta-atomic-xpnvjsgu/log-dir-enospc/.moondelta/intents/fc964fa2d9bceaac408e86576802aa91.json.moondelta-itmp-fc964fa2d9bceaac408e86576802aa91",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-dir-enospc/.moondelta/intents/fc964fa2d9bceaac408e86576802aa91.json.moondelta-itmp-fc964fa2d9bceaac408e86576802aa91",
+        "link /tmp/moondelta-atomic-xpnvjsgu/log-dir-enospc/.moondelta/intents/fc964fa2d9bceaac408e86576802aa91.json",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-dir-enospc/.moondelta/intents",
+        "unlink /tmp/moondelta-atomic-xpnvjsgu/log-dir-enospc/.moondelta/intents/fc964fa2d9bceaac408e86576802aa91.json.moondelta-itmp-fc964fa2d9bceaac408e86576802aa91",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-dir-enospc/.moondelta/intents",
+        "write /tmp/moondelta-atomic-xpnvjsgu/log-dir-enospc/part-17-1-fc964fa2d9bceaac408e86576802aa91.parquet.moondelta-tmp-fc964fa2d9bceaac408e86576802aa91",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-dir-enospc/part-17-1-fc964fa2d9bceaac408e86576802aa91.parquet.moondelta-tmp-fc964fa2d9bceaac408e86576802aa91",
+        "link /tmp/moondelta-atomic-xpnvjsgu/log-dir-enospc/part-17-1-fc964fa2d9bceaac408e86576802aa91.parquet",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-dir-enospc",
+        "write /tmp/moondelta-atomic-xpnvjsgu/log-dir-enospc/_delta_log/00000000000000000001.json.moondelta-tmp-fc964fa2d9bceaac408e86576802aa91",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-dir-enospc/_delta_log/00000000000000000001.json.moondelta-tmp-fc964fa2d9bceaac408e86576802aa91",
+        "link /tmp/moondelta-atomic-xpnvjsgu/log-dir-enospc/_delta_log/00000000000000000001.json",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-dir-enospc/_delta_log",
+        "fail-fsync /tmp/moondelta-atomic-xpnvjsgu/log-dir-enospc/_delta_log"
+      ]
+    },
+    {
+      "name": "log-cleanup-sync",
+      "status": "PASS",
+      "expected": "committed",
+      "stdout": "appended version 1 txn=83ed82097eaf280b1f362c9d774553f0",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu",
+        "write /tmp/moondelta-atomic-xpnvjsgu/log-cleanup-sync/.moondelta/intents/83ed82097eaf280b1f362c9d774553f0.json.moondelta-itmp-83ed82097eaf280b1f362c9d774553f0",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-cleanup-sync/.moondelta/intents/83ed82097eaf280b1f362c9d774553f0.json.moondelta-itmp-83ed82097eaf280b1f362c9d774553f0",
+        "link /tmp/moondelta-atomic-xpnvjsgu/log-cleanup-sync/.moondelta/intents/83ed82097eaf280b1f362c9d774553f0.json",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-cleanup-sync/.moondelta/intents",
+        "unlink /tmp/moondelta-atomic-xpnvjsgu/log-cleanup-sync/.moondelta/intents/83ed82097eaf280b1f362c9d774553f0.json.moondelta-itmp-83ed82097eaf280b1f362c9d774553f0",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-cleanup-sync/.moondelta/intents",
+        "write /tmp/moondelta-atomic-xpnvjsgu/log-cleanup-sync/part-17-1-83ed82097eaf280b1f362c9d774553f0.parquet.moondelta-tmp-83ed82097eaf280b1f362c9d774553f0",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-cleanup-sync/part-17-1-83ed82097eaf280b1f362c9d774553f0.parquet.moondelta-tmp-83ed82097eaf280b1f362c9d774553f0",
+        "link /tmp/moondelta-atomic-xpnvjsgu/log-cleanup-sync/part-17-1-83ed82097eaf280b1f362c9d774553f0.parquet",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-cleanup-sync",
+        "write /tmp/moondelta-atomic-xpnvjsgu/log-cleanup-sync/_delta_log/00000000000000000001.json.moondelta-tmp-83ed82097eaf280b1f362c9d774553f0",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-cleanup-sync/_delta_log/00000000000000000001.json.moondelta-tmp-83ed82097eaf280b1f362c9d774553f0",
+        "link /tmp/moondelta-atomic-xpnvjsgu/log-cleanup-sync/_delta_log/00000000000000000001.json",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-cleanup-sync/_delta_log",
+        "unlink /tmp/moondelta-atomic-xpnvjsgu/log-cleanup-sync/_delta_log/00000000000000000001.json.moondelta-tmp-83ed82097eaf280b1f362c9d774553f0",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-cleanup-sync/_delta_log",
+        "fail-fsync /tmp/moondelta-atomic-xpnvjsgu/log-cleanup-sync/_delta_log",
+        "unlink /tmp/moondelta-atomic-xpnvjsgu/log-cleanup-sync/part-17-1-83ed82097eaf280b1f362c9d774553f0.parquet.moondelta-tmp-83ed82097eaf280b1f362c9d774553f0",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-cleanup-sync"
+      ]
+    },
+    {
+      "name": "data-temp-unlink",
+      "status": "PASS",
+      "expected": "committed",
+      "stdout": "appended version 1 txn=cf0cfbbb305040464446d3dd11a57187",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu",
+        "write /tmp/moondelta-atomic-xpnvjsgu/data-temp-unlink/.moondelta/intents/cf0cfbbb305040464446d3dd11a57187.json.moondelta-itmp-cf0cfbbb305040464446d3dd11a57187",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/data-temp-unlink/.moondelta/intents/cf0cfbbb305040464446d3dd11a57187.json.moondelta-itmp-cf0cfbbb305040464446d3dd11a57187",
+        "link /tmp/moondelta-atomic-xpnvjsgu/data-temp-unlink/.moondelta/intents/cf0cfbbb305040464446d3dd11a57187.json",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/data-temp-unlink/.moondelta/intents",
+        "unlink /tmp/moondelta-atomic-xpnvjsgu/data-temp-unlink/.moondelta/intents/cf0cfbbb305040464446d3dd11a57187.json.moondelta-itmp-cf0cfbbb305040464446d3dd11a57187",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/data-temp-unlink/.moondelta/intents",
+        "write /tmp/moondelta-atomic-xpnvjsgu/data-temp-unlink/part-17-1-cf0cfbbb305040464446d3dd11a57187.parquet.moondelta-tmp-cf0cfbbb305040464446d3dd11a57187",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/data-temp-unlink/part-17-1-cf0cfbbb305040464446d3dd11a57187.parquet.moondelta-tmp-cf0cfbbb305040464446d3dd11a57187",
+        "link /tmp/moondelta-atomic-xpnvjsgu/data-temp-unlink/part-17-1-cf0cfbbb305040464446d3dd11a57187.parquet",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/data-temp-unlink",
+        "write /tmp/moondelta-atomic-xpnvjsgu/data-temp-unlink/_delta_log/00000000000000000001.json.moondelta-tmp-cf0cfbbb305040464446d3dd11a57187",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/data-temp-unlink/_delta_log/00000000000000000001.json.moondelta-tmp-cf0cfbbb305040464446d3dd11a57187",
+        "link /tmp/moondelta-atomic-xpnvjsgu/data-temp-unlink/_delta_log/00000000000000000001.json",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/data-temp-unlink/_delta_log",
+        "unlink /tmp/moondelta-atomic-xpnvjsgu/data-temp-unlink/_delta_log/00000000000000000001.json.moondelta-tmp-cf0cfbbb305040464446d3dd11a57187",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/data-temp-unlink/_delta_log",
+        "unlink /tmp/moondelta-atomic-xpnvjsgu/data-temp-unlink/part-17-1-cf0cfbbb305040464446d3dd11a57187.parquet.moondelta-tmp-cf0cfbbb305040464446d3dd11a57187",
+        "fail-unlink /tmp/moondelta-atomic-xpnvjsgu/data-temp-unlink/part-17-1-cf0cfbbb305040464446d3dd11a57187.parquet.moondelta-tmp-cf0cfbbb305040464446d3dd11a57187"
+      ]
+    },
+    {
+      "name": "log-temp-unlink",
+      "status": "PASS",
+      "expected": "committed",
+      "stdout": "appended version 1 txn=161ede6eb4ea00ae0a07c1256069669b",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu",
+        "write /tmp/moondelta-atomic-xpnvjsgu/log-temp-unlink/.moondelta/intents/161ede6eb4ea00ae0a07c1256069669b.json.moondelta-itmp-161ede6eb4ea00ae0a07c1256069669b",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-temp-unlink/.moondelta/intents/161ede6eb4ea00ae0a07c1256069669b.json.moondelta-itmp-161ede6eb4ea00ae0a07c1256069669b",
+        "link /tmp/moondelta-atomic-xpnvjsgu/log-temp-unlink/.moondelta/intents/161ede6eb4ea00ae0a07c1256069669b.json",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-temp-unlink/.moondelta/intents",
+        "unlink /tmp/moondelta-atomic-xpnvjsgu/log-temp-unlink/.moondelta/intents/161ede6eb4ea00ae0a07c1256069669b.json.moondelta-itmp-161ede6eb4ea00ae0a07c1256069669b",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-temp-unlink/.moondelta/intents",
+        "write /tmp/moondelta-atomic-xpnvjsgu/log-temp-unlink/part-17-1-161ede6eb4ea00ae0a07c1256069669b.parquet.moondelta-tmp-161ede6eb4ea00ae0a07c1256069669b",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-temp-unlink/part-17-1-161ede6eb4ea00ae0a07c1256069669b.parquet.moondelta-tmp-161ede6eb4ea00ae0a07c1256069669b",
+        "link /tmp/moondelta-atomic-xpnvjsgu/log-temp-unlink/part-17-1-161ede6eb4ea00ae0a07c1256069669b.parquet",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-temp-unlink",
+        "write /tmp/moondelta-atomic-xpnvjsgu/log-temp-unlink/_delta_log/00000000000000000001.json.moondelta-tmp-161ede6eb4ea00ae0a07c1256069669b",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-temp-unlink/_delta_log/00000000000000000001.json.moondelta-tmp-161ede6eb4ea00ae0a07c1256069669b",
+        "link /tmp/moondelta-atomic-xpnvjsgu/log-temp-unlink/_delta_log/00000000000000000001.json",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-temp-unlink/_delta_log",
+        "unlink /tmp/moondelta-atomic-xpnvjsgu/log-temp-unlink/_delta_log/00000000000000000001.json.moondelta-tmp-161ede6eb4ea00ae0a07c1256069669b",
+        "fail-unlink /tmp/moondelta-atomic-xpnvjsgu/log-temp-unlink/_delta_log/00000000000000000001.json.moondelta-tmp-161ede6eb4ea00ae0a07c1256069669b",
+        "unlink /tmp/moondelta-atomic-xpnvjsgu/log-temp-unlink/part-17-1-161ede6eb4ea00ae0a07c1256069669b.parquet.moondelta-tmp-161ede6eb4ea00ae0a07c1256069669b",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-temp-unlink"
+      ]
+    },
+    {
+      "name": "data-sync-eintr",
+      "status": "PASS",
+      "expected": "committed",
+      "stdout": "appended version 1 txn=260796a6704c57776e2e67436552f083",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu",
+        "write /tmp/moondelta-atomic-xpnvjsgu/data-sync-eintr/.moondelta/intents/260796a6704c57776e2e67436552f083.json.moondelta-itmp-260796a6704c57776e2e67436552f083",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/data-sync-eintr/.moondelta/intents/260796a6704c57776e2e67436552f083.json.moondelta-itmp-260796a6704c57776e2e67436552f083",
+        "link /tmp/moondelta-atomic-xpnvjsgu/data-sync-eintr/.moondelta/intents/260796a6704c57776e2e67436552f083.json",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/data-sync-eintr/.moondelta/intents",
+        "unlink /tmp/moondelta-atomic-xpnvjsgu/data-sync-eintr/.moondelta/intents/260796a6704c57776e2e67436552f083.json.moondelta-itmp-260796a6704c57776e2e67436552f083",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/data-sync-eintr/.moondelta/intents",
+        "write /tmp/moondelta-atomic-xpnvjsgu/data-sync-eintr/part-17-1-260796a6704c57776e2e67436552f083.parquet.moondelta-tmp-260796a6704c57776e2e67436552f083",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/data-sync-eintr/part-17-1-260796a6704c57776e2e67436552f083.parquet.moondelta-tmp-260796a6704c57776e2e67436552f083",
+        "fail-fsync /tmp/moondelta-atomic-xpnvjsgu/data-sync-eintr/part-17-1-260796a6704c57776e2e67436552f083.parquet.moondelta-tmp-260796a6704c57776e2e67436552f083",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/data-sync-eintr/part-17-1-260796a6704c57776e2e67436552f083.parquet.moondelta-tmp-260796a6704c57776e2e67436552f083",
+        "link /tmp/moondelta-atomic-xpnvjsgu/data-sync-eintr/part-17-1-260796a6704c57776e2e67436552f083.parquet",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/data-sync-eintr",
+        "write /tmp/moondelta-atomic-xpnvjsgu/data-sync-eintr/_delta_log/00000000000000000001.json.moondelta-tmp-260796a6704c57776e2e67436552f083",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/data-sync-eintr/_delta_log/00000000000000000001.json.moondelta-tmp-260796a6704c57776e2e67436552f083",
+        "link /tmp/moondelta-atomic-xpnvjsgu/data-sync-eintr/_delta_log/00000000000000000001.json",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/data-sync-eintr/_delta_log",
+        "unlink /tmp/moondelta-atomic-xpnvjsgu/data-sync-eintr/_delta_log/00000000000000000001.json.moondelta-tmp-260796a6704c57776e2e67436552f083",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/data-sync-eintr/_delta_log",
+        "unlink /tmp/moondelta-atomic-xpnvjsgu/data-sync-eintr/part-17-1-260796a6704c57776e2e67436552f083.parquet.moondelta-tmp-260796a6704c57776e2e67436552f083",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/data-sync-eintr",
+        "unlink /tmp/moondelta-atomic-xpnvjsgu/data-sync-eintr/.moondelta/intents/260796a6704c57776e2e67436552f083.json.moondelta-itmp-260796a6704c57776e2e67436552f083",
+        "unlink /tmp/moondelta-atomic-xpnvjsgu/data-sync-eintr/.moondelta/intents/260796a6704c57776e2e67436552f083.json",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/data-sync-eintr/.moondelta/intents"
+      ]
+    },
+    {
+      "name": "log-dir-eintr",
+      "status": "PASS",
+      "expected": "committed",
+      "stdout": "appended version 1 txn=ffd4376afb538bf8aef071e5210ece21",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu",
+        "write /tmp/moondelta-atomic-xpnvjsgu/log-dir-eintr/.moondelta/intents/ffd4376afb538bf8aef071e5210ece21.json.moondelta-itmp-ffd4376afb538bf8aef071e5210ece21",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-dir-eintr/.moondelta/intents/ffd4376afb538bf8aef071e5210ece21.json.moondelta-itmp-ffd4376afb538bf8aef071e5210ece21",
+        "link /tmp/moondelta-atomic-xpnvjsgu/log-dir-eintr/.moondelta/intents/ffd4376afb538bf8aef071e5210ece21.json",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-dir-eintr/.moondelta/intents",
+        "unlink /tmp/moondelta-atomic-xpnvjsgu/log-dir-eintr/.moondelta/intents/ffd4376afb538bf8aef071e5210ece21.json.moondelta-itmp-ffd4376afb538bf8aef071e5210ece21",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-dir-eintr/.moondelta/intents",
+        "write /tmp/moondelta-atomic-xpnvjsgu/log-dir-eintr/part-17-1-ffd4376afb538bf8aef071e5210ece21.parquet.moondelta-tmp-ffd4376afb538bf8aef071e5210ece21",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-dir-eintr/part-17-1-ffd4376afb538bf8aef071e5210ece21.parquet.moondelta-tmp-ffd4376afb538bf8aef071e5210ece21",
+        "link /tmp/moondelta-atomic-xpnvjsgu/log-dir-eintr/part-17-1-ffd4376afb538bf8aef071e5210ece21.parquet",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-dir-eintr",
+        "write /tmp/moondelta-atomic-xpnvjsgu/log-dir-eintr/_delta_log/00000000000000000001.json.moondelta-tmp-ffd4376afb538bf8aef071e5210ece21",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-dir-eintr/_delta_log/00000000000000000001.json.moondelta-tmp-ffd4376afb538bf8aef071e5210ece21",
+        "link /tmp/moondelta-atomic-xpnvjsgu/log-dir-eintr/_delta_log/00000000000000000001.json",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-dir-eintr/_delta_log",
+        "fail-fsync /tmp/moondelta-atomic-xpnvjsgu/log-dir-eintr/_delta_log",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-dir-eintr/_delta_log",
+        "unlink /tmp/moondelta-atomic-xpnvjsgu/log-dir-eintr/_delta_log/00000000000000000001.json.moondelta-tmp-ffd4376afb538bf8aef071e5210ece21",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-dir-eintr/_delta_log",
+        "unlink /tmp/moondelta-atomic-xpnvjsgu/log-dir-eintr/part-17-1-ffd4376afb538bf8aef071e5210ece21.parquet.moondelta-tmp-ffd4376afb538bf8aef071e5210ece21",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-dir-eintr",
+        "unlink /tmp/moondelta-atomic-xpnvjsgu/log-dir-eintr/.moondelta/intents/ffd4376afb538bf8aef071e5210ece21.json.moondelta-itmp-ffd4376afb538bf8aef071e5210ece21",
+        "unlink /tmp/moondelta-atomic-xpnvjsgu/log-dir-eintr/.moondelta/intents/ffd4376afb538bf8aef071e5210ece21.json",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/log-dir-eintr/.moondelta/intents"
+      ]
+    },
+    {
+      "name": "create-table-dir",
+      "status": "PASS",
+      "expected": "absent",
+      "stdout": "create failed: io error: directory sync failed for '/tmp/moondelta-atomic-xpnvjsgu/create-table-dir' (platform error 5)",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu",
+        "fail-fsync /tmp/moondelta-atomic-xpnvjsgu"
+      ]
+    },
+    {
+      "name": "create-log-dir",
+      "status": "PASS",
+      "expected": "absent",
+      "stdout": "create failed: io error: directory sync failed for '/tmp/moondelta-atomic-xpnvjsgu/create-log-dir/_delta_log' (platform error 5)",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu",
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu",
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu",
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/create-log-dir",
+        "fail-fsync /tmp/moondelta-atomic-xpnvjsgu/create-log-dir"
+      ]
+    },
+    {
+      "name": "create-v0-sync",
+      "status": "PASS",
+      "expected": "commit-unknown",
+      "stdout": "create failed: commit outcome unknown: txn bc6e960d2b65a093179d4d6b025f4798 target version 0 phase commit-publish: '/tmp/moondelta-atomic-xpnvjsgu/create-v0-sync/_delta_log/00000000000000000000.json' is visible but durability is unconfirmed (platform error 5); inspect this commit before retrying",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu",
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu",
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu",
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/create-v0-sync",
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/create-v0-sync",
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/create-v0-sync",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/create-v0-sync/.moondelta",
+        "write /tmp/moondelta-atomic-xpnvjsgu/create-v0-sync/.moondelta/intents/bc6e960d2b65a093179d4d6b025f4798.json.moondelta-itmp-bc6e960d2b65a093179d4d6b025f4798",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/create-v0-sync/.moondelta/intents/bc6e960d2b65a093179d4d6b025f4798.json.moondelta-itmp-bc6e960d2b65a093179d4d6b025f4798",
+        "link /tmp/moondelta-atomic-xpnvjsgu/create-v0-sync/.moondelta/intents/bc6e960d2b65a093179d4d6b025f4798.json",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/create-v0-sync/.moondelta/intents",
+        "unlink /tmp/moondelta-atomic-xpnvjsgu/create-v0-sync/.moondelta/intents/bc6e960d2b65a093179d4d6b025f4798.json.moondelta-itmp-bc6e960d2b65a093179d4d6b025f4798",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/create-v0-sync/.moondelta/intents",
+        "write /tmp/moondelta-atomic-xpnvjsgu/create-v0-sync/_delta_log/00000000000000000000.json.moondelta-tmp-bc6e960d2b65a093179d4d6b025f4798",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/create-v0-sync/_delta_log/00000000000000000000.json.moondelta-tmp-bc6e960d2b65a093179d4d6b025f4798",
+        "link /tmp/moondelta-atomic-xpnvjsgu/create-v0-sync/_delta_log/00000000000000000000.json",
+        "fsync /tmp/moondelta-atomic-xpnvjsgu/create-v0-sync/_delta_log",
+        "fail-fsync /tmp/moondelta-atomic-xpnvjsgu/create-v0-sync/_delta_log"
+      ]
+    }
+  ],
+  "partial_write_sigkill": "PASS",
+  "publication_order": [
+    "fsync /",
+    "fsync /tmp",
+    "fsync /tmp/moondelta-atomic-xpnvjsgu",
+    "write /tmp/moondelta-atomic-xpnvjsgu/ordering/.moondelta/intents/dc44b6a03a54dd9195ec60ea40083b03.json.moondelta-itmp-dc44b6a03a54dd9195ec60ea40083b03",
+    "fsync /tmp/moondelta-atomic-xpnvjsgu/ordering/.moondelta/intents/dc44b6a03a54dd9195ec60ea40083b03.json.moondelta-itmp-dc44b6a03a54dd9195ec60ea40083b03",
+    "link /tmp/moondelta-atomic-xpnvjsgu/ordering/.moondelta/intents/dc44b6a03a54dd9195ec60ea40083b03.json",
+    "fsync /tmp/moondelta-atomic-xpnvjsgu/ordering/.moondelta/intents",
+    "unlink /tmp/moondelta-atomic-xpnvjsgu/ordering/.moondelta/intents/dc44b6a03a54dd9195ec60ea40083b03.json.moondelta-itmp-dc44b6a03a54dd9195ec60ea40083b03",
+    "fsync /tmp/moondelta-atomic-xpnvjsgu/ordering/.moondelta/intents",
+    "write /tmp/moondelta-atomic-xpnvjsgu/ordering/part-19-1-dc44b6a03a54dd9195ec60ea40083b03.parquet.moondelta-tmp-dc44b6a03a54dd9195ec60ea40083b03",
+    "fsync /tmp/moondelta-atomic-xpnvjsgu/ordering/part-19-1-dc44b6a03a54dd9195ec60ea40083b03.parquet.moondelta-tmp-dc44b6a03a54dd9195ec60ea40083b03",
+    "link /tmp/moondelta-atomic-xpnvjsgu/ordering/part-19-1-dc44b6a03a54dd9195ec60ea40083b03.parquet",
+    "fsync /tmp/moondelta-atomic-xpnvjsgu/ordering",
+    "write /tmp/moondelta-atomic-xpnvjsgu/ordering/_delta_log/00000000000000000001.json.moondelta-tmp-dc44b6a03a54dd9195ec60ea40083b03",
+    "fsync /tmp/moondelta-atomic-xpnvjsgu/ordering/_delta_log/00000000000000000001.json.moondelta-tmp-dc44b6a03a54dd9195ec60ea40083b03",
+    "link /tmp/moondelta-atomic-xpnvjsgu/ordering/_delta_log/00000000000000000001.json",
+    "fsync /tmp/moondelta-atomic-xpnvjsgu/ordering/_delta_log",
+    "unlink /tmp/moondelta-atomic-xpnvjsgu/ordering/_delta_log/00000000000000000001.json.moondelta-tmp-dc44b6a03a54dd9195ec60ea40083b03",
+    "fsync /tmp/moondelta-atomic-xpnvjsgu/ordering/_delta_log",
+    "unlink /tmp/moondelta-atomic-xpnvjsgu/ordering/part-19-1-dc44b6a03a54dd9195ec60ea40083b03.parquet.moondelta-tmp-dc44b6a03a54dd9195ec60ea40083b03",
+    "fsync /tmp/moondelta-atomic-xpnvjsgu/ordering",
+    "unlink /tmp/moondelta-atomic-xpnvjsgu/ordering/.moondelta/intents/dc44b6a03a54dd9195ec60ea40083b03.json.moondelta-itmp-dc44b6a03a54dd9195ec60ea40083b03",
+    "unlink /tmp/moondelta-atomic-xpnvjsgu/ordering/.moondelta/intents/dc44b6a03a54dd9195ec60ea40083b03.json",
+    "fsync /tmp/moondelta-atomic-xpnvjsgu/ordering/.moondelta/intents"
+  ],
+  "maintenance_lock_blocks_writer": "PASS",
+  "maintenance_lock_rejects_symlink": "PASS",
+  "recovery": {
+    "recovery_lifecycle": {
+      "status": "PASS",
+      "applied_deleted": "3"
+    },
+    "query_states": {
+      "status": "PASS"
+    },
+    "recover_lock_busy": {
+      "status": "PASS"
+    },
+    "sigkill_recovery": {
+      "status": "PASS"
+    },
+    "history_protection": {
+      "status": "PASS"
+    },
+    "unowned_preservation": {
+      "status": "PASS"
+    },
+    "txn_id_uniqueness": {
+      "status": "PASS",
+      "ids": 16
+    },
+    "recoverer_sees_paused_writer": {
+      "status": "PASS"
+    },
+    "recovery_unlink_retry": {
+      "status": "PASS"
+    },
+    "unknown_outcome_query": {
+      "status": "PASS"
+    },
+    "remove_history_protection": {
+      "status": "PASS"
+    },
+    "checkpoint_protection": {
+      "status": "PASS"
+    },
+    "checkpoint_only_blocked": {
+      "status": "PASS"
+    },
+    "symlink_preserved": {
+      "status": "PASS"
+    }
+  },
+  "native_and_delta_rs_readback": "PASS",
+  "power_loss": "NOT_TESTED",
+  "automatic_cleanup": "IMPLEMENTED_MANAGED_TABLES_ONLY"
+}

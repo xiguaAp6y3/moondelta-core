@@ -1,0 +1,14 @@
+{
+  "platform": "Windows-11-10.0.28000-SP0",
+  "python": "3.15.0 (tags/v3.15.0:d220409, Oct  9 2026, 11:55:56) [MSC v.1951 64 bit (AMD64)]",
+  "intent_backed_commit": "PASS",
+  "recovery_policy": "PASS",
+  "query_states": "PASS",
+  "unowned_preservation": "PASS",
+  "windows_locks": "PASS",
+  "txn_id_uniqueness": "PASS",
+  "status": "PASS",
+  "scope": "windows_transaction_intent_recovery_query_and_locks",
+  "power_loss": "NOT_TESTED",
+  "durability_claim": "process-crash only; no NTFS power-loss claim"
+}

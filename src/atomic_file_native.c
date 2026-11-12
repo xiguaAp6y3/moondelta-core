@@ -10,6 +10,32 @@
 
 #include "moonbit.h"
 
+/* S5 power-loss injection points; the implementation lives in
+ * powerloss_probe.c. Inactive unless MOONDELTA_POWERLOSS_AT is set. */
+int moondelta_powerloss_boundary(const char *name, const char *detail);
+
+static const char *moondelta_basename(const char *path) {
+  if (path == NULL) return "-";
+  const char *slash = strrchr(path, '/');
+#ifdef _WIN32
+  const char *backslash = strrchr(path, '\\');
+  if (backslash != NULL && (slash == NULL || backslash > slash)) {
+    slash = backslash;
+  }
+#endif
+  return slash == NULL ? path : slash + 1;
+}
+
+/* Tag a durable-state boundary with "<phase>-<operation>" plus the file it
+ * concerns, so the host log identifies which commit step was cut. */
+static void moondelta_boundary(const char *phase, const char *operation,
+                               const char *path) {
+  char name[96];
+  if (phase == NULL) phase = "unknown";
+  snprintf(name, sizeof(name), "%s-%s", phase, operation);
+  (void)moondelta_powerloss_boundary(name, moondelta_basename(path));
+}
+
 #ifdef _WIN32
 #include <windows.h>
 #include <wchar.h>
@@ -135,7 +161,9 @@ MOONBIT_FFI_EXPORT int moondelta_atomic_write(moonbit_string_t path,
 MOONBIT_FFI_EXPORT int moondelta_publish_pinned(moonbit_bytes_t temp,
                                                 moonbit_bytes_t final_path,
                                                 moonbit_bytes_t content,
-                                                int length) {
+                                                int length,
+                                                moonbit_bytes_t phase_bytes) {
+  (void)phase_bytes; /* Windows produces no power-loss evidence. */
   wchar_t *wide_temp = moondelta_wide(temp);
   wchar_t *wide_final = moondelta_wide(final_path);
   if (wide_temp == NULL || wide_final == NULL) {
@@ -479,10 +507,13 @@ MOONBIT_FFI_EXPORT int moondelta_unlink_sync(moonbit_bytes_t path) {
     if (errno == ENOENT) return 1;
     return -errno;
   }
+  /* Removed from the namespace, but the deletion is not durable yet. */
+  moondelta_boundary("cleanup", "unlinked", (const char *)path);
   int directory = open_parent((const char *)path);
   if (directory < 0) return -errno;
   int error = sync_fd(directory) == 0 ? 0 : -errno;
   if (close(directory) != 0 && error == 0) error = -errno;
+  if (error == 0) moondelta_boundary("cleanup", "dir-fsynced", (const char *)path);
   return error;
 }
 
@@ -535,9 +566,11 @@ MOONBIT_FFI_EXPORT int moondelta_random_hex(moonbit_bytes_t out,
 MOONBIT_FFI_EXPORT int moondelta_publish_pinned(moonbit_bytes_t temp,
                                                 moonbit_bytes_t final_path,
                                                 moonbit_bytes_t content,
-                                                int length) {
+                                                int length,
+                                                moonbit_bytes_t phase_bytes) {
   const char *temporary = (const char *)temp;
   const char *final_name = (const char *)final_path;
+  const char *phase = (const char *)phase_bytes;
   int directory_fd = open_parent(final_name);
   if (directory_fd < 0) return errno;
   int fd = open(temporary, O_CREAT | O_EXCL | O_WRONLY | O_CLOEXEC | O_NOFOLLOW,
@@ -547,6 +580,7 @@ MOONBIT_FFI_EXPORT int moondelta_publish_pinned(moonbit_bytes_t temp,
     close(directory_fd);
     return error;
   }
+  moondelta_boundary(phase, "temp-created", final_name);
   int offset = 0;
   while (offset < length) {
     ssize_t written = write(fd, content + offset, (size_t)(length - offset));
@@ -564,12 +598,15 @@ MOONBIT_FFI_EXPORT int moondelta_publish_pinned(moonbit_bytes_t temp,
     }
     offset += (int)written;
   }
+  /* Full content handed to the page cache, nothing durable yet. */
+  moondelta_boundary(phase, "written", final_name);
   if (sync_fd(fd) != 0) {
     int error = errno;
     close(fd);
     close(directory_fd);
     return error;
   }
+  moondelta_boundary(phase, "fsynced", final_name);
   if (close(fd) != 0) {
     int error = errno;
     close(directory_fd);
@@ -581,11 +618,14 @@ MOONBIT_FFI_EXPORT int moondelta_publish_pinned(moonbit_bytes_t temp,
     if (error == EEXIST) return -1;
     return error;
   }
+  /* Name visible; its directory entry is not durable until the sync below. */
+  moondelta_boundary(phase, "linked", final_name);
   if (sync_fd(directory_fd) != 0) {
     int error = errno;
     close(directory_fd);
     return -(error + 1);
   }
+  moondelta_boundary(phase, "dir-fsynced", final_name);
   close(directory_fd);
   return 0;
 }

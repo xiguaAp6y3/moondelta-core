@@ -1,0 +1,398 @@
+{
+  "status": "PASS",
+  "scope": "process_crash_io_faults_publication_races_and_maintenance_locks",
+  "overall_transaction_acceptance": "NOT_PASSED",
+  "platform": "Linux-6.6.114.1-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "race_iterations": 100,
+  "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+  "deltalake": "1.6.6",
+  "pyarrow": "26.0.0",
+  "filesystem": "ext4",
+  "fault_cases": [
+    {
+      "name": "data-write-eio",
+      "status": "PASS",
+      "expected": "absent",
+      "stdout": "append failed: io error: atomic publish failed for '/tmp/moondelta-atomic-1zg_dgxv/data-write-eio/part-17-1-1794325239724.parquet' (platform error 5)",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv",
+        "write /tmp/moondelta-atomic-1zg_dgxv/data-write-eio/part-17-1-1794325239724.parquet.moondelta-tmp-g29bXe",
+        "fail-write /tmp/moondelta-atomic-1zg_dgxv/data-write-eio/part-17-1-1794325239724.parquet.moondelta-tmp-g29bXe",
+        "unlink /tmp/moondelta-atomic-1zg_dgxv/data-write-eio/part-17-1-1794325239724.parquet.moondelta-tmp-g29bXe"
+      ]
+    },
+    {
+      "name": "data-write-enospc",
+      "status": "PASS",
+      "expected": "absent",
+      "stdout": "append failed: io error: atomic publish failed for '/tmp/moondelta-atomic-1zg_dgxv/data-write-enospc/part-17-1-1794325239816.parquet' (platform error 28)",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv",
+        "write /tmp/moondelta-atomic-1zg_dgxv/data-write-enospc/part-17-1-1794325239816.parquet.moondelta-tmp-n2HQcF",
+        "fail-write /tmp/moondelta-atomic-1zg_dgxv/data-write-enospc/part-17-1-1794325239816.parquet.moondelta-tmp-n2HQcF",
+        "unlink /tmp/moondelta-atomic-1zg_dgxv/data-write-enospc/part-17-1-1794325239816.parquet.moondelta-tmp-n2HQcF"
+      ]
+    },
+    {
+      "name": "data-file-sync",
+      "status": "PASS",
+      "expected": "absent",
+      "stdout": "append failed: io error: atomic publish failed for '/tmp/moondelta-atomic-1zg_dgxv/data-file-sync/part-17-1-1794325239910.parquet' (platform error 5)",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv",
+        "write /tmp/moondelta-atomic-1zg_dgxv/data-file-sync/part-17-1-1794325239910.parquet.moondelta-tmp-ncL5KF",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/data-file-sync/part-17-1-1794325239910.parquet.moondelta-tmp-ncL5KF",
+        "fail-fsync /tmp/moondelta-atomic-1zg_dgxv/data-file-sync/part-17-1-1794325239910.parquet.moondelta-tmp-ncL5KF",
+        "unlink /tmp/moondelta-atomic-1zg_dgxv/data-file-sync/part-17-1-1794325239910.parquet.moondelta-tmp-ncL5KF"
+      ]
+    },
+    {
+      "name": "data-link",
+      "status": "PASS",
+      "expected": "absent",
+      "stdout": "append failed: io error: atomic publish failed for '/tmp/moondelta-atomic-1zg_dgxv/data-link/part-17-1-1794325240002.parquet' (platform error 5)",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv",
+        "write /tmp/moondelta-atomic-1zg_dgxv/data-link/part-17-1-1794325240002.parquet.moondelta-tmp-uAegQQ",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/data-link/part-17-1-1794325240002.parquet.moondelta-tmp-uAegQQ",
+        "link /tmp/moondelta-atomic-1zg_dgxv/data-link/part-17-1-1794325240002.parquet",
+        "fail-link /tmp/moondelta-atomic-1zg_dgxv/data-link/part-17-1-1794325240002.parquet",
+        "unlink /tmp/moondelta-atomic-1zg_dgxv/data-link/part-17-1-1794325240002.parquet.moondelta-tmp-uAegQQ"
+      ]
+    },
+    {
+      "name": "data-dir-sync",
+      "status": "PASS",
+      "expected": "data-published",
+      "stdout": "append failed: publish outcome unknown: '/tmp/moondelta-atomic-1zg_dgxv/data-dir-sync/part-17-1-1794325240099.parquet' is visible but directory sync failed (platform error 5)",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv",
+        "write /tmp/moondelta-atomic-1zg_dgxv/data-dir-sync/part-17-1-1794325240099.parquet.moondelta-tmp-zAoo8o",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/data-dir-sync/part-17-1-1794325240099.parquet.moondelta-tmp-zAoo8o",
+        "link /tmp/moondelta-atomic-1zg_dgxv/data-dir-sync/part-17-1-1794325240099.parquet",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/data-dir-sync",
+        "fail-fsync /tmp/moondelta-atomic-1zg_dgxv/data-dir-sync"
+      ]
+    },
+    {
+      "name": "log-write",
+      "status": "PASS",
+      "expected": "absent",
+      "stdout": "append failed: io error: atomic publish failed for '/tmp/moondelta-atomic-1zg_dgxv/log-write/_delta_log/00000000000000000001.json' (platform error 5)",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv",
+        "write /tmp/moondelta-atomic-1zg_dgxv/log-write/part-17-1-1794325240196.parquet.moondelta-tmp-05W0JG",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/log-write/part-17-1-1794325240196.parquet.moondelta-tmp-05W0JG",
+        "link /tmp/moondelta-atomic-1zg_dgxv/log-write/part-17-1-1794325240196.parquet",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/log-write",
+        "unlink /tmp/moondelta-atomic-1zg_dgxv/log-write/part-17-1-1794325240196.parquet.moondelta-tmp-05W0JG",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/log-write",
+        "write /tmp/moondelta-atomic-1zg_dgxv/log-write/_delta_log/00000000000000000001.json.moondelta-tmp-8GitaE",
+        "fail-write /tmp/moondelta-atomic-1zg_dgxv/log-write/_delta_log/00000000000000000001.json.moondelta-tmp-8GitaE",
+        "unlink /tmp/moondelta-atomic-1zg_dgxv/log-write/_delta_log/00000000000000000001.json.moondelta-tmp-8GitaE"
+      ]
+    },
+    {
+      "name": "log-file-sync",
+      "status": "PASS",
+      "expected": "absent",
+      "stdout": "append failed: io error: atomic publish failed for '/tmp/moondelta-atomic-1zg_dgxv/log-file-sync/_delta_log/00000000000000000001.json' (platform error 5)",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv",
+        "write /tmp/moondelta-atomic-1zg_dgxv/log-file-sync/part-17-1-1794325240304.parquet.moondelta-tmp-FRWlNr",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/log-file-sync/part-17-1-1794325240304.parquet.moondelta-tmp-FRWlNr",
+        "link /tmp/moondelta-atomic-1zg_dgxv/log-file-sync/part-17-1-1794325240304.parquet",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/log-file-sync",
+        "unlink /tmp/moondelta-atomic-1zg_dgxv/log-file-sync/part-17-1-1794325240304.parquet.moondelta-tmp-FRWlNr",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/log-file-sync",
+        "write /tmp/moondelta-atomic-1zg_dgxv/log-file-sync/_delta_log/00000000000000000001.json.moondelta-tmp-mztwPd",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/log-file-sync/_delta_log/00000000000000000001.json.moondelta-tmp-mztwPd",
+        "fail-fsync /tmp/moondelta-atomic-1zg_dgxv/log-file-sync/_delta_log/00000000000000000001.json.moondelta-tmp-mztwPd",
+        "unlink /tmp/moondelta-atomic-1zg_dgxv/log-file-sync/_delta_log/00000000000000000001.json.moondelta-tmp-mztwPd"
+      ]
+    },
+    {
+      "name": "log-link",
+      "status": "PASS",
+      "expected": "absent",
+      "stdout": "append failed: io error: atomic publish failed for '/tmp/moondelta-atomic-1zg_dgxv/log-link/_delta_log/00000000000000000001.json' (platform error 5)",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv",
+        "write /tmp/moondelta-atomic-1zg_dgxv/log-link/part-17-1-1794325240417.parquet.moondelta-tmp-BZc1W4",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/log-link/part-17-1-1794325240417.parquet.moondelta-tmp-BZc1W4",
+        "link /tmp/moondelta-atomic-1zg_dgxv/log-link/part-17-1-1794325240417.parquet",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/log-link",
+        "unlink /tmp/moondelta-atomic-1zg_dgxv/log-link/part-17-1-1794325240417.parquet.moondelta-tmp-BZc1W4",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/log-link",
+        "write /tmp/moondelta-atomic-1zg_dgxv/log-link/_delta_log/00000000000000000001.json.moondelta-tmp-gmqRdC",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/log-link/_delta_log/00000000000000000001.json.moondelta-tmp-gmqRdC",
+        "link /tmp/moondelta-atomic-1zg_dgxv/log-link/_delta_log/00000000000000000001.json",
+        "fail-link /tmp/moondelta-atomic-1zg_dgxv/log-link/_delta_log/00000000000000000001.json",
+        "unlink /tmp/moondelta-atomic-1zg_dgxv/log-link/_delta_log/00000000000000000001.json.moondelta-tmp-gmqRdC"
+      ]
+    },
+    {
+      "name": "log-dir-sync",
+      "status": "PASS",
+      "expected": "commit-unknown",
+      "stdout": "append failed: commit outcome unknown: '/tmp/moondelta-atomic-1zg_dgxv/log-dir-sync/_delta_log/00000000000000000001.json' is visible but durability is unconfirmed (platform error 5); inspect this commit before retrying",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv",
+        "write /tmp/moondelta-atomic-1zg_dgxv/log-dir-sync/part-17-1-1794325240541.parquet.moondelta-tmp-xyv17f",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/log-dir-sync/part-17-1-1794325240541.parquet.moondelta-tmp-xyv17f",
+        "link /tmp/moondelta-atomic-1zg_dgxv/log-dir-sync/part-17-1-1794325240541.parquet",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/log-dir-sync",
+        "unlink /tmp/moondelta-atomic-1zg_dgxv/log-dir-sync/part-17-1-1794325240541.parquet.moondelta-tmp-xyv17f",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/log-dir-sync",
+        "write /tmp/moondelta-atomic-1zg_dgxv/log-dir-sync/_delta_log/00000000000000000001.json.moondelta-tmp-Z6MuAG",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/log-dir-sync/_delta_log/00000000000000000001.json.moondelta-tmp-Z6MuAG",
+        "link /tmp/moondelta-atomic-1zg_dgxv/log-dir-sync/_delta_log/00000000000000000001.json",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/log-dir-sync/_delta_log",
+        "fail-fsync /tmp/moondelta-atomic-1zg_dgxv/log-dir-sync/_delta_log"
+      ]
+    },
+    {
+      "name": "log-dir-enospc",
+      "status": "PASS",
+      "expected": "commit-unknown",
+      "stdout": "append failed: commit outcome unknown: '/tmp/moondelta-atomic-1zg_dgxv/log-dir-enospc/_delta_log/00000000000000000001.json' is visible but durability is unconfirmed (platform error 28); inspect this commit before retrying",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv",
+        "write /tmp/moondelta-atomic-1zg_dgxv/log-dir-enospc/part-17-1-1794325240616.parquet.moondelta-tmp-RYb5Aj",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/log-dir-enospc/part-17-1-1794325240616.parquet.moondelta-tmp-RYb5Aj",
+        "link /tmp/moondelta-atomic-1zg_dgxv/log-dir-enospc/part-17-1-1794325240616.parquet",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/log-dir-enospc",
+        "unlink /tmp/moondelta-atomic-1zg_dgxv/log-dir-enospc/part-17-1-1794325240616.parquet.moondelta-tmp-RYb5Aj",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/log-dir-enospc",
+        "write /tmp/moondelta-atomic-1zg_dgxv/log-dir-enospc/_delta_log/00000000000000000001.json.moondelta-tmp-Rs8Rlw",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/log-dir-enospc/_delta_log/00000000000000000001.json.moondelta-tmp-Rs8Rlw",
+        "link /tmp/moondelta-atomic-1zg_dgxv/log-dir-enospc/_delta_log/00000000000000000001.json",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/log-dir-enospc/_delta_log",
+        "fail-fsync /tmp/moondelta-atomic-1zg_dgxv/log-dir-enospc/_delta_log"
+      ]
+    },
+    {
+      "name": "log-cleanup-sync",
+      "status": "PASS",
+      "expected": "committed",
+      "stdout": "appended version 1",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv",
+        "write /tmp/moondelta-atomic-1zg_dgxv/log-cleanup-sync/part-17-1-1794325240689.parquet.moondelta-tmp-xQSi5Q",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/log-cleanup-sync/part-17-1-1794325240689.parquet.moondelta-tmp-xQSi5Q",
+        "link /tmp/moondelta-atomic-1zg_dgxv/log-cleanup-sync/part-17-1-1794325240689.parquet",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/log-cleanup-sync",
+        "unlink /tmp/moondelta-atomic-1zg_dgxv/log-cleanup-sync/part-17-1-1794325240689.parquet.moondelta-tmp-xQSi5Q",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/log-cleanup-sync",
+        "write /tmp/moondelta-atomic-1zg_dgxv/log-cleanup-sync/_delta_log/00000000000000000001.json.moondelta-tmp-JajDHQ",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/log-cleanup-sync/_delta_log/00000000000000000001.json.moondelta-tmp-JajDHQ",
+        "link /tmp/moondelta-atomic-1zg_dgxv/log-cleanup-sync/_delta_log/00000000000000000001.json",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/log-cleanup-sync/_delta_log",
+        "unlink /tmp/moondelta-atomic-1zg_dgxv/log-cleanup-sync/_delta_log/00000000000000000001.json.moondelta-tmp-JajDHQ",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/log-cleanup-sync/_delta_log",
+        "fail-fsync /tmp/moondelta-atomic-1zg_dgxv/log-cleanup-sync/_delta_log"
+      ]
+    },
+    {
+      "name": "data-temp-unlink",
+      "status": "PASS",
+      "expected": "committed",
+      "stdout": "appended version 1",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv",
+        "write /tmp/moondelta-atomic-1zg_dgxv/data-temp-unlink/part-17-1-1794325240772.parquet.moondelta-tmp-jtWu8z",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/data-temp-unlink/part-17-1-1794325240772.parquet.moondelta-tmp-jtWu8z",
+        "link /tmp/moondelta-atomic-1zg_dgxv/data-temp-unlink/part-17-1-1794325240772.parquet",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/data-temp-unlink",
+        "unlink /tmp/moondelta-atomic-1zg_dgxv/data-temp-unlink/part-17-1-1794325240772.parquet.moondelta-tmp-jtWu8z",
+        "fail-unlink /tmp/moondelta-atomic-1zg_dgxv/data-temp-unlink/part-17-1-1794325240772.parquet.moondelta-tmp-jtWu8z",
+        "write /tmp/moondelta-atomic-1zg_dgxv/data-temp-unlink/_delta_log/00000000000000000001.json.moondelta-tmp-2jNUqA",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/data-temp-unlink/_delta_log/00000000000000000001.json.moondelta-tmp-2jNUqA",
+        "link /tmp/moondelta-atomic-1zg_dgxv/data-temp-unlink/_delta_log/00000000000000000001.json",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/data-temp-unlink/_delta_log",
+        "unlink /tmp/moondelta-atomic-1zg_dgxv/data-temp-unlink/_delta_log/00000000000000000001.json.moondelta-tmp-2jNUqA",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/data-temp-unlink/_delta_log"
+      ]
+    },
+    {
+      "name": "log-temp-unlink",
+      "status": "PASS",
+      "expected": "committed",
+      "stdout": "appended version 1",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv",
+        "write /tmp/moondelta-atomic-1zg_dgxv/log-temp-unlink/part-17-1-1794325240855.parquet.moondelta-tmp-hbuDMa",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/log-temp-unlink/part-17-1-1794325240855.parquet.moondelta-tmp-hbuDMa",
+        "link /tmp/moondelta-atomic-1zg_dgxv/log-temp-unlink/part-17-1-1794325240855.parquet",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/log-temp-unlink",
+        "unlink /tmp/moondelta-atomic-1zg_dgxv/log-temp-unlink/part-17-1-1794325240855.parquet.moondelta-tmp-hbuDMa",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/log-temp-unlink",
+        "write /tmp/moondelta-atomic-1zg_dgxv/log-temp-unlink/_delta_log/00000000000000000001.json.moondelta-tmp-eVFRs3",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/log-temp-unlink/_delta_log/00000000000000000001.json.moondelta-tmp-eVFRs3",
+        "link /tmp/moondelta-atomic-1zg_dgxv/log-temp-unlink/_delta_log/00000000000000000001.json",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/log-temp-unlink/_delta_log",
+        "unlink /tmp/moondelta-atomic-1zg_dgxv/log-temp-unlink/_delta_log/00000000000000000001.json.moondelta-tmp-eVFRs3",
+        "fail-unlink /tmp/moondelta-atomic-1zg_dgxv/log-temp-unlink/_delta_log/00000000000000000001.json.moondelta-tmp-eVFRs3"
+      ]
+    },
+    {
+      "name": "data-sync-eintr",
+      "status": "PASS",
+      "expected": "committed",
+      "stdout": "appended version 1",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv",
+        "write /tmp/moondelta-atomic-1zg_dgxv/data-sync-eintr/part-17-1-1794325240939.parquet.moondelta-tmp-YhOLtf",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/data-sync-eintr/part-17-1-1794325240939.parquet.moondelta-tmp-YhOLtf",
+        "fail-fsync /tmp/moondelta-atomic-1zg_dgxv/data-sync-eintr/part-17-1-1794325240939.parquet.moondelta-tmp-YhOLtf",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/data-sync-eintr/part-17-1-1794325240939.parquet.moondelta-tmp-YhOLtf",
+        "link /tmp/moondelta-atomic-1zg_dgxv/data-sync-eintr/part-17-1-1794325240939.parquet",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/data-sync-eintr",
+        "unlink /tmp/moondelta-atomic-1zg_dgxv/data-sync-eintr/part-17-1-1794325240939.parquet.moondelta-tmp-YhOLtf",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/data-sync-eintr",
+        "write /tmp/moondelta-atomic-1zg_dgxv/data-sync-eintr/_delta_log/00000000000000000001.json.moondelta-tmp-Ghw4Jc",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/data-sync-eintr/_delta_log/00000000000000000001.json.moondelta-tmp-Ghw4Jc",
+        "link /tmp/moondelta-atomic-1zg_dgxv/data-sync-eintr/_delta_log/00000000000000000001.json",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/data-sync-eintr/_delta_log",
+        "unlink /tmp/moondelta-atomic-1zg_dgxv/data-sync-eintr/_delta_log/00000000000000000001.json.moondelta-tmp-Ghw4Jc",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/data-sync-eintr/_delta_log"
+      ]
+    },
+    {
+      "name": "log-dir-eintr",
+      "status": "PASS",
+      "expected": "committed",
+      "stdout": "appended version 1",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv",
+        "write /tmp/moondelta-atomic-1zg_dgxv/log-dir-eintr/part-17-1-1794325241024.parquet.moondelta-tmp-tkqyoS",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/log-dir-eintr/part-17-1-1794325241024.parquet.moondelta-tmp-tkqyoS",
+        "link /tmp/moondelta-atomic-1zg_dgxv/log-dir-eintr/part-17-1-1794325241024.parquet",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/log-dir-eintr",
+        "unlink /tmp/moondelta-atomic-1zg_dgxv/log-dir-eintr/part-17-1-1794325241024.parquet.moondelta-tmp-tkqyoS",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/log-dir-eintr",
+        "write /tmp/moondelta-atomic-1zg_dgxv/log-dir-eintr/_delta_log/00000000000000000001.json.moondelta-tmp-8UNpi2",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/log-dir-eintr/_delta_log/00000000000000000001.json.moondelta-tmp-8UNpi2",
+        "link /tmp/moondelta-atomic-1zg_dgxv/log-dir-eintr/_delta_log/00000000000000000001.json",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/log-dir-eintr/_delta_log",
+        "fail-fsync /tmp/moondelta-atomic-1zg_dgxv/log-dir-eintr/_delta_log",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/log-dir-eintr/_delta_log",
+        "unlink /tmp/moondelta-atomic-1zg_dgxv/log-dir-eintr/_delta_log/00000000000000000001.json.moondelta-tmp-8UNpi2",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/log-dir-eintr/_delta_log"
+      ]
+    },
+    {
+      "name": "create-table-dir",
+      "status": "PASS",
+      "expected": "absent",
+      "stdout": "create failed: io error: directory sync failed for '/tmp/moondelta-atomic-1zg_dgxv/create-table-dir' (platform error 5)",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv",
+        "fail-fsync /tmp/moondelta-atomic-1zg_dgxv"
+      ]
+    },
+    {
+      "name": "create-log-dir",
+      "status": "PASS",
+      "expected": "absent",
+      "stdout": "create failed: io error: directory sync failed for '/tmp/moondelta-atomic-1zg_dgxv/create-log-dir/_delta_log' (platform error 5)",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv",
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv",
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv",
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/create-log-dir",
+        "fail-fsync /tmp/moondelta-atomic-1zg_dgxv/create-log-dir"
+      ]
+    },
+    {
+      "name": "create-v0-sync",
+      "status": "PASS",
+      "expected": "commit-unknown",
+      "stdout": "create failed: commit outcome unknown: '/tmp/moondelta-atomic-1zg_dgxv/create-v0-sync/_delta_log/00000000000000000000.json' is visible but durability is unconfirmed (platform error 5); inspect this commit before retrying",
+      "syscalls": [
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv",
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv",
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv",
+        "fsync /",
+        "fsync /tmp",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/create-v0-sync",
+        "write /tmp/moondelta-atomic-1zg_dgxv/create-v0-sync/_delta_log/00000000000000000000.json.moondelta-tmp-BpJkHA",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/create-v0-sync/_delta_log/00000000000000000000.json.moondelta-tmp-BpJkHA",
+        "link /tmp/moondelta-atomic-1zg_dgxv/create-v0-sync/_delta_log/00000000000000000000.json",
+        "fsync /tmp/moondelta-atomic-1zg_dgxv/create-v0-sync/_delta_log",
+        "fail-fsync /tmp/moondelta-atomic-1zg_dgxv/create-v0-sync/_delta_log"
+      ]
+    }
+  ],
+  "partial_write_sigkill": "PASS",
+  "publication_order": [
+    "fsync /",
+    "fsync /tmp",
+    "fsync /tmp/moondelta-atomic-1zg_dgxv",
+    "write /tmp/moondelta-atomic-1zg_dgxv/ordering/part-19-1-1794325241307.parquet.moondelta-tmp-O2M4NU",
+    "fsync /tmp/moondelta-atomic-1zg_dgxv/ordering/part-19-1-1794325241307.parquet.moondelta-tmp-O2M4NU",
+    "link /tmp/moondelta-atomic-1zg_dgxv/ordering/part-19-1-1794325241307.parquet",
+    "fsync /tmp/moondelta-atomic-1zg_dgxv/ordering",
+    "unlink /tmp/moondelta-atomic-1zg_dgxv/ordering/part-19-1-1794325241307.parquet.moondelta-tmp-O2M4NU",
+    "fsync /tmp/moondelta-atomic-1zg_dgxv/ordering",
+    "write /tmp/moondelta-atomic-1zg_dgxv/ordering/_delta_log/00000000000000000001.json.moondelta-tmp-OZpLJv",
+    "fsync /tmp/moondelta-atomic-1zg_dgxv/ordering/_delta_log/00000000000000000001.json.moondelta-tmp-OZpLJv",
+    "link /tmp/moondelta-atomic-1zg_dgxv/ordering/_delta_log/00000000000000000001.json",
+    "fsync /tmp/moondelta-atomic-1zg_dgxv/ordering/_delta_log",
+    "unlink /tmp/moondelta-atomic-1zg_dgxv/ordering/_delta_log/00000000000000000001.json.moondelta-tmp-OZpLJv",
+    "fsync /tmp/moondelta-atomic-1zg_dgxv/ordering/_delta_log"
+  ],
+  "maintenance_lock_blocks_writer": "PASS",
+  "maintenance_lock_rejects_symlink": "PASS",
+  "native_and_delta_rs_readback": "PASS",
+  "power_loss": "NOT_TESTED",
+  "automatic_cleanup": "NOT_IMPLEMENTED"
+}

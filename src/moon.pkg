@@ -2,7 +2,12 @@ import {
   "xiguaAp6y3/moondelta-core/vendor/parquet",
   "moonbitlang/core/json",
   "moonbitlang/core/string",
+  "moonbitlang/core/env" @env,
   "moonbitlang/x/fs",
   "moonbitlang/x/encoding/percent" @percent,
   "moonbitlang/core/encoding/utf8" @utf8,
 }
+
+options(
+  "native-stub": ["atomic_file_native.c", "powerloss_probe.c"],
+)
