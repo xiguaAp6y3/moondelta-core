@@ -24,9 +24,11 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import subprocess
 import sys
+import tempfile
 import urllib.parse
 from pathlib import Path
 
@@ -293,39 +295,72 @@ def verify_table(root: Path, delta_cli: Path | None) -> dict:
     delta_rs = run_delta_rs(root)
     report["deltaRs"] = delta_rs
     checks["delta_rs"] = delta_rs["status"]
+    if delta_rs["status"] == "PASSED" and report["latest"] is not None:
+        if delta_rs.get("version") != report["latest"]:
+            report["problems"].append(
+                f"delta-rs reads version {delta_rs.get('version')} but the log's "
+                f"latest is {report['latest']}"
+            )
 
     report["ok"] = not report["problems"]
     return report
 
 
 def run_delta_rs(root: Path) -> dict:
-    """Optional cross-engine read. Recorded, never silently treated as passed."""
+    """Second-engine read via delta-rs.
+
+    delta-rs/pyarrow can abort during interpreter teardown ("terminate called
+    without an active exception") *after* the read has succeeded, which makes a
+    naive returncode check report a false failure. The result is therefore
+    handed over through a file and the child exits with os._exit() to skip
+    finalisation.
+    """
+    handle, raw_path = tempfile.mkstemp(prefix="moondelta-delta-rs-", suffix=".json")
+    os.close(handle)
+    result_path = Path(raw_path)
     script = (
-        "import json,sys\n"
-        "from deltalake import DeltaTable\n"
-        "t=DeltaTable(sys.argv[1])\n"
-        "rows=t.to_pyarrow_table().num_rows\n"
-        "print(json.dumps({'version':t.version(),'rows':rows}))\n"
+        "import json, os, sys\n"
+        "out = sys.argv[2]\n"
+        "try:\n"
+        "    from deltalake import DeltaTable\n"
+        "except ModuleNotFoundError:\n"
+        "    open(out, 'w').write(json.dumps({'status': 'SKIPPED', "
+        "'detail': 'deltalake is not installed'}))\n"
+        "    os._exit(0)\n"
+        "try:\n"
+        "    table = DeltaTable(sys.argv[1])\n"
+        "    payload = {'version': table.version(), "
+        "'rows': table.to_pyarrow_table().num_rows}\n"
+        "    open(out, 'w').write(json.dumps(payload))\n"
+        "    os._exit(0)\n"
+        "except Exception as error:\n"
+        "    open(out, 'w').write(json.dumps({'error': str(error)[:400]}))\n"
+        "    os._exit(0)\n"
     )
     try:
         completed = subprocess.run(
-            [sys.executable, "-c", script, str(root)],
-            capture_output=True,
-            text=True,
-            timeout=180,
+            [sys.executable, "-c", script, str(root), str(result_path)],
+            capture_output=True, text=True, timeout=180,
         )
     except (OSError, subprocess.SubprocessError) as error:
+        result_path.unlink(missing_ok=True)
         return {"status": "ERROR", "error": str(error)}
-    if completed.returncode != 0:
-        message = (completed.stderr or completed.stdout).strip().splitlines()
-        detail = message[-1] if message else "unknown failure"
-        if "ModuleNotFoundError" in completed.stderr or "No module named" in detail:
-            return {"status": "SKIPPED", "detail": "deltalake is not installed on this host"}
-        return {"status": "FAILED", "detail": detail[:400]}
     try:
-        return {"status": "PASSED", **json.loads(completed.stdout.strip().splitlines()[-1])}
-    except (ValueError, IndexError) as error:
-        return {"status": "ERROR", "error": str(error)}
+        payload = json.loads(result_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {
+            "status": "ERROR",
+            "detail": (completed.stderr or completed.stdout).strip()[-400:],
+            "returncode": completed.returncode,
+        }
+    finally:
+        result_path.unlink(missing_ok=True)
+    if "error" in payload:
+        return {"status": "FAILED", "detail": payload["error"],
+                "returncode": completed.returncode}
+    if payload.get("status") == "SKIPPED":
+        return payload
+    return {"status": "PASSED", "returncode": completed.returncode, **payload}
 
 
 def main() -> int:

@@ -89,6 +89,15 @@ jobs:
           qemu-system-x86_64 --version | head -n 1
           ldd "$(command -v busybox)" 2>&1 | head -n 1
 
+      # The S5 exit criteria require a second engine to read the recovered tables.
+      # Install it on the interpreter the harness runs under: `sudo -E python3`
+      # resolves to /usr/bin/python3, not to any setup-python toolcache.
+      - name: Install the second read engine (delta-rs)
+        run: |
+          sudo python3 -m pip install --break-system-packages -q \
+            deltalake==1.6.6 pyarrow==26.0.0
+          sudo python3 -c "import deltalake, pyarrow; print('deltalake', deltalake.__version__)"
+
       - name: Probe loop mount capability
         run: |
           set -euo pipefail

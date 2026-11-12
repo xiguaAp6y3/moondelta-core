@@ -73,6 +73,11 @@ HALT_TIMEOUT = 60.0
 FSCK_GREEN = {0, 1, 2}
 # The order in which one publication must reach the device, per phase.
 PHASE_OPS = ["temp-created", "written", "fsynced", "linked", "dir-fsynced"]
+# Cutting power at or after this boundary must never lose the commit: the
+# _delta_log directory entry was already fsynced before the probe fires. Every
+# other boundary may legally end with the commit present or absent, but this one
+# is an assertion, not an observation.
+DURABLE_BOUNDARIES = {"commit-publish-dir-fsynced"}
 # The S5 exit gate is "at least 100 valid power cuts". A green run with fewer
 # rounds is a smoke test, not acceptance, so it is downgraded to INVALID.
 MINIMUM_ROUNDS = 100
@@ -399,6 +404,7 @@ def judge_round(
     record: dict,
     base_version: int | None,
     require_host_verify: bool,
+    require_delta_rs: bool = True,
 ) -> None:
     """Decide a single round's status from the evidence it collected.
 
@@ -440,6 +446,15 @@ def judge_round(
             failed.append(
                 f"row count {rows} does not equal the number of surviving appends {observed}"
             )
+        if observed is not None and base_version is not None:
+            survived = observed == base_version + 1
+            record["commitOutcome"] = "survived" if survived else "lost"
+            if not survived and record.get("boundaryRequested") in DURABLE_BOUNDARIES:
+                failed.append(
+                    f"the commit was lost although power was cut at "
+                    f"{record['boundaryRequested']}, after the _delta_log directory "
+                    "entry had already been synced"
+                )
         for problem in verification.get("problems", []):
             if "fsck rejected" in problem or "mount failed" in problem:
                 invalid.append(problem)
@@ -447,7 +462,17 @@ def judge_round(
                 failed.append(problem)
         delta_rs = ((verification.get("report") or {}).get("deltaRs") or {}).get("status")
         record["deltaRs"] = delta_rs
-        if delta_rs not in ("PASSED", "SKIPPED"):
+        if delta_rs == "PASSED":
+            pass
+        elif delta_rs == "SKIPPED":
+            # The S5 exit criteria require a second engine to read the recovered
+            # tables; a smoke run may skip it, an evidence run may not.
+            if require_delta_rs:
+                failed.append(
+                    "delta-rs cross-read was skipped; an evidence run needs a second "
+                    "engine (install deltalake on the interpreter the harness runs under)"
+                )
+        else:
             failed.append(f"delta-rs cross-read did not pass ({delta_rs})")
         record["observedVersion"] = observed
 
@@ -611,7 +636,7 @@ def run_inject_round(
             record["cut"] = False
             record["guestError"] = "GUEST_READY never arrived (boot or handshake failure)"
             record["verification"] = {"performed": False}
-            judge_round(record, base_version, require_host_verify=False)
+            judge_round(record, base_version, require_host_verify=False, require_delta_rs=not args.smoke_test)
             return record
         for line in handshake:
             if line.startswith("GUEST_ERROR"):
@@ -652,13 +677,13 @@ def run_inject_round(
 
     if not record.get("cut"):
         record["verification"] = {"performed": False}
-        judge_round(record, base_version, require_host_verify=False)
+        judge_round(record, base_version, require_host_verify=False, require_delta_rs=not args.smoke_test)
         return record
 
     keep = record.get("boundaryAnnounced") != record.get("boundaryRequested")
     verification = verify_image(args, image, workdir, index, keep=keep)
     record["verification"] = verification
-    judge_round(record, base_version, require_host_verify=True)
+    judge_round(record, base_version, require_host_verify=True, require_delta_rs=not args.smoke_test)
     record["finishedAt"] = now()
     return record
 
@@ -930,10 +955,17 @@ def main() -> int:
             break
 
     exercised: dict[str, int] = {}
+    outcomes: dict[str, dict[str, int]] = {}
     for record in records:
         name = record.get("boundaryAnnounced")
         if name:
             exercised[name] = exercised.get(name, 0) + 1
+            bucket = outcomes.setdefault(name, {"rounds": 0, "commitSurvived": 0, "commitLost": 0})
+            bucket["rounds"] += 1
+            if record.get("commitOutcome") == "survived":
+                bucket["commitSurvived"] += 1
+            elif record.get("commitOutcome") == "lost":
+                bucket["commitLost"] += 1
     missing = [name for name in required if name not in exercised]
     statuses = [record["status"] for record in records]
     if "FAILED" in statuses:
@@ -974,6 +1006,8 @@ def main() -> int:
         "boundaries": {
             "requested": plan,
             "exercised": exercised,
+            "outcomes": outcomes,
+            "durableBoundaries": sorted(DURABLE_BOUNDARIES),
             "required": required,
             "missing": missing,
         },
