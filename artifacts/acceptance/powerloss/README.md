@@ -67,8 +67,12 @@ python3 artifacts/acceptance/powerloss/mk_initramfs.py \
   --out /var/tmp/moondelta-s5/initramfs.cpio.gz
 
 # 3. 边界可达性 trace：证明 9 个必需边界都能被触发且顺序正确，不做切断
+#    trace 会真的跑一次 append，所以必须用**另一块**盘；与矩阵共用会让基线
+#    boot 看到已存在的表，版本记账从错误的起点开始（装置会检出并判 INVALID）。
+python3 artifacts/acceptance/powerloss/prepare_raw_ext4.py \
+  --image /var/tmp/moondelta-s5/trace.raw --size-mib 256
 python3 artifacts/acceptance/powerloss/run_powerloss.py \
-  --image /var/tmp/moondelta-s5/data.raw \
+  --image /var/tmp/moondelta-s5/trace.raw \
   --kernel /boot/vmlinuz-$(uname -r) \
   --initramfs /var/tmp/moondelta-s5/initramfs.cpio.gz \
   --delta-cli _build/native/debug/build/cmd/delta/delta.exe \

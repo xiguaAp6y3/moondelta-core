@@ -130,7 +130,16 @@ class Guest:
     console: Path = Path()
     event_log: Path = Path()
     trace: Path = Path()
+    nbd_socket: Path | None = None
+    evt_socket: Path | None = None
     _reader: threading.Thread | None = None
+
+    def clean_sockets(self) -> None:
+        # Unix sockets cannot be archived, and a leftover one makes the artifact
+        # upload fail with "zip creation" errors, so they never survive a round.
+        for path in (self.nbd_socket, self.evt_socket):
+            if path is not None:
+                path.unlink(missing_ok=True)
 
     def next_line(self, timeout: float) -> str | None:
         try:
@@ -166,6 +175,7 @@ class Guest:
                     process.wait(timeout=15)
                 except subprocess.TimeoutExpired:
                     pass
+        self.clean_sockets()
 
     def kill_only_qemu(self) -> None:
         if self.qemu.poll() is None:
@@ -265,6 +275,7 @@ def start_guest(
     guest = Guest(
         nbd=nbd, qemu=qemu, events=events,
         console=console, event_log=event_log, trace=nbd_trace,
+        nbd_socket=nbd_sock, evt_socket=evt_sock,
     )
 
     def reader() -> None:
@@ -329,7 +340,9 @@ def verify_image(
 ) -> dict:
     """fsck a copy (the reboot), mount it read-only, verify, then throw it away."""
     record: dict = {"performed": True}
-    copy = workdir / f"check-{round_index:03d}.raw"
+    scratch = workdir / "scratch"
+    scratch.mkdir(parents=True, exist_ok=True)
+    copy = scratch / f"check-{round_index:03d}.raw"
     if copy.exists():
         copy.unlink()
     started = time.monotonic()
@@ -351,7 +364,7 @@ def verify_image(
             copy.unlink(missing_ok=True)
         return record
 
-    mountpoint = workdir / f"mnt-{round_index:03d}"
+    mountpoint = scratch / f"mnt-{round_index:03d}"
     try:
         mount_ro(copy, mountpoint)
     except RuntimeError as error:
@@ -458,6 +471,8 @@ def positive_control(workdir: Path) -> dict:
     shutil.rmtree(directory, ignore_errors=True)
     completed = run([sys.executable, str(NBD_SCRIPT), "--self-test", str(directory)], timeout=300)
     output = (completed.stdout + completed.stderr).strip()
+    # The self-test directory is throwaway; keep the verdict, not the scratch.
+    shutil.rmtree(directory, ignore_errors=True)
     return {
         "ok": completed.returncode == 0 and "PASS" in output,
         "output": output[-2000:],
@@ -536,6 +551,24 @@ def run_prepare(args: argparse.Namespace, image: Path, size: int, workdir: Path)
         guest.shutdown()
     finally:
         guest.shutdown()
+
+    transcript = list(guest.lines)
+    record["transcript"] = transcript[-80:]
+    # A baseline boot that finds an existing table is a setup mistake, not a
+    # storage failure: the version accounting would silently start from the wrong
+    # offset. Detect it from the guest's own transcript instead of guessing.
+    record["tableCreatedByThisRun"] = any(
+        line.startswith("WORKER_INIT") for line in transcript
+    )
+    if not record["tableCreatedByThisRun"]:
+        record["staleDisk"] = True
+        record["reasons"].append(
+            "the data disk already contained a Delta table: a baseline boot must start "
+            "from a freshly formatted image (running --trace or a previous matrix on the "
+            "same image breaks the version accounting)"
+        )
+        record["status"] = "INVALID"
+        return record
 
     verification = verify_image(args, image, workdir, 0, keep=not record["reasons"])
     record["verification"] = verification
@@ -857,9 +890,10 @@ def main() -> int:
     records: list[dict] = []
     base = prepared.get("baseVersion")
     if prepared["status"] != "PASS" or base is None:
+        setup_status = "INVALID" if prepared.get("staleDisk") else "FAILED"
         results = {
             "formatVersion": 1,
-            "status": "FAILED",
+            "status": setup_status,
             "generatedAt": now(),
             "ci": ci_context(),
             "seed": seed,
@@ -871,6 +905,9 @@ def main() -> int:
             "summary": {"note": "the clean setup boot failed; no cut was attempted"},
         }
         (args.workdir / "results.json").write_text(json.dumps(results, indent=2), encoding="utf-8")
+        if setup_status == "INVALID":
+            print("INVALID: start from a freshly formatted data disk, then re-run")
+            return 2
         print("FAILED: the setup boot is not sound, so the matrix cannot start")
         return 1
 

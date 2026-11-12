@@ -312,6 +312,9 @@ def self_test(directory: Path) -> None:
     conn.close()
     server.kill()  # the server keeps listening for more connections by design
     server.wait(timeout=5)
+    # The server was killed, so its own cleanup never ran: a leftover unix
+    # socket cannot be archived and would break artifact uploads.
+    socket_path.unlink(missing_ok=True)
     print("PASS: volatile writes disappear; completed FLUSH survives restart")
 
 

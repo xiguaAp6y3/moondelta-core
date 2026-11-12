@@ -145,13 +145,18 @@ jobs:
           echo "GUEST_KERNEL_RELEASE=$release" >> "$GITHUB_ENV"
           ls -l "/boot/vmlinuz-$release"
 
-      - name: Prepare the disposable raw ext4 data disk
+      - name: Prepare the disposable raw ext4 data disks
         run: |
           sudo mkdir -p /var/tmp/moondelta-s5
           # 256 MiB keeps the per-round verification copy cheap; the S5 model does
           # not depend on disk size.
           sudo python3 artifacts/acceptance/powerloss/prepare_raw_ext4.py \
             --image /var/tmp/moondelta-s5/data.raw --size-mib 256
+          # The trace boots the guest and commits a version, so it must never share
+          # the disk the matrix measures: a shared disk makes the baseline boot see
+          # an existing table and the version accounting starts from the wrong offset.
+          sudo python3 artifacts/acceptance/powerloss/prepare_raw_ext4.py \
+            --image /var/tmp/moondelta-s5/trace.raw --size-mib 256
 
       - name: Build the minimal guest initramfs
         run: |
@@ -183,7 +188,7 @@ jobs:
         run: |
           set -eo pipefail
           sudo -E python3 artifacts/acceptance/powerloss/run_powerloss.py \
-            --image /var/tmp/moondelta-s5/data.raw \
+            --image /var/tmp/moondelta-s5/trace.raw \
             --kernel "/boot/vmlinuz-$GUEST_KERNEL_RELEASE" \
             --initramfs /var/tmp/moondelta-s5/initramfs.cpio.gz \
             --delta-cli _build/native/debug/build/cmd/delta/delta.exe \
@@ -213,6 +218,8 @@ jobs:
           name: s5-powerloss-run-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             _build/s5-run/
+            !_build/s5-run/**/*.sock
+            !_build/s5-run/**/scratch/mnt-*
             _build/native/debug/build/cmd/delta/delta.exe
             _build/native/debug/build/examples/atomic_commit_worker/atomic_commit_worker.exe
           if-no-files-found: warn
