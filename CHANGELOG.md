@@ -14,6 +14,8 @@
 - `artifacts/acceptance/lock_threads.c`：同进程真实多线程锁竞争矩阵（S2），直接驱动 writer/恢复器所用的 C 锁原语
 - `artifacts/acceptance/powerloss/test_recover_interrupts.py`：S3 恢复器自身中断矩阵，在 `cleanup-unlinked`/`cleanup-dir-fsynced` 边界 SIGKILL `recover --apply` 后重复收敛
 - `ci.yml` 增加验收器内容回归、漏检闭合回归、POSIX 线程锁矩阵与 S3 中断矩阵步骤
+- S5 内容门槛生效后的 100 轮重跑（2026-11-12，run 43176818126，提交 `5fad340`，seed `1748647336`）：100/100 PASS、`failed=0`、`invalid=0`，17 个边界全覆盖，每轮核对 Schema/行值/数据文件摘要并双引擎逐行对照，`survived` 6 / `lost` 94；`commit-publish-dir-fsynced` 之后切断的 6 轮 6/6 存活。证据见 `artifacts/acceptance/powerloss/ci-2026-11-12-content/`（首轮 `ci-2026-11-12/` 更正为历史记录，其断言不含内容对照）
+- 同进程多线程锁矩阵与 S3 恢复器中断矩阵在 Linux CI 首次实跑通过（run 43175755157，日志见 `artifacts/acceptance/transaction-2026-11-12-review/ci-43175755157/`）
 
 ### Changed
 

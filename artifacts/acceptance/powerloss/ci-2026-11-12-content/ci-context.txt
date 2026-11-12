@@ -1,0 +1,8 @@
+workflow=S5 power-loss matrix
+runId=43176818126
+runAttempt=1
+sha=5fad340992a3d8ef8b707d8fb5387aec7128325d
+ref=main
+runnerName=GitHub Actions 1000000425
+imageOS=ubuntu24
+imageVersion=20261101.360.1

@@ -1,6 +1,6 @@
 # S5 掉电持久性 harness：可执行装置与验收规则
 
-状态：**已实跑、内容门槛修正后待重跑（2026-11-12）**。手动 CI（run 43157333594，固定 `ubuntu-24.04`）在 KVM 加速的 QEMU guest + 可丢弃 ext4 + 易失 NBD 模型上完成 100 轮有效切断，100/100 轮满足**当时**的断言，并由本项目 reader 与 delta-rs 逐轮读回。记录见 [ci-2026-11-12](ci-2026-11-12/README.md)。2026-11-12 复验发现这些断言只核对版本/结构/引用长度，没有核对 Schema、行值与数据文件摘要，因此**不能**声明“内容一致”；验收器已补齐内容一致性（见 §5），修正后的 100 轮尚未重跑，完整事务验收仍为 `NOT_PASSED`（[复验记录](../transaction-2026-11-12-review/README.md)）。结论**只覆盖该记录的精确配置**；Windows 仍标记「强持久性不支持 / 未验证」。
+状态：**PASSED（2026-11-12，内容一致性门槛生效后的 100 轮）**，记录见 [ci-2026-11-12-content](ci-2026-11-12-content/README.md)（run 43176818126，提交 `5fad340`，seed `1748647336`）：100 轮有效切断 100/100 PASS、`failed=0`、`invalid=0`，且**每轮**都通过 Schema/行值/数据文件摘要的双引擎对照。更早的 [ci-2026-11-12](ci-2026-11-12/README.md)（run 43157333594）只覆盖版本、结构与“双引擎可读”，保留为历史记录，**不能用来说明内容正确**；两处漏检的复现与修正见 [复验记录](../transaction-2026-11-12-review/README.md)。结论**只覆盖该记录的精确配置**；Windows 仍标记「强持久性不支持 / 未验证」。
 
 ## 1. 为什么单独设门禁
 
@@ -144,6 +144,7 @@ python3 artifacts/acceptance/powerloss/run_powerloss.py \
 - `test_verifier.py`：正例（干净表，结构模式与内容模式各一）+ 4 个结构类反例（截断 JSON、删除被引用 parquet、自有 intent 摘要冲突、日志缺口）+ 3 个**内容类**反例（同长度 payload 篡改、Schema 变更、数据文件摘要不符）+ 2 个“合法残留”形状（未发布的 intent 临时文件、输给其它事务的 intent）+ 2 个判决反例（伪造 delta-rs 行数、缺少内容对照的轮次必须 FAILED）；
 - `selfcheck.py` 全绿：C 侧可发出的 17 个边界名与 `boundaries.json` 完全一致、guest/编排器 cmdline 契约一致、切断顺序 QEMU→NBD、100 轮计划覆盖全部必需边界；
 - **2026-11-12 内容门槛修正（本机 Windows Native + 项目 reader/delta-rs）**：`verify_round.py` 现在要求基线 Schema/行摘要/数据文件摘要与双引擎逐行对照。`check_verifier_gaps_closed.py` 证明两处漏检已关闭（同长度篡改：结构模式仍 `ok=true`，内容模式被拒；伪造 delta-rs 行数：判 `FAILED`），`test_verifier.py` 13 项全过，`selfcheck.py` 全绿，`moon test --target native` 56/56；同进程真实多线程锁矩阵在 Windows 上 5 组竞争全过（`../transaction-2026-11-12-review/lock-threads-windows.log`）。
+- **2026-11-12 内容门槛生效后的 100 轮（CI run 43176818126，提交 `5fad340`）**：100/100 PASS、`failed=0`、`invalid=0`，17 个边界全部覆盖，`commit-publish-dir-fsynced` 之后切断的 6 轮提交 6/6 存活、其余 94 轮按“提交丢失”收敛；每一轮都同时满足 Schema 逐字段一致、project 与 delta-rs 行数/逐行摘要一致且等于 host 预期、既有数据文件摘要不变。逐轮分支分布：`survived` 6 / `lost` 94。记录见 [ci-2026-11-12-content](ci-2026-11-12-content/README.md)。
 
 已在 CI 实跑通过（2026-11-12，run 43157333594）：
 
@@ -156,14 +157,14 @@ python3 artifacts/acceptance/powerloss/run_powerloss.py \
 
 仍未验证 / 不在范围内：
 
-- **内容一致性尚未在 100 轮矩阵上重跑**：2026-11-12 复验用同长度 payload 篡改与伪造 delta-rs 行数复现了两处漏检，验收器已补齐（`artifacts/acceptance/transaction-2026-11-12-review/verifier-gap-closure.json` 证明反例现已被拒），但修正后的 100 轮尚未执行，因此不得引用旧的 100 轮结果声称“内容一致”；
 - Windows / NTFS：本结果不提供任何断电保证，仍标记「不支持 / 未验证」（`lock_threads.c` 的 Windows 记录只覆盖进程内锁竞争，不是掉电证据）；
+- 同进程多线程并发执行**完整写入流程**：锁原语本身已通过同进程真实线程竞争测试，但库不承诺“同一表上的写操作可被多个线程同时提交”，调用方需串行化（见 `README.md` 的并发契约说明）；
 - 其它 host 镜像、内核、文件系统（macOS、WSL `/mnt/*`、NFS/SMB/FUSE）、对象存储与真实硬件缓存行为；
 - `ubuntu-24.04` 镜像滚动后属于新配置，需要重新取证。
 
 ## 7. 与项目状态的关系
 
-- S5 的 2026-11-12 实跑证明的是**当时断言**覆盖的性质（版本、结构、引用长度、双引擎可读、指定同步边界存活）；声明范围严格限定在 `ci-2026-11-12/README.md` 记录的 host 镜像 / guest kernel / ext4 选项 / QEMU / NBD 设备模型；
-- 2026-11-12 复验发现这些断言不核对 Schema/行值/数据文件摘要，属可复现的验收器漏检（不是已观测到的 writer 损坏）。内容一致性已补齐并在小规模上被反例验证（`../transaction-2026-11-12-review/verifier-gap-closure.json`），但**完整事务验收仍为 `NOT_PASSED`，直到修正后的 100 轮矩阵重跑**；
+- S5 的 2026-11-12 内容门槛重跑（run 43176818126）在**内容一致性生效后**通过 100 轮：版本、结构、Schema、行值与数据文件摘要全部核对，声明范围严格限定在 `ci-2026-11-12-content/README.md` 记录的 host 镜像 / guest kernel / ext4 选项 / QEMU / NBD 设备模型；
+- 更早的 run 43157333594 保留为历史记录：它只证明版本/结构/引用长度/双引擎可读性，不能用于“内容一致”的声明。两者不可混用；
 - `artifacts/acceptance/transaction-2026-11-11/results-100.json` 记录当时的状态（`power_loss: NOT_TESTED`），属历史证据，不被新结果改写；
 - 本目录同时保留 WSL2 冒烟记录（`smoke-wsl-2026-11-12/`，恒为 `INVALID`）与 CI 运行记录；Windows 仍只声明进程崩溃一致性。

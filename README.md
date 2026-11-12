@@ -28,7 +28,9 @@ MoonBit 原生的 **Delta Lake 表格式内核**：回放 `_delta_log` 事务日
 -  CLI：`inspect / history / scan / read / create / recover / query / manage / version`；错误输出到 stderr、非 0 退出码、未知参数/缺值报错
 -  56 个单元测试（含 SHA-256 FIPS 向量、txn ID 唯一性、intent/查询/恢复/锁语义，以及原有 primitive、嵌套、协议门控、checkpoint 与原子发布用例）
 -  Linux 事务集成：100 轮 JSON 发布前确定性竞争、连续 reader、冲突重试；23 项故障注入（20 个 syscall/intent + 3 个建表目录/version 0 同步）；SIGKILL 残留恢复、dry-run/受管 apply、历史保护、日志缺口、锁忙、未知文件保留、txn ID 并发唯一性、writer 暂停在数据与 JSON 发布之间时恢复器只得到 busy、清理 unlink 失败后保留 intent 并可重试收敛、真实 `remove` 动作与 checkpoint 引用保护、checkpoint-only 与多部分 checkpoint/不支持协议只报告不删除、软链接保留、真实 commit-unknown 结果查询为 committed。证据见 [事务复验](artifacts/acceptance/transaction-2026-11-11/README.md) 与 `results.json`
--  Windows 事务验收：独立脚本覆盖 intent/提交/清理、查询状态、恢复策略、未知文件保留、跨进程 `LockFileEx` 互斥与并发 txn ID 唯一性（`artifacts/acceptance/test_transactions_windows.py`）。远端 CI 尚未运行。
+-  Windows 事务验收：独立脚本覆盖 intent/提交/清理、查询状态、恢复策略、未知文件保留、跨进程 `LockFileEx` 互斥与并发 txn ID 唯一性（`artifacts/acceptance/test_transactions_windows.py`）。远端 CI（Linux + Windows 两个 job）已实际运行并保持通过
+-  并发契约：维护锁原语在**同一进程的多线程**并发调用下已验证（`artifacts/acceptance/lock_threads.c`：独占互斥、共享共存、busy 可见、句柄不泄漏；POSIX 由 CI 运行，Windows 已记录）；但库不承诺同一进程内多个线程并发执行完整写入流程——对同一表的写操作需由调用方串行化，跨进程互斥由维护锁保证
+-  S3 恢复器自身中断矩阵：在 `cleanup-unlinked` / `cleanup-dir-fsynced` 边界连续 SIGKILL `recover --apply`，重复 apply 收敛且只删归属明确的垃圾（`artifacts/acceptance/powerloss/test_recover_interrupts.py`，POSIX，CI 运行）
 
 已用真实数据验证（均为仓库 fixture 读取，D1 已复核）：delta-rs `table_a`（13 个版本回放 → 120 个文件，仓库只含日志、不含数据文件）、Databricks 写出的 COVID-19_NYT 表的 1 个数据文件（157,865 行 6 列，snappy；该表共 8 个数据文件，其余 7 个未入库）。
 
@@ -126,7 +128,7 @@ for entry in preview.entries {
 | 删除向量 | JSON 与 checkpoint 的 `add.deletionVector` 均拒绝 | column mapping、v2 checkpoint、CDF、MERGE/UPDATE/DELETE |
 | 存储 | 本地文件系统 | 对象存储（S3/R2） |
 | 事务与恢复 | OS 随机 txn ID、持久 intent、`query_transaction`、dry-run / 显式受管 apply 清理、POSIX `flock` 与 Windows `LockFileEx` 维护锁 | 跨请求 exactly-once operation ID、历史 VACUUM / 日志过期、分区表 append |
-| 断电持久性 | 已在指定 CI 配置下跑完 100 轮有效切断（`artifacts/acceptance/powerloss/ci-2026-11-12/`），但该轮断言未核对内容一致性；补齐内容门槛后需重跑，当前完整事务验收为 `NOT_PASSED`（见 `artifacts/acceptance/transaction-2026-11-12-review/`）；结论仅覆盖该记录的 host 镜像/内核/ext4/设备模型 | 不宣称 Windows NTFS、WSL `/mnt/*`、NFS/SMB/FUSE 的强持久性 |
+| 断电持久性 | 已在指定 CI 配置下通过 100 轮有效切断，且每轮核对 Schema/行值/数据文件摘要并双引擎逐行对照（run 43176818126，见 `artifacts/acceptance/powerloss/ci-2026-11-12-content/`）；结论仅覆盖该记录的 host 镜像/内核/ext4/设备模型 | 不宣称 Windows NTFS、WSL `/mnt/*`、NFS/SMB/FUSE 的强持久性 |
 
 分区值回填覆盖 11 种 primitive；date 同时接受 `YYYY-MM-DD` 与 epoch 天数，timestamp 分区值使用 epoch 微秒。`add.stats` 必须是 JSON 编码字符串；非字符串或损坏内容直接报错。CLI 成功退出 0，错误走 stderr 并以非 0 退出。
 
@@ -147,8 +149,8 @@ for entry in preview.entries {
 
 完整路线图见 [docs/ROADMAP.md](docs/ROADMAP.md)，事务阶段验收见 [docs/S1-S5事务验收路线图.md](docs/S1-S5事务验收路线图.md)。0.4.0 已完成 M1–M4、S1–S3 的代码与本机验收，当前剩余重点：
 
-- S5 掉电持久性：手动 CI（`.github/workflows/s5-powerloss.yml`，run 43157333594）已跑完 100 轮有效切断，但该轮断言只核对版本/结构/引用长度与双引擎可读，未核对 Schema、行值与数据文件摘要；验收器已补内容一致性（基线 Schema/行摘要/文件摘要 + 双引擎逐行对照）并有两处漏检的闭合回归，**修正后的 100 轮尚未重跑**，因此完整事务验收仍为 `NOT_PASSED`；证据与精确配置见 `artifacts/acceptance/powerloss/ci-2026-11-12/` 与 `artifacts/acceptance/transaction-2026-11-12-review/`；Windows NTFS 仍未验证；
-- 远端 CI 已实际运行（run 43160975199 两平台成功），后续改动需保持绿；
+- S5 掉电持久性：手动 CI（`.github/workflows/s5-powerloss.yml`）已完成 100 轮有效切断。2026-11-12 复验发现首轮断言只核对版本/结构/引用长度，未核对内容；验收器补齐基线 Schema/行摘要/文件摘要与双引擎逐行对照后，用同一 seed 重跑（run 43176818126）100/100 PASS、`failed=0`、`invalid=0`，证据见 `artifacts/acceptance/powerloss/ci-2026-11-12-content/`；首轮 `ci-2026-11-12/` 保留为历史。Windows NTFS 仍未验证；
+- 远端 CI 已实际运行并保持通过（两平台 job + 验收器内容回归 + POSIX 线程锁矩阵 + S3 恢复器中断矩阵）；
 - 发布包含本轮事务加固的新版本并复核 registry 安装；
 - 补带时区/精度语义的 `timestamp_ntz`、timestamp millis/nanos；
 - ZSTD/GZIP/BROTLI 解压、分区表 append、对象存储（S3/R2）、CDF、Float/Timestamp 写入；
