@@ -1,0 +1,36 @@
+﻿2026-11-12T07:31:21.4178016Z ##[group]Run mkdir -p _build/transaction-acceptance
+^[[36;1mmkdir -p _build/transaction-acceptance^[[0m
+^[[36;1mpython -u artifacts/acceptance/powerloss/test_recover_interrupts.py \^[[0m
+^[[36;1m  --worker _build/native/debug/build/examples/atomic_commit_worker/atomic_commit_worker.exe \^[[0m
+^[[36;1m  --delta-cli _build/native/debug/build/cmd/delta/delta.exe \^[[0m
+^[[36;1m  --json _build/transaction-acceptance/recover-interrupts.json \^[[0m
+^[[36;1m  | tee _build/transaction-acceptance/recover-interrupts.out^[[0m
+shell: /usr/bin/bash -e {0}
+env:
+  pythonLocation: /opt/hostedtoolcache/Python/3.12.16/x64
+  PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.16/x64/lib/pkgconfig
+  Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.16/x64
+  Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.16/x64
+  Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.16/x64
+  LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.16/x64/lib
+##[endgroup]
+[cleanup-unlinked] interrupt recover --apply 2x, then converge
+  ok    cleanup-unlinked: the recoverer was interrupted at the announced boundary  announced=['cleanup-unlinked', 'cleanup-unlinked']
+  ok    cleanup-unlinked: the restarting recoverer succeeds  cccccccccccccc.parquet.moondelta-tmp-cccccccccccccccccccccccccccccccc (transaction-pinned temporary data name (already absent))
+  delete /tmp/moondelta-recover-interrupt-ivxm_8gx/case-1/.moondelta/intents/cccccccccccccccccccccccccccccccc.json (transaction intent removed after its files were settled)
+  ok    cleanup-unlinked: the interrupted transaction's garbage is gone  files=[] intent=False
+  ok    cleanup-unlinked: every pre-existing file is byte-identical  changed or missing: []
+  ok    cleanup-unlinked: a second apply deletes nothing  counts={'mode': 'apply', 'managed': 'true', 'busy': 'false', 'logComplete': 'true', 'deleted': 0, 'kept': 0} rc=0
+  ok    cleanup-unlinked: both engines still read the same content  ok=True version=2 digest=a0560f2ad3c76ad3e06c77691eeb2b5a77cefeea876ffaf79f147d63ac10dce8 expected=a0560f2ad3c76ad3e06c77691eeb2b5a77cefeea876ffaf79f147d63ac10dce8
+  ok    cleanup-unlinked: a writer can append after recovery  rc=0 version=3 problems=[]
+[cleanup-dir-fsynced] interrupt recover --apply 2x, then converge
+  ok    cleanup-dir-fsynced: the recoverer was interrupted at the announced boundary  announced=['cleanup-dir-fsynced', 'cleanup-dir-fsynced']
+  ok    cleanup-dir-fsynced: the restarting recoverer succeeds  cccccccccccccc.parquet.moondelta-tmp-cccccccccccccccccccccccccccccccc (transaction-pinned temporary data name (already absent))
+  delete /tmp/moondelta-recover-interrupt-ivxm_8gx/case-2/.moondelta/intents/cccccccccccccccccccccccccccccccc.json (transaction intent removed after its files were settled)
+  ok    cleanup-dir-fsynced: the interrupted transaction's garbage is gone  files=[] intent=False
+  ok    cleanup-dir-fsynced: every pre-existing file is byte-identical  changed or missing: []
+  ok    cleanup-dir-fsynced: a second apply deletes nothing  counts={'mode': 'apply', 'managed': 'true', 'busy': 'false', 'logComplete': 'true', 'deleted': 0, 'kept': 0} rc=0
+  ok    cleanup-dir-fsynced: both engines still read the same content  ok=True version=2 digest=a0560f2ad3c76ad3e06c77691eeb2b5a77cefeea876ffaf79f147d63ac10dce8 expected=a0560f2ad3c76ad3e06c77691eeb2b5a77cefeea876ffaf79f147d63ac10dce8
+  ok    cleanup-dir-fsynced: a writer can append after recovery  rc=0 version=3 problems=[]
+
+RECOVER INTERRUPT MATRIX: PASS (2 boundaries, 2 interruption(s) each)

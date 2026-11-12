@@ -1,0 +1,39 @@
+﻿2026-11-12T07:31:00.3119340Z ##[group]Run python -u artifacts/acceptance/transaction-2026-11-12-review/check_verifier_gaps_closed.py \
+^[[36;1mpython -u artifacts/acceptance/transaction-2026-11-12-review/check_verifier_gaps_closed.py \^[[0m
+^[[36;1m  --worker _build/native/debug/build/examples/atomic_commit_worker/atomic_commit_worker.exe \^[[0m
+^[[36;1m  --delta-cli _build/native/debug/build/cmd/delta/delta.exe^[[0m
+shell: /usr/bin/bash -e {0}
+env:
+  pythonLocation: /opt/hostedtoolcache/Python/3.12.16/x64
+  PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.16/x64/lib/pkgconfig
+  Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.16/x64
+  Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.16/x64
+  Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.16/x64
+  LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.16/x64/lib
+##[endgroup]
+{
+  "gapsClosed": true,
+  "probes": {
+    "sameSizePayloadEdit": {
+      "bytes": 4301,
+      "changedOffset": 64,
+      "structuralOnlyOk": true,
+      "contentVerificationOk": false,
+      "problems": [
+        "content mismatch (survived): project reader returned 2 rows with digest set 68053a2bceac7527, expected 2 rows with a0560f2ad3c76ad3",
+        "content mismatch (survived): delta-rs returned 2 rows with digest set 68053a2bceac7527, expected 2 rows with a0560f2ad3c76ad3",
+        "data file changed content after the cut: part-4096-1-0633261cfb1484ec50588740bd834e64.parquet was b2c7a2f1196cf872 (4301 bytes) and is now a870ba18605fb7dd (4301 bytes)"
+      ],
+      "closed": true
+    },
+    "forgedDeltaRsRows": {
+      "injectedRows": 999999,
+      "soundVerdict": "PASS",
+      "forgedVerdict": "FAILED",
+      "forgedReasons": [
+        "row counts disagree across engines/expectation: {'project': 2, 'deltaRs': 2, 'expected': 2, 'inspect': 2, 'reportedDeltaRs': 999999}"
+      ],
+      "closed": true
+    }
+  }
+}

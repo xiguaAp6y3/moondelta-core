@@ -553,7 +553,20 @@ def baseline_from_report(report: dict) -> dict | None:
 
     The host records this from its own read of the cut image — the state the
     next boot will replay into — so no later comparison ever trusts the guest.
+    Two shapes reach this function: the clean setup boot records its state
+    directly (`report["baseline"]`, no expectation exists yet), while a cut
+    round is verified *against* an expectation and reports the observed content
+    under `report["content"]`.
     """
+    recorded = report.get("baseline")
+    if isinstance(recorded, dict) and isinstance(recorded.get("rowDigests"), list) \
+            and recorded.get("baseVersion") is not None:
+        return {
+            "baseVersion": recorded["baseVersion"],
+            "schemaString": recorded.get("schemaString"),
+            "rowDigests": recorded["rowDigests"],
+            "files": recorded.get("files") or {},
+        }
     content = report.get("content") or {}
     project = content.get("project") or {}
     if not content.get("ok") or not content.get("branch"):

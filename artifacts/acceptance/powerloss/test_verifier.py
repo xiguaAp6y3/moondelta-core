@@ -143,6 +143,12 @@ def main() -> int:
            str(captured["problems"])[:200])
     report("baseline version is 1", (baseline or {}).get("baseVersion") == 1,
            f"got {(baseline or {}).get('baseVersion')}")
+    if baseline is None:
+        print("\nerror: no baseline means the content cases cannot run; fix the capture first",
+              file=sys.stderr)
+        if not args.keep and not args.workdir:
+            shutil.rmtree(base, ignore_errors=True)
+        return 1
 
     expected = dict(baseline or {})
     expected["appendRow"] = {"id": 1001, "payload": "x" * 8192}

@@ -111,7 +111,8 @@ S5 的已证明范围仍严格限定为记录中的 CI 镜像、QEMU/KVM、guest
 | `test_verifier.py` | 13 项全过：干净表（结构/内容两模式）、4 个结构类反例、3 个内容类反例、2 个合法残留、2 个判决反例 |
 | `check_verifier_gaps_closed.py` | `gapsClosed: true`；同长度篡改在结构模式仍 `ok=true`，在内容模式被拒；伪造行数判 `FAILED` |
 | `selfcheck.py` | 全绿（新增内容期望契约与 S3 矩阵边界一致性检查） |
-| `lock_threads.c`（Windows） | 5 组竞争全过；此前记录仅有多进程与顺序多句柄 |
+| `lock_threads.c`（Windows，本机） | 5 组竞争全过；此前记录仅有多进程与顺序多句柄 |
+| 上述四项在 Linux CI（run 43175755157） | 全部通过，原始输出见 `ci-43175755157/` |
 
 原始输出：`selftest-verifier.log`、`selfcheck.log`、`verifier-gap-closure.json`、`lock-threads-windows.log`、`verifier-gap-repro.log`（后者为“旧脚本已失效”的记录）。
 
@@ -120,6 +121,18 @@ S5 的已证明范围仍严格限定为记录中的 CI 镜像、QEMU/KVM、guest
 - **修正后的 100 轮 S5 矩阵尚未重跑**，因此 `Schema/行值/数据文件摘要全部正确` 这一 S5 门槛目前只有小规模反例证据，没有矩阵证据。重跑入口：`s5-powerloss.yml`（`workflow_dispatch`），跑完后新结果必须覆盖本文件开头引用的旧记录，不能混用。
 - S3 中断矩阵与 POSIX 线程矩阵的**首次真实执行**在 CI 上完成；本机（Windows）无法替代。
 - 旧记录 `ci-2026-11-12/results-100.json` 保持原样，其结论范围现在应读作“版本/结构/引用长度/双引擎可读性通过”，不再读作“内容一致”。
+
+### CI 首跑（2026-11-12，run 43175755157 / S5 run 43175801064）
+
+推送 `ae8685e` 后立即实跑，两个仍未验证假设各被证伪一次，均已修复：
+
+1. **Linux job 全绿**，新增的四项在真实 CI 上首次执行并通过（原始输出见 `ci-43175755157/`）：
+   - `test-verifier-linux.log`：验收器 13 项全过；
+   - `gap-closure-linux.log`：两处漏检闭合（`gapsClosed: true`）；
+   - `lock-threads-posix.log`：POSIX `flock` 下同进程真实多线程 5 组竞争全过；
+   - `recover-interrupts-posix.log`：S3 中断矩阵 PASS（`cleanup-unlinked` 与 `cleanup-dir-fsynced` 各连续中断 2 次后收敛，PRE-EXISTING 文件逐字节不变、二次 apply `deleted=0`、双引擎 digest 相同、恢复后可写入）。
+2. **Windows job 失败**：该 job 只构建了 worker，没有 `delta.exe`，验收器把“读者不存在”报成 `WinError 2`。已改为同时构建 worker 与 CLI；同时让 `test_verifier.py` 在基线缺失时明确失败而不是抛 `KeyError`。
+3. **S5 首轮矩阵在 `prepare` 阶段失败**：`baseline_from_report()` 只认“内容模式”的报告结构，而干净基线 boot 走的是“记录模式”，于是基线被判为空（`baseVersion=2` 但 `reasons` 非空）。已让该函数优先读取 `report["baseline"]`。这一条正是“装置写完 ≠ 装置能跑”的例证：小规模用例全过，仍不能替代一次真实矩阵。
 
 复现本轮检查：
 

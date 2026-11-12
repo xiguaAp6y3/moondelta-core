@@ -128,8 +128,8 @@ jobs:
       - name: Test
         run: moon test --target native
 
-      - name: Build transaction test worker
-        run: moon build --target native src/examples/atomic_commit_worker
+      - name: Build transaction test worker and CLI
+        run: moon build --target native src/examples/atomic_commit_worker src/cmd/delta
 
       - uses: actions/setup-python@v5
         with:

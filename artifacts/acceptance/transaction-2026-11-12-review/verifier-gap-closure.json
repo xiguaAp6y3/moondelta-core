@@ -9,7 +9,7 @@
       "problems": [
         "content mismatch (survived): project reader returned 2 rows with digest set 68053a2bceac7527, expected 2 rows with a0560f2ad3c76ad3",
         "content mismatch (survived): delta-rs returned 2 rows with digest set 68053a2bceac7527, expected 2 rows with a0560f2ad3c76ad3",
-        "data file changed content after the cut: part-4096-1-435fba6a0dc3785ec34cd6f31d083691.parquet was b2c7a2f1196cf872 (4301 bytes) and is now a870ba18605fb7dd (4301 bytes)"
+        "data file changed content after the cut: part-4096-1-5e9b090955a596aed852dc839768b05a.parquet was b2c7a2f1196cf872 (4301 bytes) and is now a870ba18605fb7dd (4301 bytes)"
       ],
       "closed": true
     },
