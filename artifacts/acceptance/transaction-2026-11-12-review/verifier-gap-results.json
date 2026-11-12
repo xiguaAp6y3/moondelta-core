@@ -1,0 +1,21 @@
+{
+  "second_reader_wrong_rows": {
+    "injectedRows": 999999,
+    "verdict": "PASS",
+    "reasons": []
+  },
+  "same_size_changed_payload": {
+    "bytes": 4301,
+    "changedOffset": 64,
+    "expectedPayloadPrefix": "xxxxxxxxxxxxxxxx",
+    "actualPayloadPrefix": "yxxxxxxxxxxxxxxx",
+    "verifierOk": true,
+    "problems": [],
+    "deltaRs": {
+      "status": "PASSED",
+      "returncode": 0,
+      "version": 1,
+      "rows": 1
+    }
+  }
+}
